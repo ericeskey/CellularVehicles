@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Convergence Engine · watch belief form</title>
+<link rel="stylesheet" href="assets/colors_and_type.css" />
+<style>
+  body { background: var(--paper); color: var(--ink); margin: 0; font-family: var(--font-sans); }
+  .masthead { border-top: var(--masthead-rule) solid var(--ink); display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 16px var(--gutter) 0; }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--ash); text-transform: uppercase; }
+
+  .head { padding: 32px var(--gutter) 16px; }
+  .head .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
+  .head h1 { font-size: clamp(26px, 3.4vw, 42px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 1.0; margin: 14px 0 0; max-width: 24ch; }
+  .head h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
+  .head .sub { font-size: 15px; line-height: 1.55; color: var(--ash); max-width: 72ch; margin-top: 12px; }
+  .head .sub b { color: var(--ink); font-weight: var(--fw-medium); }
+
+  .bar { display: flex; align-items: center; gap: 14px; padding: 14px var(--gutter); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); flex-wrap: wrap; }
+  .applied { display: flex; gap: 7px; flex: 1; flex-wrap: wrap; }
+  .vchip { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 10px; border: 1px solid var(--fog); color: var(--fg3); }
+  .vchip.on { border-color: var(--ink); color: var(--paper); background: var(--ink); }
+  .ctrl { font-family: var(--font-sans); font-size: 13px; font-weight: var(--fw-medium); color: var(--ink); background: transparent; border: 1px solid var(--ink); padding: 9px 14px; cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease); white-space: nowrap; }
+  .ctrl:hover { background: var(--ink); color: var(--paper); }
+  .ctrl.primary { background: var(--ink); color: var(--paper); }
+  .ctrl.primary:hover { background: var(--ink-hover); }
+  .ctrl:disabled { opacity: 0.3; cursor: default; }
+  .ctrl:disabled:hover { background: transparent; color: var(--ink); }
+
+  .stagewrap { display: grid; grid-template-columns: 1fr 320px; }
+  .fieldcol { border-right: 1px solid var(--ink); }
+  .verdict { padding: 16px var(--gutter); border-bottom: 1px solid var(--fog); min-height: 64px; }
+  .vd-verdict { font-size: 17px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.3; }
+  .vd-verdict b { color: var(--signal); }
+  .vd-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ash); margin-top: 7px; }
+  .vd-meta b { color: var(--signal); }
+
+  svg { display: block; width: 100%; height: auto; }
+  .axis-lab { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--ash); }
+  .consensus-band { fill: var(--signal); opacity: 0.06; }
+  .cb-lab { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--signal); }
+  .node circle { transition: cx 0.7s var(--ease), cy 0.7s var(--ease), r 0.7s var(--ease), fill 0.5s var(--ease), opacity 0.5s var(--ease); cursor: pointer; }
+  .tip { position: fixed; display: none; pointer-events: none; z-index: 50; background: var(--ink); color: var(--paper); padding: 8px 11px; max-width: 240px; }
+  .tip b { display: block; font-size: 12.5px; font-weight: var(--fw-bold); line-height: 1.25; }
+  .tip span { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fog); display: block; margin-top: 4px; }
+  .tip span.cons { color: var(--signal); }
+
+  .detail { padding: 20px 22px; background: var(--bone); }
+  .det-empty { color: var(--ash); }
+  .det-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ash); }
+  .det-empty p { font-size: 14px; line-height: 1.55; margin-top: 12px; max-width: 32ch; }
+  .det-title { font-size: 17px; font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: 1.25; margin-top: 12px; }
+  .det-votes { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--signal); margin-top: 8px; }
+  .det-quote { font-family: var(--font-serif); font-style: italic; font-size: 18px; line-height: 1.4; margin-top: 14px; border-top: 1px solid var(--fog); padding-top: 14px; }
+  .det-in { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ash); margin-top: 14px; line-height: 1.8; }
+  .det-in .chip { color: var(--ink); border: 1px solid var(--fog); padding: 2px 7px; margin-right: 4px; display: inline-block; margin-bottom: 4px; }
+  .det-in .chip.off { color: var(--fg3); border-style: dashed; }
+
+  .foot { padding: 20px var(--gutter) 56px; border-top: 1px solid var(--ink); }
+  .legend { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ash); line-height: 1.8; }
+  .legend b { color: var(--ink); font-weight: var(--fw-medium); }
+  .legend .sig { color: var(--signal); }
+
+  /* ---- priors board (the bookend: stated at entry, judged at close) ---- */
+  .priors { }
+  .priors-head { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ash); }
+  .priors-lede { font-size: 12.5px; line-height: 1.5; color: var(--ash); margin-top: 9px; }
+  .priors-lede b { color: var(--ink); font-weight: var(--fw-medium); }
+  .pcard { border-top: 1px solid var(--fog); padding: 13px 0; }
+  .pcard:first-of-type { margin-top: 14px; }
+  .pc-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg3); }
+  .pc-belief { font-size: 15px; font-weight: var(--fw-bold); letter-spacing: -0.012em; line-height: 1.25; margin-top: 5px; transition: color var(--dur) var(--ease); }
+  .pc-row { font-size: 11.5px; line-height: 1.45; color: var(--ash); margin-top: 7px; }
+  .pc-k { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg3); display: block; margin-bottom: 1px; }
+  .pc-verdict { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--fog); }
+  .pc-vlabel { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); }
+  .pc-vlabel .gl { margin-right: 6px; font-weight: var(--fw-medium); }
+  .pc-vnote { font-size: 11.5px; line-height: 1.5; color: var(--ink); margin-top: 6px; }
+  .pcard.overturned .pc-belief { color: var(--ash); text-decoration: line-through; text-decoration-color: var(--fog); text-decoration-thickness: 1px; }
+  .pcard.overturned .pc-vlabel { color: var(--ash); }
+  .emergent { border-left: 3px solid var(--signal); padding: 6px 0 6px 15px; margin-top: 20px; }
+  .emergent .pc-tag { color: var(--signal); }
+  .em-belief { font-size: 16.5px; font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: 1.2; margin-top: 6px; }
+  .em-note { font-size: 12px; line-height: 1.5; color: var(--ash); margin-top: 8px; }
+  .det-empty .held { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--fog); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ash); max-width: none; }
+
+  @media (max-width: 980px) { .stagewrap { grid-template-columns: 1fr; } .detail { border-top: 1px solid var(--ink); } }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <span class="ref">Demand Discovery · R01 Martin</span>
+  </div>
+
+  <div class="head">
+    <div class="eyebrow">Watch belief form · independent readings vote</div>
+    <h1>Don’t take the finding. <em>Watch it converge.</em></h1>
+    <p class="sub">Every dot is one moment, fixed by <b>when it happened</b>. Apply a reading and it votes for the moments it seizes on — voted moments <b>rise and grow</b>. No single reading knows the answer; they vote independently. Watch where the votes <b>pile up</b> — and where they don’t.</p>
+  </div>
+
+  <div class="bar">
+    <div class="applied" id="applied"></div>
+    <button class="ctrl" id="reset">Reset</button>
+    <button class="ctrl" id="back">◁ Back</button>
+    <button class="ctrl primary" id="next">Apply next reading ▷</button>
+    <button class="ctrl" id="play">▸ Play</button>
+  </div>
+
+  <div class="stagewrap">
+    <div class="fieldcol">
+      <div class="verdict" id="verdict"></div>
+      <svg id="field" viewBox="0 0 1000 540" preserveAspectRatio="xMidYMid meet" aria-label="convergence field"></svg>
+    </div>
+    <div class="detail"><div id="detail"></div></div>
+  </div>
+  <div class="tip" id="tip"></div>
+
+  <div class="foot">
+    <div class="legend">
+      Height &amp; size = votes accumulated, computed from real structure in the data. A moment <span class="sig">ignites</span> at <b>four of seven readings</b> — the consensus threshold (Hawkins: independent frames voting).
+      The one-vote moments that never rise are <b>divergence</b>. The final step re-sorts the same moments by <b>the steps of his job</b> — the agreed-on core lands before the run, so the bottleneck was never speed. &nbsp;·&nbsp; Votes, not probabilities.
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="crux-data.js"></script>
+  <script src="casefile-atoms.js"></script>
+  <script src="odi-data.js"></script>
+  <script>
+  (function () {
+    const R = window.RESEARCH;
+    const EV = R.events.slice();
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const el = (n, a) => { const e = document.createElementNS(SVGNS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+    const uni = (arr) => [...new Set(arr)];
+
+    // ---- moment-linking: cross-namespace ids resolved onto the event substrate ----
+    const txEvents = {}; R.transformations.forEach(t => txEvents[t.id] = t.events || []);
+    const toSec = (s) => { if (!s) return null; const p = String(s).split(':').map(Number); return p.length === 3 ? p[0]*3600+p[1]*60+p[2] : p.length === 2 ? p[0]*60+p[1] : p[0]; };
+    // obs_ atoms → nearest event by timestamp (both carry real times; the interview is linear)
+    const atomToEvent = (atomId) => {
+      const a = R.atoms && R.atoms[atomId]; if (!a) return null;
+      const s = toSec(a.loc); if (s == null) return null;
+      let best = null, bd = Infinity; EV.forEach(e => { const d = Math.abs(e.t - s); if (d < bd) { bd = d; best = e.id; } });
+      return best;
+    };
+    const cruxEvents = uni([].concat(...(R.cruxes || []).map(c => (c.atoms || []).map(atomToEvent).filter(Boolean))));
+    // ODI outcomes → events by matching their evidence quotes against event quotes (automated, not hand-placed)
+    const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    const evQuotes = EV.map(e => ({ id: e.id, q: norm(e.quote) }));
+    const matchEvent = (snip) => { const n = norm(snip); if (n.length < 8) return null; let hit = null; evQuotes.forEach(e => { if (!hit && e.q && (e.q.includes(n) || n.includes(e.q.slice(0, 22)))) hit = e.id; }); return hit; };
+    const odiList = (window.ODI && window.ODI.ranked) ? window.ODI.ranked : [];
+    const outcomeEvents = uni([].concat(...odiList.map(o => (o.ev || []).map(x => matchEvent(x.t)).filter(Boolean))));
+
+    // ---- seven independent readings, each votes for the moments it seizes on ----
+    const voterSets = {
+      Chronology:     new Set(EV.filter(e => e.charge >= 3).map(e => e.id)),
+      Peaks:          new Set(uni([].concat(...R.peaks.map(p => p.events || [])))),
+      Narratives:     new Set(uni([].concat(...R.narratives.map(n => n.events || [])))),
+      Transformation: new Set(uni([].concat(...R.transformations.map(t => t.events || [])))),
+      Skills:         new Set(uni([].concat(...R.skills.map(s => [].concat(...(s.txs || []).map(tid => txEvents[tid] || [])))))),
+      Cruxes:         new Set(cruxEvents),
+      Outcomes:       new Set(outcomeEvents)
+    };
+    const ORDER = ['Chronology', 'Peaks', 'Narratives', 'Transformation', 'Skills', 'Cruxes', 'Outcomes'];
+
+    // ---- the room's priors: plausible market bets on a slow low-throughput sequencer ----
+    // Stated neutrally at entry (equal weight, nothing telegraphed); judged against the
+    // evidence at the close. Every verdict is grounded in the ODI opportunity ranking.
+    const PRIORS = [
+      { tag: 'The obvious bet', belief: 'Just make it faster.',
+        why: 'The run is long; results that miss the workday stall everything after them. The slow run is the visible pain.',
+        implies: 'pour the investment into run-time and faster chemistry.',
+        verdict: { state: 'reframed', label: 'Speed was a proxy',
+          note: 'He asks for “four hours” — but what four hours buys is a connected day: prep, run, result, decide, unbroken. The need under speed is continuity.' } },
+      { tag: 'The workflow read', belief: 'Automate the hands-on chemistry.',
+        why: 'Operators hand-prepare denaturation and washing — manual, fiddly, easy to get wrong.',
+        implies: 'engineer every wet-lab step out of the operator’s hands.',
+        verdict: { state: 'confirmed', label: 'Right — but only one step',
+          note: 'Not every chore. Denaturing specifically: his magic-wand wish, the top-ranked opportunity, fragile and outside the team’s expertise. Washing is merely tolerated.' } },
+      { tag: 'The UX read', belief: 'Give it a better interface.',
+        why: 'New users get lost and the machine throws errors; a clearer UI would carry them through.',
+        implies: 'redesign the on-instrument software and menus.',
+        verdict: { state: 'reframed', label: 'Not the menus',
+          note: 'The panel already earns trust — “it tells you step by step.” It goes cryptic at the one moment guidance is needed, forcing expert rescue. Fix diagnosability, not decoration.' } },
+      { tag: 'The economics read', belief: 'Scale throughput, cut cost per sample.',
+        why: 'A low-throughput run looks inefficient; more samples per run lowers the unit cost.',
+        implies: 'push capacity up and price per read down.',
+        verdict: { state: 'overturned', label: 'Misreads the job',
+          note: 'The small run isn’t inefficiency — it’s a deliberate QC gate that prevents a €10–20k NovaSeq mistake. Cost shows up as risk avoided, not unit price.' } }
+    ];
+    const EMERGENT = { belief: 'Keep the chain unbroken.',
+      note: 'The widest gap on the board was on no one’s list: continuity and pre-run readiness — prep → run → result → next run, without the chain breaking. The agreed-on core sits before the run. Readiness is the lever.' };
+    const GLYPH = { reframed: '↻', confirmed: '✓', overturned: '✕' };
+    const NVOT = ORDER.length;
+    const TH = 4; // consensus threshold: a moment ignites at 4+ of 7 independent readings
+    const votesAt = (id, k) => ORDER.slice(0, k).reduce((a, name) => a + (voterSets[name].has(id) ? 1 : 0), 0);
+    const votesAll = (id) => votesAt(id, NVOT);
+
+    // ---- beat 8: re-sort the SAME nodes by the steps of his job ----
+    // phase per event, assigned from each event's own quote (the steps of producing reliable data)
+    const PHASES = [
+      { k: 'Prepare',  pre: true },  { k: 'Set up',   pre: true },
+      { k: 'Denature', pre: true },  { k: 'Load',     pre: true },
+      { k: 'Run',      pre: false }, { k: 'Results',  pre: false },
+      { k: 'Decide',   pre: false }, { k: 'Cross-cutting', pre: false, aside: true }
+    ];
+    const phaseIdx = k => Math.max(0, PHASES.findIndex(p => p.k === k));
+    const EVENT_PHASE = {
+      'NE-001':'Cross-cutting','NE-002':'Cross-cutting','NE-003':'Cross-cutting','NE-004':'Cross-cutting',
+      'NE-005':'Cross-cutting','NE-006':'Cross-cutting','NE-007':'Decide','NE-008':'Set up',
+      'NE-009':'Set up','NE-010':'Set up','NE-011':'Set up','NE-012':'Cross-cutting',
+      'NE-013':'Cross-cutting','NE-014':'Results','NE-015':'Cross-cutting','NE-016':'Set up',
+      'NE-017':'Denature','NE-018':'Load','NE-019':'Denature','NE-020':'Denature',
+      'NE-021':'Decide','NE-022':'Prepare','NE-023':'Cross-cutting','NE-024':'Run',
+      'NE-025':'Results','NE-026':'Run','NE-027':'Cross-cutting','NE-028':'Results',
+      'NE-029':'Results','NE-030':'Denature','NE-031':'Run','NE-032':'Cross-cutting'
+    };
+    const phaseOf = id => EVENT_PHASE[id] || 'Cross-cutting';
+
+    function verdictFor(k) {
+      if (k === 0) return { v: 'Before the evidence — the bets the room would place on a slow sequencer. <b>Four plausible directions</b>, each pointed somewhere different. We’ll judge every one against what the interview actually votes for.', m: 'Prior · four hypotheses on the table' };
+      if (k >= NVOT) return { v: 'Seven independent readings, one consensus: <b>pre-run readiness</b> and the continuity it gates. The bottleneck was never speed.', m: 'Posterior · belief has moved' };
+      const last = ORDER[k - 1];
+      return { v: `Add <b>${last}</b>. The same moments keep being voted for — the core holds while the rest stays noise.`, m: `${k} of ${NVOT} readings applied` };
+    }
+
+    const W = 1000, H = 540, mL = 56, mR = 48, mT = 64, mB = 44;
+    const tMin = Math.min(...EV.map(e => e.t)), tMax = Math.max(...EV.map(e => e.t));
+    const x = t => mL + (t - tMin) / (tMax - tMin) * (W - mL - mR);
+    const yOf = v => (H - mB) - (v / NVOT) * (H - mB - mT);
+
+    let applied = 0, reorg = false, posterior = false, pinnedEv = null, playing = false, timer = null;
+    const svg = document.getElementById('field');
+    const isPriorsState = () => posterior || (!reorg && applied === 0);
+
+    function renderChips() {
+      document.getElementById('applied').innerHTML = ORDER.map((name, i) =>
+        `<span class="vchip${i < applied ? ' on' : ''}">${name}</span>`).join('') +
+        `<span class="vchip${reorg ? ' on' : ''}" style="margin-left:8px">↻ Re-sort</span>` +
+        `<span class="vchip${posterior ? ' on' : ''}">⊕ Priors weighed</span>`;
+      document.getElementById('back').disabled = applied === 0 && !reorg && !posterior;
+      const nxt = document.getElementById('next');
+      nxt.disabled = posterior;
+      nxt.textContent = posterior ? 'Belief has moved'
+        : reorg ? 'Weigh it against the priors ▷'
+        : applied >= ORDER.length ? 'Re-sort by his job ▷'
+        : 'Apply next reading ▷';
+    }
+    function renderVerdict() {
+      if (posterior) {
+        document.getElementById('verdict').innerHTML =
+          `<div class="vd-verdict">Same four bets, judged by seven readings. Speed was a proxy for <b>continuity</b>; the real lever was never on anyone’s list — <b>pre-run readiness</b>, the chain kept unbroken.</div>` +
+          `<div class="vd-meta">Posterior · belief has moved · <b>the bottleneck was never speed</b></div>`;
+        return;
+      }
+      if (reorg) {
+        const preRun = EV.filter(e => votesAll(e.id) >= TH && PHASES[phaseIdx(phaseOf(e.id))].pre).length;
+        const totalCons = EV.filter(e => votesAll(e.id) >= TH).length;
+        document.getElementById('verdict').innerHTML =
+          `<div class="vd-verdict">Now re-sort the same moments by the steps of his job. The consensus core slides <b>before the run even starts</b> — the bottleneck was never speed.</div>` +
+          `<div class="vd-meta"><b>${preRun}</b> of ${totalCons} agreed-on moments land in the pre-run steps</div>`;
+        return;
+      }
+      const d = verdictFor(applied);
+      const consensus = EV.filter(e => votesAt(e.id, applied) >= TH).length;
+      document.getElementById('verdict').innerHTML =
+        `<div class="vd-verdict">${d.v}</div><div class="vd-meta">${d.m} · <b>${consensus}</b> moment${consensus === 1 ? '' : 's'} at consensus</div>`;
+    }
+    function renderField() {
+      svg.innerHTML = '';
+      svg.appendChild(el('rect', { class: 'consensus-band', x: 0, y: yOf(NVOT) - 10, width: W, height: yOf(TH) - (yOf(NVOT) - 10) }));
+      svg.appendChild(el('line', { x1: mL, y1: yOf(TH), x2: W - mR, y2: yOf(TH), stroke: 'var(--signal)', 'stroke-width': 1, 'stroke-dasharray': '3 4', opacity: 0.5 }));
+      const cl = el('text', { class: 'cb-lab', x: W - 12, y: yOf(TH) + 2, transform: `rotate(-90 ${W - 12} ${yOf(TH) + 2})`, 'text-anchor': 'start' }); cl.textContent = 'consensus'; svg.appendChild(cl);
+      const ay = el('text', { class: 'axis-lab', x: 12, y: mT + 2, transform: `rotate(-90 12 ${mT + 2})` }); ay.textContent = 'votes accumulated →'; svg.appendChild(ay);
+
+      const NL = PHASES.length;
+      const laneX = i => mL + (i + 0.5) / NL * (W - mL - mR);
+
+      if (!reorg) {
+        const ax = el('text', { class: 'axis-lab', x: mL, y: H - 12 }); ax.textContent = '02:00  ——  interview time  ——  56:00'; svg.appendChild(ax);
+        EV.forEach(e => {
+          const v = votesAt(e.id, applied);
+          const r = 4 + v * 2.2;
+          const g = el('g', { class: 'node', 'data-ev': e.id });
+          g.appendChild(el('circle', { cx: x(e.t), cy: yOf(v), r, fill: v >= TH ? 'var(--signal)' : 'var(--ink)', opacity: v <= 1 ? 0.3 : 1 }));
+          svg.appendChild(g);
+        });
+        return;
+      }
+
+      // reorg: lanes by job phase
+      const runDx = mL + 4 / NL * (W - mL - mR);
+      svg.appendChild(el('line', { x1: runDx, y1: mT - 4, x2: runDx, y2: H - mB + 8, stroke: 'var(--ink)', 'stroke-width': 1, 'stroke-dasharray': '4 4', opacity: 0.55 }));
+      const lpre = el('text', { class: 'axis-lab', x: runDx - 8, y: H - 12, 'text-anchor': 'end' }); lpre.textContent = 'before the run'; svg.appendChild(lpre);
+      const lrun = el('text', { class: 'axis-lab', x: runDx + 8, y: H - 12 }); lrun.textContent = 'the run →'; svg.appendChild(lrun);
+      PHASES.forEach((p, i) => {
+        const t = el('text', { class: 'cb-lab', x: laneX(i), y: 18, 'text-anchor': 'middle', fill: p.pre ? 'var(--signal)' : 'var(--ash)' }); t.textContent = p.k; svg.appendChild(t);
+      });
+      const byPhase = {};
+      EV.forEach(e => { const p = phaseOf(e.id); (byPhase[p] = byPhase[p] || []).push(e); });
+      Object.keys(byPhase).forEach(pk => {
+        const arr = byPhase[pk].slice().sort((a, b) => votesAll(b.id) - votesAll(a.id));
+        const pi = phaseIdx(pk);
+        arr.forEach((e, idx) => {
+          const v = votesAll(e.id);
+          const r = 4 + v * 2.2;
+          const cx = laneX(pi) + (idx - (arr.length - 1) / 2) * 15;
+          const aside = PHASES[pi].aside;
+          const op = aside ? 0.22 : (v >= TH ? 1 : (v <= 1 ? 0.25 : 0.6));
+          const g = el('g', { class: 'node', 'data-ev': e.id });
+          g.appendChild(el('circle', { cx, cy: yOf(v), r, fill: (v >= TH && !aside) ? 'var(--signal)' : 'var(--ink)', opacity: op }));
+          svg.appendChild(g);
+        });
+      });
+    }
+    function renderPriors(judged) {
+      const cards = PRIORS.map((p, i) => {
+        const num = String(i + 1).padStart(2, '0');
+        const v = p.verdict;
+        let body = `<div class="pc-tag">Prior ${num} · ${p.tag}</div><div class="pc-belief">“${p.belief}”</div>`;
+        if (!judged) {
+          body += `<div class="pc-row"><span class="pc-k">Why it matters</span>${p.why}</div>` +
+            `<div class="pc-row"><span class="pc-k">If true, you’d</span>${p.implies}</div>`;
+        } else {
+          body += `<div class="pc-verdict"><div class="pc-vlabel"><span class="gl">${GLYPH[v.state]}</span>${v.label}</div><div class="pc-vnote">${v.note}</div></div>`;
+        }
+        return `<div class="pcard${judged ? ' ' + v.state : ''}">${body}</div>`;
+      }).join('');
+      const head = judged
+        ? `<div class="priors-head">The reckoning · before → after</div><div class="priors-lede">The same four bets, now judged by <b>what the interview voted for.</b></div>`
+        : `<div class="priors-head">What the room walks in believing</div><div class="priors-lede">Four plausible bets on a slow low-throughput sequencer. <b>Equal weight, for now</b> — we’ll come back to each.</div>`;
+      const emer = judged
+        ? `<div class="emergent"><div class="pc-tag">The belief that emerged</div><div class="em-belief">“${EMERGENT.belief}”</div><div class="em-note">${EMERGENT.note}</div></div>`
+        : '';
+      document.getElementById('detail').innerHTML = `<div class="priors">${head}${cards}${emer}</div>`;
+    }
+    function render() {
+      renderChips(); renderVerdict(); renderField();
+      if (posterior) renderPriors(true);
+      else if (!reorg && applied === 0) renderPriors(false);
+      else renderDetail(pinnedEv);
+    }
+
+    function votersCiting(id, kHighlight) {
+      return ORDER.map((name, i) => ({ name, on: voterSets[name].has(id), applied: i < applied }));
+    }
+    function renderDetail(ev) {
+      const d = document.getElementById('detail');
+      if (!ev) { d.innerHTML = `<div class="det-empty"><div class="det-eyebrow">Trace</div><p>Hover any moment for a glance. Click to keep its words and votes here.</p><p class="held">Four priors held · judged at the end ▸</p></div>`; return; }
+      const total = votesAll(ev.id);
+      const chips = ORDER.map(name => {
+        const on = voterSets[name].has(ev.id);
+        return `<span class="chip${on ? '' : ' off'}">${name}${on ? '' : ' —'}</span>`;
+      }).join('');
+      d.innerHTML = `<div class="det-eyebrow">${ev.time} · ${ev.kind}</div>
+        <div class="det-title">${ev.title}</div>
+        <div class="det-votes">${total} of ${NVOT} readings voted${total >= TH ? ' · consensus' : ''}</div>
+        <div class="det-quote">“${ev.quote}”</div>
+        <div class="det-in">voted for by ${chips}</div>`;
+    }
+
+    function go(n) {
+      // 0..NVOT = readings; NVOT+1 = reorg; NVOT+2 = posterior (priors judged)
+      if (n >= NVOT + 2) { applied = NVOT; reorg = true; posterior = true; }
+      else if (n > NVOT) { applied = NVOT; reorg = true; posterior = false; }
+      else { applied = Math.max(0, Math.min(NVOT, n)); reorg = false; posterior = false; }
+      render();
+    }
+    const cur = () => (posterior ? NVOT + 2 : reorg ? NVOT + 1 : applied);
+    function stopPlay() { playing = false; if (timer) clearTimeout(timer); document.getElementById('play').textContent = '▸ Play'; }
+    function step() { if (!playing) return; if (cur() >= NVOT + 2) { stopPlay(); return; } go(cur() + 1); timer = setTimeout(step, 1700); }
+    function play() { if (cur() >= NVOT + 2) go(0); playing = true; document.getElementById('play').textContent = '❚❚ Pause'; timer = setTimeout(step, 600); }
+
+    document.getElementById('next').addEventListener('click', () => { stopPlay(); go(cur() + 1); });
+    document.getElementById('back').addEventListener('click', () => { stopPlay(); go(cur() - 1); });
+    document.getElementById('reset').addEventListener('click', () => { stopPlay(); go(0); });
+    document.getElementById('play').addEventListener('click', () => { if (playing) stopPlay(); else play(); });
+    svg.addEventListener('click', e => { if (isPriorsState()) return; const g = e.target.closest('[data-ev]'); if (g) { pinnedEv = R.byId(g.dataset.ev); renderDetail(pinnedEv); } });
+
+    const tip = document.getElementById('tip');
+    svg.addEventListener('mousemove', e => {
+      const g = e.target.closest('[data-ev]');
+      if (!g) { tip.style.display = 'none'; return; }
+      const ev = R.byId(g.dataset.ev); const v = votesAt(ev.id, applied);
+      tip.innerHTML = `<b>${ev.title}</b><span class="${v >= TH ? 'cons' : ''}">${ev.time} · ${v}/${NVOT} readings${v >= TH ? ' · consensus' : ''}</span>`;
+      tip.style.display = 'block';
+      tip.style.left = Math.min(e.clientX + 14, window.innerWidth - 250) + 'px';
+      tip.style.top = (e.clientY + 14) + 'px';
+    });
+    svg.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+
+    render();
+  })();
+  </script>
+</body>
+</html>

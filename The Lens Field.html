@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Lens Field · one field, every lens</title>
+<link rel="stylesheet" href="assets/colors_and_type.css" />
+<style>
+  body { background: var(--paper); color: var(--ink); margin: 0; font-family: var(--font-sans); }
+  .masthead { border-top: var(--masthead-rule) solid var(--ink); display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 16px var(--gutter) 0; }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--ash); text-transform: uppercase; }
+
+  .head { padding: 34px var(--gutter) 18px; }
+  .head .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
+  .head h1 { font-size: clamp(26px, 3.4vw, 42px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 1.0; margin: 14px 0 0; max-width: 24ch; }
+  .head h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
+  .head .sub { font-size: 15px; line-height: 1.55; color: var(--ash); max-width: 70ch; margin-top: 12px; }
+  .head .sub b { color: var(--ink); font-weight: var(--fw-medium); }
+
+  .lensbar { display: flex; gap: 0; padding: 0 var(--gutter); border-bottom: 1px solid var(--ink); border-top: 1px solid var(--ink); }
+  .lensbtn { flex: 1; background: transparent; border: 0; border-right: 1px solid var(--fog); padding: 14px 16px; cursor: pointer; text-align: left; transition: background var(--dur-fast) var(--ease); }
+  .lensbtn:last-child { border-right: 0; }
+  .lensbtn:hover { background: var(--bone); }
+  .lensbtn.on { background: var(--ink); }
+  .lensbtn.on .lb-read, .lensbtn.on .lb-rev { color: var(--paper); }
+  .lb-read { font-size: 14px; font-weight: var(--fw-bold); letter-spacing: -0.01em; display: block; }
+  .lb-rev { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ash); margin-top: 4px; display: block; }
+
+  .stagewrap { display: grid; grid-template-columns: 1fr 320px; }
+  .fieldcol { border-right: 1px solid var(--ink); }
+  .verdict { padding: 16px var(--gutter); border-bottom: 1px solid var(--fog); }
+  .vd-verdict { font-size: 17px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.25; }
+  .vd-verdict b { color: var(--signal); }
+  .vd-reveal { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ash); margin-top: 7px; }
+
+  svg { display: block; width: 100%; height: auto; }
+  .axis-lab { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--ash); }
+  .crest-band { fill: var(--signal); opacity: 0.05; }
+  .crest-lab { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--signal); }
+  .tlink { stroke: var(--fog); stroke-width: 1; fill: none; }
+  .hublink { stroke: var(--ink); stroke-width: 1; opacity: 0.4; }
+  .node { cursor: pointer; transition: opacity var(--dur) var(--ease); }
+  .node circle { transition: opacity var(--dur) var(--ease); }
+  .hub { }
+  .hub-dot { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+  .hub-lab { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.04em; fill: var(--ink); font-weight: 500; }
+  .hub-lab.bg { fill: var(--paper); stroke: var(--paper); stroke-width: 3px; paint-order: stroke; }
+
+  .detail { padding: 20px 22px; background: var(--bone); }
+  .det-empty { color: var(--ash); }
+  .det-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ash); }
+  .det-empty p { font-size: 14px; line-height: 1.55; margin-top: 12px; max-width: 32ch; }
+  .det-title { font-size: 17px; font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: 1.25; margin-top: 12px; }
+  .det-meta { display: flex; gap: 10px; align-items: baseline; margin-top: 8px; }
+  .det-time { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--ink); }
+  .det-deg { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--signal); }
+  .det-quote { font-family: var(--font-serif); font-style: italic; font-size: 18px; line-height: 1.4; margin-top: 16px; border-top: 1px solid var(--fog); padding-top: 14px; }
+  .det-in { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ash); margin-top: 14px; line-height: 1.7; }
+  .det-in .chip { color: var(--ink); border: 1px solid var(--fog); padding: 2px 7px; margin-right: 4px; display: inline-block; margin-bottom: 4px; }
+
+  .foot { padding: 22px var(--gutter) 60px; border-top: 1px solid var(--ink); }
+  .foot .legend { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ash); line-height: 1.7; }
+  .foot .legend b { color: var(--ink); font-weight: var(--fw-medium); }
+  .foot .legend .sig { color: var(--signal); }
+
+  @media (max-width: 980px) { .stagewrap { grid-template-columns: 1fr; } .detail { border-top: 1px solid var(--ink); } }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <span class="ref">Demand Discovery · R01 Martin</span>
+  </div>
+
+  <div class="head">
+    <div class="eyebrow">One field · every lens looks at the same moments</div>
+    <h1>Turn the lens. <em>The same core stays lit.</em></h1>
+    <p class="sub">Every dot is one moment from the interview, fixed in place: <b>left-to-right is when it happened</b>, <b>higher means more readings seized on it</b>. Switch the lens — its structures redraw entirely, yet all of them reach into the same bright crest. That crest is the finding.</p>
+  </div>
+
+  <div class="lensbar" id="lensbar"></div>
+
+  <div class="stagewrap">
+    <div class="fieldcol">
+      <div class="verdict" id="verdict"></div>
+      <svg id="field" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" aria-label="lens field"></svg>
+    </div>
+    <div class="detail"><div id="detail"></div></div>
+  </div>
+
+  <div class="foot">
+    <div class="legend">
+      Node size &amp; height = how many of the four readings cite that moment, computed from the real data.
+      The <span class="sig">red crest</span> is the convergent core the readings keep returning to — <b>pre-run readiness</b> (the keystone) and the workflow continuity it gates.
+      Click any moment for Martin’s words. &nbsp;·&nbsp; A four-lens slice of the method — leverage, demand &amp; diagnosis join once cross-namespace moment-linking is built.
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+  (function () {
+    const R = window.RESEARCH;
+    const EV = R.events.slice();
+
+    // ---- degree: how many lens-structures cite each event ----
+    const deg = {};
+    EV.forEach(e => deg[e.id] = 0);
+    const bump = ids => (ids || []).forEach(id => { if (deg[id] != null) deg[id]++; });
+    R.peaks.forEach(p => bump(p.events));
+    R.narratives.forEach(n => bump(n.events));
+    R.transformations.forEach(t => bump(t.events));
+    const txEvents = {};
+    R.transformations.forEach(t => txEvents[t.id] = t.events || []);
+    R.skills.forEach(s => { const ids = new Set(); (s.txs||[]).forEach(tid => (txEvents[tid]||[]).forEach(e=>ids.add(e))); bump([...ids]); });
+    const maxDeg = Math.max(...EV.map(e => deg[e.id]), 1);
+
+    // ---- scales ----
+    const W = 1000, H = 560, mL = 60, mR = 40, mT = 70, mB = 46;
+    const tMin = Math.min(...EV.map(e=>e.t)), tMax = Math.max(...EV.map(e=>e.t));
+    const x = t => mL + (t - tMin)/(tMax - tMin) * (W - mL - mR);
+    const y = d => (H - mB) - (d / maxDeg) * (H - mB - mT);
+    const pos = {}; EV.forEach(e => pos[e.id] = { x: x(e.t), y: y(deg[e.id]) });
+
+    // ---- lenses (event-native) ----
+    const HOT_TH = Math.max(3, Math.round(maxDeg * 0.5));
+    const hot = id => deg[id] >= HOT_TH;
+    const centroid = ids => { const ps = ids.map(i=>pos[i]).filter(Boolean); return { x: ps.reduce((a,p)=>a+p.x,0)/ps.length, y: ps.reduce((a,p)=>a+p.y,0)/ps.length }; };
+
+    const LENSES = [
+      { id:'chronology', read:'Chronology', rev:'The Session',
+        verdict:'Laid out in time, the moments the most readings seized on rise into a clear crest.',
+        reveal:'No grouping · the raw timeline',
+        groups: null },
+      { id:'relation', read:'Relation', rev:'The Constellation',
+        verdict:'Four stories carve the interview — and every one of them climbs into the same crest.',
+        reveal:'4 narratives revealed',
+        groups: () => R.narratives.map(n => ({ label: shortLab(n.title), members: n.events })) },
+      { id:'transformation', read:'Transformation', rev:'The Shift',
+        verdict:'Fifteen shifts collapse into seven frames — and the heaviest frames all sit on the crest.',
+        reveal:'15 shifts → 7 frames revealed',
+        groups: () => { const byFrame = {}; R.transformations.forEach(t => { (byFrame[t.frame] = byFrame[t.frame] || []).push(...(t.events||[])); }); return Object.keys(byFrame).map(f => ({ label: f, members: [...new Set(byFrame[f])] })); } },
+      { id:'argument', read:'Argument', rev:'The Ledger',
+        verdict:'Nine reusable skills, each distilled from the same moments the other lenses keep returning to.',
+        reveal:'9 skills revealed',
+        groups: () => R.skills.map(s => { const ids = new Set(); (s.txs||[]).forEach(tid => (txEvents[tid]||[]).forEach(e=>ids.add(e))); return { label: shortLab(s.name), members: [...ids] }; }) }
+    ];
+    function shortLab(s){ return s.length > 30 ? s.slice(0,30).replace(/\s+\S*$/,'')+'…' : s; }
+
+    let current = 'relation';
+    const svg = document.getElementById('field');
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const el = (n, a) => { const e = document.createElementNS(SVGNS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+
+    function lensById(id){ return LENSES.find(l=>l.id===id); }
+
+    function renderBar(){
+      document.getElementById('lensbar').innerHTML = LENSES.map(L =>
+        `<button class="lensbtn${L.id===current?' on':''}" data-lens="${L.id}"><span class="lb-read">${L.read}</span><span class="lb-rev">${L.rev}</span></button>`).join('');
+    }
+
+    function renderField(){
+      const L = lensById(current);
+      svg.innerHTML = '';
+      // crest band + label
+      svg.appendChild(el('rect', { class:'crest-band', x:0, y:mT-14, width:W, height:(y(maxDeg*0.62))-(mT-14) }));
+      const cl = el('text', { class:'crest-lab', x:W-mR, y:mT-2, 'text-anchor':'end' }); cl.textContent = 'the moments every reading keeps returning to'; svg.appendChild(cl);
+      // axis labels
+      const ax = el('text', { class:'axis-lab', x:mL, y:H-14 }); ax.textContent = '02:00  ——  interview time  ——  56:00'; svg.appendChild(ax);
+      const ay = el('text', { class:'axis-lab', x:14, y:mT+4, transform:`rotate(-90 14 ${mT+4})` }); ay.textContent = 'more readings cite it →'; svg.appendChild(ay);
+
+      const overlay = el('g', {}); svg.appendChild(overlay);
+      const groups = L.groups ? L.groups() : null;
+      const memberSet = new Set();
+      if (groups) groups.forEach(g => g.members.forEach(m => memberSet.add(m)));
+
+      if (!groups) {
+        // chronology: connect by time
+        const sorted = EV.slice().sort((a,b)=>a.t-b.t);
+        let d = ''; sorted.forEach((e,i)=>{ d += (i?'L':'M') + pos[e.id].x + ' ' + pos[e.id].y + ' '; });
+        overlay.appendChild(el('path', { class:'tlink', d }));
+      } else {
+        // hubs + links
+        groups.forEach(g => {
+          if (!g.members.length) return;
+          const c = centroid(g.members);
+          const hy = Math.max(mT-2, c.y - 46);
+          g.members.forEach(m => { if (pos[m]) overlay.appendChild(el('line', { class:'hublink', x1:c.x, y1:hy, x2:pos[m].x, y2:pos[m].y })); });
+          overlay.appendChild(el('circle', { class:'hub-dot', cx:c.x, cy:hy, r:4 }));
+          const tb = el('text', { class:'hub-lab bg', x:c.x, y:hy-8, 'text-anchor':'middle' }); tb.textContent = g.label; overlay.appendChild(tb);
+          const t = el('text', { class:'hub-lab', x:c.x, y:hy-8, 'text-anchor':'middle' }); t.textContent = g.label; overlay.appendChild(t);
+        });
+      }
+
+      // nodes (persistent)
+      EV.forEach(e => {
+        const p = pos[e.id]; const d = deg[e.id];
+        const r = 4 + d * 2.1;
+        const dim = groups && !memberSet.has(e.id);
+        const g = el('g', { class:'node', 'data-ev':e.id, opacity: dim ? 0.16 : 1 });
+        g.appendChild(el('circle', { cx:p.x, cy:p.y, r, fill: hot(e.id) ? 'var(--signal)' : 'var(--ink)' }));
+        svg.appendChild(g);
+      });
+    }
+
+    function renderVerdict(){
+      const L = lensById(current);
+      document.getElementById('verdict').innerHTML =
+        `<div class="vd-verdict">${L.verdict.replace('crest','<b>crest</b>')}</div><div class="vd-reveal">Looking through ${L.rev} · ${L.reveal}</div>`;
+    }
+
+    function lensesCiting(evId){
+      const out = [];
+      if (R.peaks.some(p=>(p.events||[]).includes(evId))) out.push('Relation');
+      if (R.transformations.some(t=>(t.events||[]).includes(evId))) out.push('Transformation');
+      if (R.skills.some(s=>(s.txs||[]).some(tid=>(txEvents[tid]||[]).includes(evId)))) out.push('Argument');
+      out.unshift('Chronology');
+      return out;
+    }
+
+    function renderDetail(ev){
+      const d = document.getElementById('detail');
+      if (!ev) { d.innerHTML = `<div class="det-empty"><div class="det-eyebrow">Trace</div><p>Click any moment to read Martin’s words — and see which readings rest on it.</p></div>`; return; }
+      const cites = lensesCiting(ev.id);
+      d.innerHTML = `<div class="det-eyebrow">${ev.time} · ${ev.kind}</div>
+        <div class="det-title">${ev.title}</div>
+        <div class="det-meta"><span class="det-deg">cited by ${deg[ev.id]} structures</span></div>
+        <div class="det-quote">“${ev.quote}”</div>
+        <div class="det-in">surfaces in ${cites.map(c=>`<span class="chip">${c}</span>`).join('')}</div>`;
+    }
+
+    document.getElementById('lensbar').addEventListener('click', e => {
+      const b = e.target.closest('[data-lens]'); if (!b) return;
+      current = b.dataset.lens; renderBar(); renderVerdict(); renderField();
+    });
+    svg.addEventListener('click', e => {
+      const g = e.target.closest('[data-ev]'); if (!g) return;
+      renderDetail(R.byId(g.dataset.ev));
+    });
+
+    renderBar(); renderVerdict(); renderField(); renderDetail(null);
+  })();
+  </script>
+</body>
+</html>
