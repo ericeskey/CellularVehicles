@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Eighteen Vials and a Four-Hour Clock · a Dark Horse Works film</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+
+  .masthead { border-top: var(--masthead-rule) solid var(--ink); position: sticky; top: 0; background: var(--paper); z-index: 30; border-bottom: 1px solid var(--fog); }
+  .masthead .mh-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; max-width: 940px; margin: 0 auto; padding: 16px var(--gutter); }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; white-space: nowrap; }
+  .masthead .lenses { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); }
+  .masthead .lenses:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+  .masthead .lenses b { color: var(--signal); font-weight: var(--fw-regular); }
+
+  .wrap { flex: 1; width: 100%; max-width: 940px; margin: 0 auto; padding: 0 var(--gutter); }
+
+  /* hero */
+  .hero { padding: 64px 0 30px; }
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; }
+  .hero h1 { font-size: clamp(44px, 8vw, 104px); font-weight: var(--fw-black); letter-spacing: -0.04em; line-height: 0.92; max-width: 12ch; }
+  .hero .logline { font-family: var(--font-serif); font-style: italic; font-size: clamp(20px, 2.6vw, 28px); line-height: 1.36; color: var(--ash); margin-top: 26px; max-width: 40ch; }
+  .hero .credits { display: flex; gap: 22px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--ink); }
+  .hero .credits b { color: var(--ink); font-weight: var(--fw-regular); }
+
+  /* sticky player */
+  .player { position: sticky; top: 58px; z-index: 20; background: var(--ink); color: var(--paper); border: 1px solid var(--ink); margin: 14px 0 0; }
+  .p-top { display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; padding: 18px 22px 14px; }
+  .p-play { width: 54px; height: 54px; border: 1px solid var(--paper); background: var(--paper); color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .p-play:hover { background: var(--ink-hover); color: var(--paper); }
+  .p-play svg { width: 21px; height: 21px; display: block; }
+  .p-mid { min-width: 0; }
+  .p-ep { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); }
+  .p-title { font-size: 18px; font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: 1.15; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .p-now { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(242,240,235,0.6); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .p-now b { color: var(--signal); font-weight: var(--fw-regular); }
+  .p-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+  .p-skip, .p-speed { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--paper); border: 1px solid rgba(242,240,235,0.4); background: none; padding: 8px 10px; cursor: pointer; }
+  .p-skip:hover, .p-speed:hover { border-color: var(--paper); }
+  .p-speed { min-width: 52px; }
+  .p-bottom { display: flex; align-items: center; gap: 14px; padding: 0 22px 18px; }
+  .p-time { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: rgba(242,240,235,0.75); white-space: nowrap; min-width: 42px; }
+  .p-time.end { text-align: right; }
+  .p-seek { flex: 1; height: 16px; position: relative; cursor: pointer; display: flex; align-items: center; }
+  .p-seek .track { position: absolute; left: 0; right: 0; height: 2px; background: rgba(242,240,235,0.28); }
+  .p-seek .fill { position: absolute; left: 0; height: 2px; background: var(--signal); width: 0; }
+  .p-seek .knob { position: absolute; width: 11px; height: 11px; background: var(--signal); transform: translate(-50%, 0); left: 0; }
+
+  /* read area: toc + script */
+  .read-area { display: grid; grid-template-columns: 196px minmax(0, 1fr); gap: 46px; align-items: start; padding: 34px 0 110px; }
+  .toc { position: sticky; top: 210px; }
+  .toc .toc-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); margin-bottom: 14px; padding-left: 16px; }
+  .toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--fog); }
+  .toc li a { display: block; padding: 9px 0 9px 16px; margin-left: -1px; border-left: 2px solid transparent; font-size: 13px; line-height: 1.35; color: var(--fg2); transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
+  .toc li a:hover { color: var(--ink); text-decoration: none; }
+  .toc li a.active { color: var(--ink); border-left-color: var(--signal); }
+  .toc li a .tn { font-family: var(--font-mono); font-size: 10px; color: var(--fg3); margin-right: 8px; }
+  .toc li a.active .tn { color: var(--signal); }
+
+  .toc-mobile { display: none; border: 1px solid var(--ink); margin-bottom: 28px; }
+  .toc-mobile > summary { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 16px; cursor: pointer; color: var(--ink); list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  .toc-mobile > summary::-webkit-details-marker { display: none; }
+  .toc-mobile > summary::after { content: "+"; font-size: 15px; color: var(--signal); }
+  .toc-mobile[open] > summary::after { content: "\2013"; }
+  .toc-mobile ol { list-style: none; margin: 0; padding: 2px 0 10px; border-top: 1px solid var(--fog); }
+  .toc-mobile li a { display: block; padding: 9px 16px; font-size: 13.5px; color: var(--fg2); }
+  .toc-mobile li a:hover { color: var(--ink); text-decoration: none; }
+  .toc-mobile li a .tn { font-family: var(--font-mono); font-size: 10px; color: var(--fg3); margin-right: 8px; }
+
+  .script { min-width: 0; max-width: 680px; }
+  .script-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); padding-bottom: 14px; border-bottom: 1px solid var(--fog); display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .script-label .sl-h { color: var(--fg3); letter-spacing: 0.06em; }
+
+  .chapter { scroll-margin-top: 210px; margin: 56px 0 4px; padding-top: 26px; border-top: 1px solid var(--ink); display: flex; gap: 16px; align-items: baseline; }
+  .chapter:first-of-type { border-top: 0; padding-top: 18px; margin-top: 20px; }
+  .chapter .cn { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; color: var(--signal); flex: 0 0 auto; }
+  .chapter .ct { font-size: clamp(23px, 3vw, 31px); font-weight: var(--fw-bold); letter-spacing: -0.025em; line-height: 1.05; }
+
+  .host { margin: 22px 0; }
+  .host p { font-size: 20px; line-height: 1.6; color: var(--ink); margin-top: 12px; max-width: 64ch; }
+  .host p.big { font-size: 23px; }
+
+  .tape { margin: 28px 0; border-left: var(--rule-thick) solid var(--signal); padding: 4px 0 4px 26px; }
+  .tape .who { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); margin-bottom: 10px; }
+  .tape p { font-family: var(--font-serif); font-style: italic; font-size: clamp(21px, 2.5vw, 27px); line-height: 1.38; color: var(--ink); margin-top: 8px; max-width: 40ch; }
+
+  .endcard { border-top: 1px solid var(--ink); margin-top: 40px; padding-top: 34px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .endcard .blk { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); margin-bottom: 12px; }
+  .endcard h2 { font-size: 24px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.15; max-width: 18ch; }
+  .endcard p { font-size: 15px; line-height: 1.6; color: var(--ash); margin-top: 12px; max-width: 52ch; }
+  .lenslist { list-style: none; padding: 0; margin: 0; }
+  .lenslist a { display: flex; gap: 14px; align-items: baseline; padding: 13px 0; border-top: 1px solid var(--fog); color: var(--ink); }
+  .lenslist a:hover { text-decoration: none; }
+  .lenslist a:hover .ll-name { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  .lenslist .ll-n { font-family: var(--font-mono); font-size: 11px; color: var(--signal); letter-spacing: 0.06em; flex: 0 0 auto; }
+  .lenslist .ll-name { font-size: 16px; font-weight: var(--fw-medium); }
+  .lenslist .ll-q { font-size: 13px; color: var(--fg2); }
+
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) { .fadein { animation: fi var(--dur-slow) var(--ease) both; } }
+  @keyframes fi { from { transform: translateY(10px); } to { transform: none; } }
+  @media (max-width: 900px) {
+    .read-area { grid-template-columns: 1fr; gap: 0; }
+    .toc-col { display: none; }
+    .toc-mobile { display: block; }
+    .script { max-width: 680px; }
+  }
+  @media (max-width: 720px) {
+    .hero { padding-top: 40px; }
+    .endcard { grid-template-columns: 1fr; gap: 22px; }
+    .host p { font-size: 18px; }
+    .p-title { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <div class="mh-inner">
+      <span class="wm">DARK HORSE WORKS</span>
+      <a class="lenses" href="../index.html">The seven lenses <b>→</b></a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header class="hero fadein">
+      <div class="eyebrow-row">
+        <span class="eyebrow">IDI01 · Catherine · Cell-therapy facility</span>
+        <span class="eyebrow" style="color:var(--signal)">The film</span>
+      </div>
+      <h1 id="title"></h1>
+      <p class="logline" id="logline"></p>
+      <div class="credits">
+        <span>From one interview <b>2026-07-01</b></span>
+        <span>Narrated documentary</span>
+        <span>Catherine, in her own voice</span>
+      </div>
+    </header>
+
+    <div class="player fadein" style="animation-delay:60ms">
+      <div class="p-top">
+        <button class="p-play" id="playBtn" aria-label="Play / pause">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="p-mid">
+          <div class="p-ep">The film · IDI01</div>
+          <div class="p-title" id="pTitle">—</div>
+          <div class="p-now" id="pNow"></div>
+        </div>
+        <div class="p-tools">
+          <button class="p-skip" id="back15" aria-label="Back 15 seconds">−15s</button>
+          <button class="p-skip" id="fwd15" aria-label="Forward 15 seconds">+15s</button>
+          <button class="p-speed" id="speedBtn" aria-label="Playback speed">1×</button>
+        </div>
+      </div>
+      <div class="p-bottom">
+        <span class="p-time" id="curTime">0:00</span>
+        <div class="p-seek" id="seek"><div class="track"></div><div class="fill" id="seekFill"></div><div class="knob" id="seekKnob"></div></div>
+        <span class="p-time end" id="durTime">0:00</span>
+      </div>
+    </div>
+    <audio id="audio" preload="auto"></audio>
+
+    <div class="read-area">
+      <div class="toc-col">
+        <nav class="toc" id="toc" aria-label="Chapters">
+          <div class="toc-label">Chapters</div>
+          <ol id="tocList"></ol>
+        </nav>
+      </div>
+
+      <section class="script fadein" style="animation-delay:100ms">
+        <div class="script-label"><span>Read along</span><span class="sl-h">Narration roman · Catherine italic</span></div>
+        <details class="toc-mobile" id="tocMobile">
+          <summary>Chapters</summary>
+          <ol id="tocListM"></ol>
+        </details>
+        <div id="scriptBody"></div>
+
+        <div class="endcard">
+          <div>
+            <div class="blk">After the film</div>
+            <h2>Seven ways to take the conversation apart.</h2>
+            <p>The film is the story. The lenses are the structure underneath it: the same hour, read for chronology, relation, transformation, the hidden expertise, the one move that matters most, the priced demand, and the diagnosis underneath it all.</p>
+          </div>
+          <div>
+            <div class="blk">Go deeper</div>
+            <ul class="lenslist">
+              <li><a href="the-session.html"><span class="ll-n">01</span><span><span class="ll-name">The Session</span> · <span class="ll-q">hear the raw tape, mapped to its peaks</span></span></a></li>
+              <li><a href="the-constellation.html"><span class="ll-n">02</span><span><span class="ll-name">The Constellation</span> · <span class="ll-q">how the three narratives pull on each other</span></span></a></li>
+              <li><a href="the-shift.html"><span class="ll-n">03</span><span><span class="ll-name">The Shift</span> · <span class="ll-q">before → after, nine transformations</span></span></a></li>
+              <li><a href="the-ledger.html"><span class="ll-n">04</span><span><span class="ll-name">The Ledger</span> · <span class="ll-q">the hidden expertise, and what it's worth</span></span></a></li>
+              <li><a href="the-keystone.html"><span class="ll-n">05</span><span><span class="ll-name">The Keystone</span> · <span class="ll-q">the one move that carries the load</span></span></a></li>
+              <li><a href="the-opportunity.html"><span class="ll-n">06</span><span><span class="ll-name">The Opportunity</span> · <span class="ll-q">where the unmet demand sits, outcome by outcome</span></span></a></li>
+              <li><a href="the-casefile.html"><span class="ll-n">07</span><span><span class="ll-name">The Casefile</span> · <span class="ll-q">what's wrong, and why: the diagnosis</span></span></a></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script src="../documentary-content.js"></script>
+  <script>
+    const D = window.DOCUMENTARY;
+    const fmt = (s) => { if (!s || isNaN(s) || s === Infinity) return '0:00'; const m = Math.floor(s/60), x = Math.floor(s%60); return m + ':' + String(x).padStart(2,'0'); };
+    document.getElementById('title').textContent = D.title;
+    document.getElementById('logline').textContent = D.logline;
+    document.getElementById('pTitle').textContent = D.title;
+
+    // ---- chapters: the film's seven movements (echo the research peaks, drawn from the cut) ----
+    const CHAPTERS = [
+      { at: 0,  n: 'I',    title: 'A really, really doozy' },
+      { at: 3,  n: 'II',   title: 'One bag, one vial' },
+      { at: 14, n: 'III',  title: 'Impossible in a large hospital' },
+      { at: 23, n: 'IV',   title: 'Why are we doing that here' },
+      { at: 33, n: 'V',    title: 'The FedEx clock' },
+      { at: 40, n: 'VI',   title: 'Not the hospital’s barrier' },
+      { at: 55, n: 'VII',  title: 'Educate, or say no' },
+      { at: 67, n: 'VIII', title: 'From start to finish' },
+      { at: 80, n: 'IX',   title: 'Standard equipment, no training' },
+      { at: 94, n: 'X',    title: 'The first person who asked' }
+    ];
+    const chapAt = {}; CHAPTERS.forEach(c => { chapAt[c.at] = c; c.id = 'ch-' + c.n; });
+
+    // ---- read-along with chapter headings ----
+    const body = document.getElementById('scriptBody');
+    D.blocks.forEach((blk, i) => {
+      if (chapAt[i]) {
+        const c = chapAt[i];
+        const h = document.createElement('h2'); h.className = 'chapter'; h.id = c.id;
+        h.innerHTML = `<span class="cn">${c.n}</span><span class="ct">${c.title}</span>`;
+        body.appendChild(h);
+      }
+      if (blk.sp === 'host') {
+        const wrap = document.createElement('div'); wrap.className = 'host';
+        blk.paras.forEach((p, k) => { const el = document.createElement('p'); if (k === 0 && p.length < 90) el.className = 'big'; el.textContent = p; wrap.appendChild(el); });
+        body.appendChild(wrap);
+      } else {
+        const wrap = document.createElement('div'); wrap.className = 'tape';
+        const who = document.createElement('div'); who.className = 'who'; who.textContent = 'Catherine'; wrap.appendChild(who);
+        blk.paras.forEach(p => { const el = document.createElement('p'); el.textContent = '“' + p.replace(/^[“"]|[”"]$/g, '') + '”'; wrap.appendChild(el); });
+        body.appendChild(wrap);
+      }
+    });
+
+    // ---- table of contents ----
+    const masthead = document.querySelector('.masthead'), playerEl = document.querySelector('.player');
+    function chromeH() { return (masthead ? masthead.offsetHeight : 0) + (playerEl ? playerEl.offsetHeight : 0) + 16; }
+    function scrollToId(id) { const el = document.getElementById(id); if (!el) return; const y = el.getBoundingClientRect().top + window.scrollY - chromeH(); window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' }); }
+    function buildToc(ol, mobile) {
+      CHAPTERS.forEach(c => {
+        const li = document.createElement('li');
+        const a = document.createElement('a'); a.href = '#' + c.id; a.dataset.id = c.id;
+        a.innerHTML = `<span class="tn">${c.n}</span>${c.title}`;
+        a.addEventListener('click', (e) => { e.preventDefault(); scrollToId(c.id); history.replaceState(null, '', '#' + c.id); if (mobile) document.getElementById('tocMobile').open = false; });
+        li.appendChild(a); ol.appendChild(li);
+      });
+    }
+    buildToc(document.getElementById('tocList'), false);
+    buildToc(document.getElementById('tocListM'), true);
+    function placeToc() { const t = document.getElementById('toc'); if (t) t.style.top = chromeH() + 'px'; }
+    window.addEventListener('resize', placeToc); placeToc();
+
+    const tocLinks = () => [...document.querySelectorAll('#tocList a, #tocListM a')];
+    let spyScheduled = false;
+    function spy() {
+      spyScheduled = false; const cy = chromeH() + 12; let act = CHAPTERS[0].id;
+      document.querySelectorAll('.chapter').forEach(ch => { if (ch.getBoundingClientRect().top <= cy) act = ch.id; });
+      tocLinks().forEach(a => a.classList.toggle('active', a.dataset.id === act));
+    }
+    window.addEventListener('scroll', () => { if (!spyScheduled) { spyScheduled = true; requestAnimationFrame(spy); } }, { passive: true });
+    spy();
+    if (location.hash && document.getElementById(location.hash.slice(1))) setTimeout(() => scrollToId(location.hash.slice(1)), 60);
+
+    // ---- player (buffered + position/rate enforced; see The Session for the same guard) ----
+    const audio = document.getElementById('audio'); audio.src = D.src;
+    const playIcon = document.getElementById('playIcon');
+    const ICON_PLAY = '<path d="M8 5v14l11-7z"/>', ICON_PAUSE = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+    const curTime = document.getElementById('curTime'), durTime = document.getElementById('durTime');
+    const seekFill = document.getElementById('seekFill'), seekKnob = document.getElementById('seekKnob');
+    const pNow = document.getElementById('pNow');
+    const POSKEY = D.posKey || 'documentary_pos_v1';
+    // CONTINUOUS enforcement: a streamed mp3 clobbers currentTime (plays from 0) and
+    // playbackRate (resets to 1) while buffering. We hold the intended position + rate
+    // and re-assert them every tick until they actually stick (bounded by a budget).
+    let speed = 1; const speeds = [1, 1.25, 1.5, 2];
+    const isFin = (d) => d && d !== Infinity && !isNaN(d) && d > 0;
+    // Some mp3s ship without a duration header (audio.duration stays NaN, seekable
+    // reports [0, NaN]). Capture the real length once it's known and fall back to it
+    // so seeks, the progress bar, and chapter estimation keep working either way.
+    let knownDur = 0;
+    function durOf() { return isFin(audio.duration) ? audio.duration : knownDur; }
+    function applyRate() { try { audio.defaultPlaybackRate = speed; } catch (e) {} if (Math.abs(audio.playbackRate - speed) > 0.001) { try { audio.playbackRate = speed; } catch (e) {} } }
+
+    let resume = parseFloat(localStorage.getItem(POSKEY) || '0'); if (isNaN(resume)) resume = 0;
+    let intendedPos = resume, armed = resume > 0, armUntil = 0;
+    function canSeek() { return audio.readyState >= 1; }
+    function seekableAt(t) {
+      try {
+        const r = audio.seekable;
+        if (!r || r.length === 0) return true;
+        for (let i = 0; i < r.length; i++) {
+          const lo = isFin(r.start(i)) ? r.start(i) : 0;
+          const hi = isFin(r.end(i)) ? r.end(i) : (durOf() || Infinity);
+          if (t >= lo - 0.25 && t <= hi + 0.25) return true;
+        }
+      } catch (e) { return true; }
+      return false;
+    }
+    function hardSeek(t) { if (canSeek()) { const max = durOf(); try { audio.currentTime = Math.max(0, max ? Math.min(max, t) : t); } catch (e) {} } }
+    function enforce() {
+      applyRate();
+      if (!armed) return;
+      if (Math.abs(audio.currentTime - intendedPos) <= 0.6) { armed = false; return; }
+      if (Date.now() > armUntil) { armed = false; return; }
+      if (canSeek() && seekableAt(intendedPos)) { try { audio.currentTime = intendedPos; } catch (e) {} }
+    }
+
+    // est. chapter from playback fraction (no per-line timecodes in this cut)
+    function nowChapter(frac) { const idx = Math.min(CHAPTERS.length - 1, Math.floor(frac * CHAPTERS.length)); return CHAPTERS[Math.max(0, idx)]; }
+
+    audio.addEventListener('loadedmetadata', () => {
+      if (isFin(audio.duration)) { knownDur = audio.duration; durTime.textContent = fmt(audio.duration); }
+      if (intendedPos > 0) { armed = true; armUntil = Date.now() + 10000; hardSeek(intendedPos); }
+      applyRate();
+    });
+    audio.addEventListener('durationchange', () => { if (isFin(audio.duration)) { knownDur = audio.duration; durTime.textContent = fmt(audio.duration); } });
+    audio.addEventListener('loadeddata', enforce);
+    audio.addEventListener('canplay', enforce);
+    audio.addEventListener('ratechange', () => { if (Math.abs(audio.playbackRate - speed) > 0.001) applyRate(); });
+    audio.addEventListener('seeked', () => { if (Math.abs(audio.currentTime - intendedPos) <= 0.6) armed = false; });
+    audio.addEventListener('playing', () => { armUntil = Math.max(armUntil, Date.now() + 6000); enforce(); });
+    audio.addEventListener('play', () => { playIcon.innerHTML = ICON_PAUSE; applyRate(); });
+    audio.addEventListener('pause', () => playIcon.innerHTML = ICON_PLAY);
+    audio.addEventListener('timeupdate', () => {
+      if (audio.seeking) return;
+      enforce();
+      if (armed && Math.abs(audio.currentTime - intendedPos) > 1.2) return;
+      curTime.textContent = fmt(audio.currentTime);
+      const p = durOf() ? audio.currentTime / durOf() : 0;
+      seekFill.style.width = (p*100) + '%'; seekKnob.style.left = (p*100) + '%';
+      const c = nowChapter(p); pNow.innerHTML = `<b>${c.n}</b> · ${c.title}`;
+      localStorage.setItem(POSKEY, String(audio.currentTime));
+    });
+    window.addEventListener('beforeunload', () => localStorage.setItem(POSKEY, String(audio.currentTime || 0)));
+
+    function setPos(t) { const max = durOf(); intendedPos = Math.max(0, max ? Math.min(max, t) : t); armed = true; armUntil = Date.now() + 10000; hardSeek(intendedPos); curTime.textContent = fmt(intendedPos); if (isFin(audio.duration)) { const p = intendedPos / audio.duration; seekFill.style.width = (p*100) + '%'; seekKnob.style.left = (p*100) + '%'; } }
+    function togglePlay() { if (audio.paused) { if (armed) { armUntil = Date.now() + 10000; hardSeek(intendedPos); } const pr = audio.play(); if (pr && pr.catch) pr.catch(() => {}); } else audio.pause(); }
+    document.getElementById('playBtn').addEventListener('click', togglePlay);
+    document.getElementById('back15').addEventListener('click', () => setPos((armed ? intendedPos : audio.currentTime) - 15));
+    document.getElementById('fwd15').addEventListener('click', () => setPos((armed ? intendedPos : audio.currentTime) + 15));
+    const speedBtn = document.getElementById('speedBtn');
+    speedBtn.addEventListener('click', () => { speed = speeds[(speeds.indexOf(speed)+1) % speeds.length]; applyRate(); speedBtn.textContent = speed + '×'; });
+
+    const seek = document.getElementById('seek');
+    function seekFromX(clientX) { const r = seek.getBoundingClientRect(); const p = Math.max(0, Math.min(1, (clientX - r.left)/r.width)); if (durOf()) setPos(p * durOf()); }
+    let dragging = false;
+    seek.addEventListener('pointerdown', (e) => { dragging = true; seek.setPointerCapture(e.pointerId); seekFromX(e.clientX); });
+    seek.addEventListener('pointermove', (e) => { if (dragging) seekFromX(e.clientX); });
+    seek.addEventListener('pointerup', () => dragging = false);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+      else if (e.key === 'ArrowRight') setPos((armed ? intendedPos : audio.currentTime) + 15);
+      else if (e.key === 'ArrowLeft') setPos((armed ? intendedPos : audio.currentTime) - 15);
+    });
+  </script>
+</body>
+</html>

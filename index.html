@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en" data-open="finding" data-film="play">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IDI01 Catherine · Seven Lenses</title>
+<link rel="stylesheet" href="assets/colors_and_type.css" />
+<style>
+  body { background: var(--paper); min-height: 100vh; }
+  .masthead {
+    border-top: var(--masthead-rule) solid var(--ink);
+  }
+  .masthead .mh-inner {
+    display: flex; align-items: baseline; justify-content: space-between;
+    max-width: 1280px; margin: 0 auto;
+    padding: 18px var(--gutter) 0;
+  }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--fg2); text-transform: uppercase; }
+
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 var(--gutter); }
+
+  .hero { padding: 64px 0 40px; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 64px; align-items: end; }
+  .hero .eyebrow { margin-bottom: 22px; }
+  .hero h1 { font-size: clamp(40px, 6vw, 84px); font-weight: var(--fw-black); letter-spacing: -0.04em; line-height: 0.92; }
+  .hero h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+  .hero .lead { font-size: 17px; line-height: 1.6; color: var(--fg2); max-width: 46ch; }
+  .hero .lead b { color: var(--ink); font-weight: var(--fw-medium); }
+
+  .metastrip { display: flex; flex-wrap: wrap; gap: 0 48px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--fog); padding: 16px 0; margin-bottom: 56px; }
+  .metastrip .m { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); line-height: 1.8; }
+  .metastrip .m b { color: var(--ink); font-weight: var(--fw-regular); }
+
+  .deck-lead { font-family: var(--font-serif); font-style: italic; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.32; color: var(--ink); max-width: 30ch; margin-bottom: 8px; border-left: var(--rule-thick) solid var(--signal); padding-left: 24px; }
+  .deck-sub { font-size: 15px; color: var(--fg2); line-height: 1.6; max-width: 60ch; padding-left: 24px; margin-bottom: 48px; }
+
+  /* lens intro: the thesis, demoted to a section-break (not a second hero) */
+  .lens-intro { padding: 2px 0 0; margin-bottom: 34px; max-width: 62rem; }
+  .lens-intro .eyebrow { margin-bottom: 18px; }
+  .lens-intro h2 { font-size: clamp(28px, 3.6vw, 46px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.98; }
+  .lens-intro h2 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+  .lens-intro .lead { font-size: 17px; line-height: 1.62; color: var(--fg2); max-width: 64ch; margin-top: 22px; }
+  .lens-intro .lead b { color: var(--ink); font-weight: var(--fw-medium); }
+
+  /* finding-led opening (prototype direction B) */
+  .finding { padding: 4px 0 2px; margin-bottom: 40px; }
+  .finding .eyebrow { margin-bottom: 22px; }
+  .finding-grid { display: grid; grid-template-columns: 1.5fr 0.92fr; gap: 56px; align-items: start; }
+  .f-stmt { font-size: clamp(30px, 4.2vw, 56px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.97; max-width: 16ch; }
+  .f-lead { font-size: 17px; line-height: 1.62; color: var(--fg2); max-width: 58ch; margin-top: 22px; }
+  .f-lead b { color: var(--ink); font-weight: var(--fw-medium); }
+  .f-votes { margin-top: 36px; }
+  .f-votes .bl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--ink); padding-bottom: 9px; }
+  .f-votes .blr { color: var(--fg3); }
+  .votelist { list-style: none; }
+  .votelist li { display: grid; grid-template-columns: 172px 1fr; gap: 18px; align-items: baseline; padding: 11px 0; border-top: 1px solid var(--fog); }
+  .votelist li:first-child { border-top: 0; }
+  .votelist .va { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .votelist .vt { font-size: 14px; line-height: 1.45; color: var(--ink); }
+
+  .f-verdict { border: 1px solid var(--ink); background: var(--paper); padding: 24px 24px 26px; position: sticky; top: 24px; }
+  .f-verdict .fv-k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); }
+  .f-verdict .fv-term { font-size: 30px; font-weight: var(--fw-black); letter-spacing: -0.025em; line-height: 1.04; margin: 11px 0 13px; color: var(--signal); }
+  .f-verdict .fv-desc { font-size: 13.5px; line-height: 1.56; color: var(--ash); }
+  .f-verdict .fv-meta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--fg2); margin-top: 16px; line-height: 1.7; border-top: 1px solid var(--fog); padding-top: 12px; }
+  .f-verdict .fv-go { display: inline-flex; align-items: center; gap: 8px; margin-top: 18px; font-size: 14px; font-weight: var(--fw-medium); color: var(--ink); text-decoration: none; }
+  .f-verdict .fv-go:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+  /* opening-direction visibility (prototype toggle) */
+  html[data-open="finding"] .lens-intro { display: none; }
+  html[data-open="finding"] .deck-lead,
+  html[data-open="finding"] .deck-sub { display: none; }
+  html[data-open="method"] .finding { display: none; }
+
+  /* prototype toggle control */
+  .proto-toggle { position: fixed; right: 20px; bottom: 20px; z-index: 50; display: flex; flex-direction: column; gap: 9px; background: var(--paper); border: 1px solid var(--ink); padding: 12px 13px 13px; }
+  .proto-toggle .pt-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .proto-toggle .pt-l { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); }
+  .pt-seg { display: inline-flex; border: 1px solid var(--ink); }
+  .pt-seg button { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 7px 11px; background: var(--paper); color: var(--ash); border: 0; border-right: 1px solid var(--ink); cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .pt-seg button:last-child { border-right: 0; }
+  .pt-seg button:hover { background: var(--hover-overlay); color: var(--ink); }
+  .pt-seg button.on { background: var(--ink); color: var(--paper); }
+
+  @media (max-width: 900px) {
+    .finding-grid { grid-template-columns: 1fr; gap: 30px; }
+    .f-verdict { position: static; }
+    .proto-toggle { right: 12px; bottom: 12px; }
+  }
+
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--ink); }
+  .card { border-left: 1px solid var(--fog); border-bottom: 1px solid var(--ink); padding: 30px 28px 28px; display: flex; flex-direction: column; min-height: 420px; text-decoration: none; color: inherit; position: relative; transition: background var(--dur) var(--ease); }
+  .card:first-child { border-left: 0; }
+  .card:hover { background: var(--bone); }
+  .card .num { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; color: var(--fg2); display: flex; justify-content: space-between; align-items: baseline; }
+  .card .axis { color: var(--signal); }
+  .card .glyph { height: 84px; margin: 26px 0 22px; display: flex; align-items: center; }
+  .card .glyph svg { width: 100%; height: 100%; overflow: visible; }
+  .card h2 { font-size: 30px; font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 0.98; }
+  .card .q { font-family: var(--font-serif); font-style: italic; font-size: 18px; line-height: 1.35; color: var(--fg2); margin: 14px 0 16px; }
+  .card .desc { font-size: 14px; line-height: 1.55; color: var(--ash); }
+  .card .foot { margin-top: auto; padding-top: 22px; display: flex; justify-content: space-between; align-items: baseline; }
+  .card .stat { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .card .enter { font-size: 14px; font-weight: var(--fw-medium); color: var(--ink); display: inline-flex; gap: 8px; align-items: center; }
+  .card:hover .enter { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+  .card .arr { transition: transform var(--dur) var(--ease); }
+  .card:hover .arr { transform: translateX(4px); }
+
+  .glyph svg .ink { stroke: var(--ink); }
+  .glyph svg .sig { stroke: var(--signal); fill: var(--signal); }
+  .glyph svg .soft { stroke: var(--fog); }
+
+  /* multi-format card: stretched main link + layered format chips */
+  .card--multi { position: relative; }
+  .card-hit { position: absolute; inset: 0; z-index: 1; }
+  .foot--formats { display: flex; flex-direction: column; align-items: flex-start; gap: 11px; }
+  .foot--formats .fmt-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); white-space: nowrap; }
+  .formats { position: relative; z-index: 2; display: inline-flex; border: 1px solid var(--ink); }
+  .formats a { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; padding: 8px 14px; color: var(--ash); border-right: 1px solid var(--ink); transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .formats a:last-child { border-right: 0; }
+  .formats a:hover { background: var(--ink); color: var(--paper); text-decoration: none; }
+  .formats a.fmt-lead { color: var(--ink); }
+  .formats a.fmt-lead:hover { background: var(--signal); border-color: var(--signal); color: var(--paper); }
+
+  /* front-door film band */
+  .film-band { position: relative; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 44px 0 42px; margin-bottom: 44px; display: grid; grid-template-columns: 1.35fr 0.65fr; gap: 48px; align-items: center; text-decoration: none; color: inherit; transition: background var(--dur) var(--ease); }
+  .film-band:hover { background: var(--bone); }
+  .film-band h2 { font-size: clamp(40px, 6.5vw, 86px); font-weight: var(--fw-black); letter-spacing: -0.04em; line-height: 0.9; margin: 16px 0 0; }
+  .film-band .fb-log { font-family: var(--font-serif); font-style: italic; font-size: clamp(18px, 2.1vw, 23px); line-height: 1.38; color: var(--ash); margin-top: 20px; max-width: 44ch; }
+  .film-band .fb-cta { display: inline-flex; align-items: center; gap: 12px; margin-top: 28px; background: var(--ink); color: var(--paper); padding: 13px 20px; font-size: 14px; font-weight: var(--fw-medium); }
+  .film-band:hover .fb-cta { background: var(--ink-hover); }
+  .film-band .fb-cta svg { width: 15px; height: 15px; display: block; }
+  .film-band .fb-cta .fb-run { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(242,240,235,0.62); padding-left: 12px; border-left: 1px solid rgba(242,240,235,0.3); }
+  .film-band .fb-side { border-left: 1px solid var(--fog); padding-left: 36px; }
+  .film-band .fb-side .fbk { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); line-height: 1.85; }
+  .film-band .fb-side .fbk + .fbk { margin-top: 14px; }
+  .film-band .fb-side .fbk b { color: var(--ink); font-weight: var(--fw-regular); }
+  @media (max-width: 900px) { .film-band { grid-template-columns: 1fr; gap: 24px; } .film-band .fb-side { border-left: 0; padding-left: 0; border-top: 1px solid var(--fog); padding-top: 20px; } }
+
+  /* film band: honest inline play (prototype) */
+  .film-band .fb-actions { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-top: 28px; }
+  .film-band .fb-cta { margin-top: 0; cursor: pointer; border: 0; font-family: inherit; position: relative; z-index: 2; }
+  .film-band .fb-open { position: relative; z-index: 2; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--fg2); text-decoration: none; border-bottom: 1px solid var(--fog); padding-bottom: 3px; transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
+  .film-band .fb-open:hover { color: var(--ink); border-color: var(--ink); }
+  .film-band .fb-player { margin-top: 26px; max-width: 540px; }
+  .film-band .fb-seek { position: relative; height: 5px; background: var(--fog); cursor: pointer; }
+  .film-band .fb-seek-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--signal); }
+  .film-band .fb-pl-meta { display: flex; justify-content: space-between; gap: 16px; margin-top: 11px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .film-band .fb-pl-meta b { color: var(--ink); font-weight: var(--fw-regular); }
+  .fb-hit { position: absolute; inset: 0; z-index: 1; }
+  html[data-film="nav"] .fb-player,
+  html[data-film="nav"] .fb-open { display: none; }
+  html[data-film="play"] .fb-hit { display: none; }
+
+  .lb-hit { position: absolute; inset: 0; z-index: 1; }
+
+  /* escalation band: the fourth lens */
+  .ladder-band { position: relative; display: grid; grid-template-columns: 1.4fr 1fr; gap: 0; border: 1px solid var(--ink); border-top: 0; text-decoration: none; color: inherit; transition: background var(--dur) var(--ease); }
+  .ladder-band:hover { background: var(--bone); }
+  .ladder-band .lb-main { padding: 36px 36px 34px; border-right: 1px solid var(--fog); }
+  .ladder-band .lb-num { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; color: var(--fg2); display: flex; justify-content: space-between; align-items: baseline; }
+  .ladder-band .lb-num .axis { color: var(--signal); }
+  .ladder-band .lb-turn { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); margin: 22px 0 12px; }
+  .ladder-band h2 { font-size: clamp(30px, 3.6vw, 44px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.96; }
+  .ladder-band .lb-q { font-family: var(--font-serif); font-style: italic; font-size: 20px; line-height: 1.32; color: var(--fg2); margin: 16px 0 16px; max-width: 34ch; }
+  .ladder-band .lb-desc { font-size: 14px; line-height: 1.55; color: var(--ash); max-width: 56ch; }
+  .ladder-band .lb-enter { margin-top: 24px; font-size: 14px; font-weight: var(--fw-medium); color: var(--ink); display: inline-flex; gap: 8px; align-items: center; }
+  .ladder-band:hover .lb-enter { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+  .ladder-band .lb-enter .arr { transition: transform var(--dur) var(--ease); }
+  .ladder-band:hover .lb-enter .arr { transform: translateX(4px); }
+  .ladder-band .lb-side { padding: 36px 32px; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+  .ladder-band .rung { display: grid; grid-template-columns: 64px 1fr; gap: 16px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--fog); }
+  .ladder-band .rung:first-child { border-top: 0; }
+  .ladder-band .rung .rl { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--fg2); }
+  .ladder-band .rung .rl.on { color: var(--signal); }
+  .ladder-band .rung .rt { font-size: 13.5px; line-height: 1.4; color: var(--ink); }
+  .ladder-band .rung .rt.dim { color: var(--fg3); }
+
+  .closing { padding: 40px 0 72px; display: flex; justify-content: space-between; gap: 40px; flex-wrap: wrap; align-items: baseline; }
+  .closing p { font-size: 14px; color: var(--fg2); line-height: 1.6; max-width: 56ch; }
+  .closing p b { color: var(--ink); font-weight: var(--fw-medium); }
+  .closing .sign { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); }
+
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) {
+    .fadein { animation: fi var(--dur-slow) var(--ease) both; }
+  }
+  @keyframes fi { from { transform: translateY(10px); } to { transform: none; } }
+
+  /* subject band: who Catherine is */
+  .subject { display: grid; grid-template-columns: 1.35fr 1fr; gap: 56px; padding: 8px 0 44px; align-items: start; border-bottom: 1px solid var(--fog); margin-bottom: 44px; }
+  .subject .s-main { max-width: 60ch; }
+  .subject h2 { font-size: clamp(24px, 2.9vw, 36px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.02; margin: 14px 0 18px; max-width: 17ch; }
+  .subject p { font-size: 15.5px; line-height: 1.62; color: var(--fg2); }
+  .subject p + p { margin-top: 14px; }
+  .subject p b { color: var(--ink); font-weight: var(--fw-medium); }
+  .subject p .sig { color: var(--signal); }
+  .dossier { border: 1px solid var(--ink); background: var(--paper); padding: 20px 22px 22px; align-self: start; }
+  .dossier .dh { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--ink); padding-bottom: 11px; }
+  .dossier .dh .nm { font-weight: var(--fw-black); font-size: 19px; letter-spacing: -0.02em; }
+  .dossier .dh .rid { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--fg2); }
+  .dossier .dsub { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; color: var(--fg2); text-transform: uppercase; padding: 10px 0 2px; line-height: 1.55; }
+  .dossier .row { display: grid; grid-template-columns: 84px 1fr; gap: 14px; border-top: 1px solid var(--fog); padding: 9px 0; }
+  .dossier .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); line-height: 1.5; }
+  .dossier .v { font-size: 12.5px; line-height: 1.45; color: var(--ink); }
+  .dossier .v.sig { color: var(--signal); }
+  @media (max-width: 900px) { .subject { grid-template-columns: 1fr; gap: 28px; } }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 28px; }
+    .cards { grid-template-columns: 1fr; }
+    .card { border-left: 0; min-height: auto; }
+    .card:first-child { border-top: 0; }
+    .ladder-band { grid-template-columns: 1fr; }
+    .ladder-band .lb-main { border-right: 0; border-bottom: 1px solid var(--fog); }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <div class="mh-inner">
+      <span class="wm">DARK HORSE WORKS</span>
+      <span class="ref">Demand Discovery · Interview IDI01</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="film-band fadein" id="filmBand">
+      <a class="fb-hit" href="concepts/the-documentary.html" aria-label="Open the full film"></a>
+      <div class="fb-main">
+        <div class="eyebrow">Start here · the film</div>
+        <h2>Within Four Hours</h2>
+        <p class="fb-log">A cell therapy is supposed to reach the patient ready to give. For Catherine, the product arrives in eighteen vials on a four-hour clock, and the site absorbs everything the design left out.</p>
+        <div class="fb-actions">
+          <button type="button" class="fb-cta" id="fbPlay"><svg viewBox="0 0 24 24" fill="currentColor"><path id="fbIcon" d="M8 5v14l11-7z"/></svg> <span id="fbPlayLabel">Play the film</span> <span class="fb-run">the film</span></button>
+          <a class="fb-open" id="fbOpen" href="concepts/the-documentary.html">Open with transcript →</a>
+        </div>
+        <div class="fb-player" id="fbPlayer" hidden>
+          <div class="fb-seek" id="fbSeek"><div class="fb-seek-fill" id="fbSeekFill"></div></div>
+          <div class="fb-pl-meta">
+            <span id="fbNow"><b>The film</b> · in her own voice</span>
+            <span><span id="fbCur">0:00</span> / <span id="fbDur">—:—</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="fb-side">
+        <div class="fbk">In her own voice<br><b>Catherine, on tape</b></div>
+        <div class="fbk">The cut<br><b>Narrated documentary</b></div>
+        <div class="fbk">Then take it apart<br><b>Seven lenses ↓</b></div>
+      </div>
+      <audio id="fbAudio" preload="none"></audio>
+    </div>
+
+    <section class="finding fadein">
+      <div class="eyebrow">One interview · one verdict</div>
+      <div class="finding-grid">
+        <div class="f-main">
+          <h2 class="f-stmt">The burden the site absorbs is authored upstream.</h2>
+          <p class="f-lead">Seven independent reads of the same interview begin from different questions: chronology, relation, transformation, argument, leverage, demand, diagnosis. They land in the same place. The site-side burden is <b>authored upstream, before the product ever ships</b>.</p>
+          <div class="f-votes">
+            <div class="bl">What each read surfaced on its own <span class="blr">7 reads, 1 verdict</span></div>
+            <ol class="votelist">
+              <li><span class="va">01 · Chronology</span><span class="vt">The heaviest moments sit on the product’s design, not the site’s work</span></li>
+              <li><span class="va">02 · Relation</span><span class="vt">Container, stability, and protocol pull hardest on everything downstream</span></li>
+              <li><span class="va">03 · Transformation</span><span class="vt">The widest gaps are all in how the product arrives</span></li>
+              <li><span class="va">04 · Argument</span><span class="vt">Catherine’s real expertise is absorbing upstream decisions</span></li>
+              <li><span class="va">05 · Leverage</span><span class="vt">Upstream product-and-protocol fit ranks first of six cruxes</span></li>
+              <li><span class="va">06 · Demand</span><span class="vt">Continuity from design bench to bedside is the widest gap</span></li>
+              <li><span class="va">07 · Diagnosis</span><span class="vt">Capacity and the post-thaw window top the concerns</span></li>
+            </ol>
+          </div>
+        </div>
+        <aside class="f-verdict">
+          <div class="fv-k">Consensus across seven reads</div>
+          <div class="fv-term">Upstream authorship</div>
+          <p class="fv-desc">Container count, stability window, and protocol are fixed before the product ships. The site absorbs whatever those decisions leave it. Change the design and the burden moves with it.</p>
+          <div class="fv-meta">Rank 1 crux · Priority 1 concern · widest demand gap</div>
+          <a class="fv-go" href="#reads">See the seven reads <span class="arr">↓</span></a>
+        </aside>
+      </div>
+    </section>
+
+    <section class="lens-intro fadein">
+      <div class="eyebrow">One interview · seven ways to see it</div>
+      <h2>The same evidence,<br>read through seven<br><em>complementary</em> lenses.</h2>
+      <p class="lead">We didn’t refine one visualization. We read the same interview through <b>seven complementary lenses</b>, each organizing the same moments, quotes, and peaks in its own reference frame. The evidence never changes; only the question each one asks. Read together, they converge on a single finding.</p>
+    </section>
+
+    <div class="metastrip fadein" style="animation-delay:60ms">
+      <span class="m">Participant<br><b>Catherine · operations &amp; scientific director</b></span>
+      <span class="m">Subject<br><b>Cell-therapy delivery at the treatment site</b></span>
+      <span class="m">Session<br><b>IDI01 · first live interview</b></span>
+      <span class="m">Corpus<br><b>15 moments · 3 peaks · 3 narratives · 9 shifts · 6 skills · 6 cruxes · 24 outcomes · 8 concerns</b></span>
+    </div>
+
+    <section class="subject fadein" style="animation-delay:80ms">
+      <div class="s-main">
+        <div class="eyebrow">The subject</div>
+        <h2>One director, standing in for a segment.</h2>
+        <p>Catherine runs operations and science at a hospital cell-therapy facility that supports about a hundred clinical trials and a growing roster of commercial therapies. She sits where the sponsor’s product meets the patient: she inspects what arrives, sets the boundaries, educates the sponsors, and absorbs whatever the design decided upstream.</p>
+        <p>That is why her friction is worth reading closely. She is representative of an archetype, not an outlier: <b>treatment-site operations leads at cell-therapy hospitals</b>. So the cruxes that follow are not one person’s complaints. They are the <span class="sig">friction profile of a segment</span>. Her stated frustration, products that fit the lab bench instead of the trial, is exactly where the leverage lands.</p>
+      </div>
+      <aside class="dossier">
+        <div class="dh"><span class="nm">Catherine</span><span class="rid">IDI01</span></div>
+        <div class="dsub">Archetype · Treatment-Site Operations Leads</div>
+        <div class="row"><span class="k">Role</span><span class="v">Operations &amp; scientific director, cell-therapy facility</span></div>
+        <div class="row"><span class="k">Place</span><span class="v">Academic medical center · hospital cell-therapy lab</span></div>
+        <div class="row"><span class="k">Scope</span><span class="v">~100 clinical trials · 12–13 commercial therapies</span></div>
+        <div class="row"><span class="k">Products</span><span class="v">~30% need in-lab manipulation · no in vivo</span></div>
+        <div class="row"><span class="k">Clocks</span><span class="v">30-min post-thaw windows · 4-hr OR cases</span></div>
+        <div class="row"><span class="k">Standards</span><span class="v">FACT accredited · CDPH / AABB</span></div>
+        <div class="row"><span class="k">Stands for</span><span class="v sig">treatment-site operations leads at cell-therapy hospitals</span></div>
+      </aside>
+    </section>
+
+    <div class="deck-lead fadein" style="animation-delay:90ms">“The therapy works because the site absorbs what the sponsor designed.”</div>
+    <div class="deck-sub fadein" style="animation-delay:110ms">That is the line the interview keeps returning to. The first three lenses organize the evidence around a different axis: time, relation, transformation. The fourth climbs past description into a stated “therefore.” The fifth ranks where a single change would move the most. The sixth prices the demand, outcome by outcome. The seventh diagnoses what’s wrong and why, then hinges to what to do.</div>
+
+    <div class="cards fadein" id="reads" style="animation-delay:140ms">
+
+      <a class="card" href="concepts/the-session.html">
+        <div class="num"><span>01</span><span class="axis">Chronology</span></div>
+        <div class="glyph">
+          <svg viewBox="0 0 220 84" preserveAspectRatio="xMidYMid meet" fill="none">
+            <line x1="0" y1="62" x2="220" y2="62" class="soft" stroke-width="1"/>
+            <polyline points="0,62 18,62 34,30 52,48 74,14 96,52 116,40 138,54 158,22 180,46 202,34 220,62" class="ink" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="74" cy="14" r="4" class="sig"/>
+            <circle cx="158" cy="22" r="4" class="sig"/>
+            <rect x="113" y="37" width="6" height="6" fill="none" class="ink" stroke-width="1.3"/>
+          </svg>
+        </div>
+        <h2>The Session</h2>
+        <div class="q">What happened, in order, and how did it feel to be there?</div>
+        <div class="desc">Press play on the raw interview and watch it move across its own structure: every moment and peak in the order Catherine said them, with the transcript tracking and seeking beneath. The conversation everything else is read from.</div>
+        <div class="foot">
+          <span class="stat">Raw interview · 15 moments · 3 peaks</span>
+          <span class="enter">Enter <span class="arr">→</span></span>
+        </div>
+      </a>
+
+      <div class="card card--multi">
+        <a class="card-hit" href="concepts/the-constellation.html" aria-label="The Constellation, explore the force field"></a>
+        <div class="num"><span>02</span><span class="axis">Relation</span></div>
+        <div class="glyph">
+          <svg viewBox="0 0 220 84" preserveAspectRatio="xMidYMid meet" fill="none">
+            <line x1="60" y1="30" x2="110" y2="20" class="soft"/>
+            <line x1="110" y1="20" x2="150" y2="40" class="soft"/>
+            <line x1="60" y1="30" x2="40" y2="58" class="soft"/>
+            <line x1="150" y1="40" x2="170" y2="62" class="soft"/>
+            <line x1="110" y1="20" x2="96" y2="56" class="soft"/>
+            <line x1="150" y1="40" x2="190" y2="26" class="soft"/>
+            <rect x="55" y="25" width="10" height="10" class="ink" fill="var(--ink)"/>
+            <circle cx="110" cy="20" r="6" class="sig"/>
+            <circle cx="150" cy="40" r="6" class="sig"/>
+            <circle cx="40" cy="58" r="4" fill="var(--ink)"/>
+            <circle cx="96" cy="56" r="4" fill="none" class="ink" stroke-width="1.3"/>
+            <circle cx="170" cy="62" r="4" fill="var(--ink)"/>
+            <circle cx="190" cy="26" r="3.5" fill="var(--fog)"/>
+          </svg>
+        </div>
+        <h2>The Constellation</h2>
+        <div class="q">How does it all connect? What pulls on what?</div>
+        <div class="desc">A settled force field of narratives, peaks, and moments. Pull any node to feel its gravity. Or take the same three narratives as an anthology: three voiced stories, one per thread, to read or hear.</div>
+        <div class="foot foot--formats">
+          <span class="fmt-label">Three ways in</span>
+          <div class="formats">
+            <a href="concepts/the-constellation.html">Explore</a>
+            <a href="concepts/the-constellation-read.html">Read</a>
+            <a href="concepts/the-constellation-listen.html" class="fmt-lead">Listen</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card--multi">
+        <a class="card-hit" href="concepts/the-shift.html" aria-label="The Shift, the transformation map"></a>
+        <div class="num"><span>03</span><span class="axis">Transformation</span></div>
+        <div class="glyph">
+          <svg viewBox="0 0 220 84" preserveAspectRatio="xMidYMid meet" fill="none">
+            <line x1="110" y1="2" x2="110" y2="82" class="soft" stroke-width="1"/>
+            <line x1="20" y1="22" x2="96" y2="22" class="ink" stroke-width="1.4"/>
+            <line x1="124" y1="22" x2="200" y2="22" class="ink" stroke-width="1.4"/>
+            <line x1="34" y1="46" x2="96" y2="46" class="ink" stroke-width="1.4"/>
+            <line x1="124" y1="46" x2="186" y2="46" class="ink" stroke-width="1.4"/>
+            <line x1="44" y1="66" x2="96" y2="66" class="ink" stroke-width="1.4"/>
+            <line x1="124" y1="66" x2="176" y2="66" class="ink" stroke-width="1.4"/>
+            <rect x="105" y="41" width="10" height="10" transform="rotate(45 110 46)" class="sig"/>
+            <rect x="106" y="18" width="8" height="8" transform="rotate(45 110 22)" fill="none" class="ink" stroke-width="1.3"/>
+            <rect x="106" y="62" width="8" height="8" transform="rotate(45 110 66)" fill="none" class="ink" stroke-width="1.3"/>
+          </svg>
+        </div>
+        <h2>The Shift</h2>
+        <div class="q">What needs to change? Present held against the possible.</div>
+        <div class="desc">Every friction rewritten as a state change. Read it as a map of present against possible, or graded: each frame a seven-point scale with Catherine’s now and ideal marked, opening onto all nine shifts.</div>
+        <div class="foot foot--formats">
+          <span class="fmt-label">Two ways in</span>
+          <div class="formats">
+            <a href="concepts/the-shift.html">Map</a>
+            <a href="concepts/the-shift-graded.html" class="fmt-lead">Graded</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="ladder-band fadein" style="animation-delay:160ms">
+      <a class="lb-hit" href="concepts/the-ledger.html" aria-label="The Ledger, enter the argument"></a>
+      <div class="lb-main">
+        <div class="lb-num"><span>04</span><span class="axis">Argument</span></div>
+        <div class="lb-turn">From description to a stated therefore</div>
+        <h2>The Ledger</h2>
+        <div class="lb-q">What expertise is hidden here, and what is it worth?</div>
+        <div class="lb-desc">The three lenses above show what happened. This one closes the loop: every friction Catherine absorbs, distilled into a reusable skill. Read it as the argument essay, hear it as a series, or explore the six skills and watch them snap back into the workflow she performs.</div>
+        <div class="foot--formats" style="margin-top:24px">
+          <span class="fmt-label">Three ways in</span>
+          <div class="formats">
+            <a href="concepts/the-ledger.html">Explore</a>
+            <a href="concepts/the-ledger-read.html">Read</a>
+            <a href="concepts/the-ledger-listen.html" class="fmt-lead">Listen</a>
+          </div>
+        </div>
+      </div>
+      <div class="lb-side">
+        <div class="rung"><span class="rl">L1–L5</span><span class="rt dim">Observe · Extract · Structure · Explain · Narrativize</span></div>
+        <div class="rung"><span class="rl on">L7</span><span class="rt">Skillify: 6 candidate skills, distilled and assayed</span></div>
+        <div class="rung"><span class="rl on">L9</span><span class="rt">Recommend: ranked by confidence and productization</span></div>
+      </div>
+    </div>
+
+    <a class="ladder-band fadein" href="concepts/the-keystone.html" style="animation-delay:180ms">
+      <div class="lb-main">
+        <div class="lb-num"><span>05</span><span class="axis">Leverage</span></div>
+        <div class="lb-turn">From the argument to the single point of leverage</div>
+        <h2>The Keystone</h2>
+        <div class="lb-q">What one change would move the most other things?</div>
+        <div class="lb-desc">Six candidate cruxes, plotted by evidence and leverage. They are built from the same underlying observations, and one, <b>upstream design fit</b>, shares its load with three of the others. Pull that block and the most redistributes. Where the other lenses describe and argue, this one ranks the leverage, then keeps its own doubt on the page: the uncertainties that would re-rank the list.</div>
+        <span class="lb-enter">Enter the leverage read <span class="arr">→</span></span>
+      </div>
+      <div class="lb-side">
+        <div class="rung"><span class="rl on">Rank 1</span><span class="rt">Upstream design fit: container, clock, and protocol set before shipping</span></div>
+        <div class="rung"><span class="rl">Rank 2</span><span class="rt dim">The post-thaw window: minutes to get a dose into the patient</span></div>
+        <div class="rung"><span class="rl">Rank 3</span><span class="rt dim">Sponsor–site misalignment: regulation read as obstruction</span></div>
+      </div>
+    </a>
+
+    <a class="ladder-band fadein" href="concepts/the-opportunity.html" style="animation-delay:200ms">
+      <div class="lb-main">
+        <div class="lb-num"><span>06</span><span class="axis">Demand</span></div>
+        <div class="lb-turn">From the leverage to the priced demand</div>
+        <h2>The Opportunity</h2>
+        <div class="lb-q">Where is the unmet demand, outcome by outcome?</div>
+        <div class="lb-desc">The leverage read finds the one block to pull. This one steps back and prices the whole market of wants: twenty-four desired outcomes from the same interview, scored on importance and satisfaction, plotted as a landscape so the under-served few separate from the well-served many, then mapped back onto the jobs they belong to. Outcome-Driven Innovation, run on a single conversation.</div>
+        <span class="lb-enter">Enter the opportunity read <span class="arr">→</span></span>
+      </div>
+      <div class="lb-side">
+        <div class="rung"><span class="rl on">Opp 1</span><span class="rt">One bag, ready to give: continuity from design to bedside</span></div>
+        <div class="rung"><span class="rl on">Opp 2</span><span class="rt">Beat the post-thaw clock: a dose in the patient in time</span></div>
+        <div class="rung"><span class="rl">Opp 3</span><span class="rt dim">Absorb sponsor variability: every trial done differently</span></div>
+      </div>
+    </a>
+
+    <a class="ladder-band fadein" href="concepts/the-casefile.html" style="animation-delay:210ms">
+      <div class="lb-main">
+        <div class="lb-num"><span>07</span><span class="axis">Diagnosis</span></div>
+        <div class="lb-turn">From description to a stated cause</div>
+        <h2>The Casefile</h2>
+        <div class="lb-q">What's wrong, and why?</div>
+        <div class="lb-desc">Kepner-Tregoe, run on the interview. Eight concerns ranked by urgency and impact; each one’s cause specified and traced to the verbatim moment it rests on: a queryable evidence graph you read three ways. Then the evidence gaps become the to-do list that hinges diagnosis to decision.</div>
+        <span class="lb-enter">Enter the diagnosis <span class="arr">→</span></span>
+      </div>
+      <div class="lb-side">
+        <div class="rung"><span class="rl on">Priority 1</span><span class="rt">Capacity: lab and safety-cabinet workflows won’t keep up</span></div>
+        <div class="rung"><span class="rl">Priority 2</span><span class="rt dim">Post-thaw window: minutes against OR and patient timing</span></div>
+        <div class="rung"><span class="rl on">Open gates</span><span class="rt dim">What we don’t know yet: before deciding</span></div>
+      </div>
+    </a>
+
+    <a class="film-band fadein" href="concepts/the-casefile.html#call" style="margin-top:44px;animation-delay:230ms">
+      <div class="fb-main">
+        <div class="eyebrow">The spine · what to do</div>
+        <h2>The Call</h2>
+        <p class="fb-log">Diagnosis hands off to decision. Cruxes, outcomes, and transformations are three lenses you already have. They snap into a Kepner-Tregoe decision brief, gated by the evidence still missing.</p>
+        <span class="fb-cta">Enter the decision spine <span class="fb-run">weaves all seven</span></span>
+      </div>
+      <div class="fb-side">
+        <div class="fbk">Cruxes →<br><b>The Keystone</b></div>
+        <div class="fbk">Outcomes →<br><b>The Opportunity</b></div>
+        <div class="fbk">Transformations →<br><b>The Shift</b></div>
+      </div>
+    </a>
+
+    <section class="closing fadein" style="animation-delay:220ms">
+      <p><b>Same source, seven lenses.</b> The moments, the quotes, the peaks: nothing changes between them. The first three change only the axis you organize by: time, relation, transformation. The fourth changes the verb, from <b>describe</b> to <b>argue</b>. The fifth changes the question, from <b>what happened</b> to <b>where to push</b>. The sixth scores the demand itself, outcome by outcome. The seventh diagnoses the cause, then hands off the decision. Open all seven; notice which makes the finding obvious, and which ones end on something you could act on.</p>
+      <span class="sign">Dark Horse Works · Editorial Signal</span>
+    </section>
+  </div>
+  <div class="proto-toggle" id="protoToggle">
+    <div class="pt-row">
+      <span class="pt-l">Opening</span>
+      <div class="pt-seg" data-dim="open">
+        <button type="button" data-v="finding">Finding</button>
+        <button type="button" data-v="method">Method</button>
+      </div>
+    </div>
+    <div class="pt-row">
+      <span class="pt-l">Film band</span>
+      <div class="pt-seg" data-dim="film">
+        <button type="button" data-v="play">Inline play</button>
+        <button type="button" data-v="nav">Navigate</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var root = document.documentElement;
+      var DIMS = { open: { key: 'dbw-open', def: 'finding' }, film: { key: 'dbw-film', def: 'play' } };
+      Object.keys(DIMS).forEach(function (d) {
+        try { var s = localStorage.getItem(DIMS[d].key); if (s) root.setAttribute('data-' + d, s); } catch (e) {}
+      });
+      var seg = document.getElementById('protoToggle');
+      function sync() {
+        seg.querySelectorAll('.pt-seg').forEach(function (g) {
+          var d = g.dataset.dim, v = root.getAttribute('data-' + d) || DIMS[d].def;
+          g.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); });
+        });
+      }
+      seg.addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        var d = b.parentElement.dataset.dim;
+        root.setAttribute('data-' + d, b.dataset.v);
+        try { localStorage.setItem(DIMS[d].key, b.dataset.v); } catch (e) {}
+        sync();
+      });
+      sync();
+    })();
+
+    /* film band: honest inline play, sharing the documentary's persisted position */
+    (function () {
+      var root = document.documentElement;
+      var POSKEY = 'documentary_idi01_pos_v1';
+      var SRC = 'media/documentary/eighteen-vials.mp3';
+      var CH = [
+        { at: 0, n: 'I', t: 'A really, really doozy' }
+      ];
+      var audio = document.getElementById('fbAudio');
+      var btn = document.getElementById('fbPlay'), icon = document.getElementById('fbIcon'), label = document.getElementById('fbPlayLabel');
+      var player = document.getElementById('fbPlayer'), seek = document.getElementById('fbSeek'), fill = document.getElementById('fbSeekFill');
+      var nowEl = document.getElementById('fbNow'), curEl = document.getElementById('fbCur'), durEl = document.getElementById('fbDur');
+      var ICON_PLAY = 'M8 5v14l11-7z', ICON_PAUSE = 'M6 5h4v14H6zM14 5h4v14h-4z';
+      var fmt = function (s) { if (!s || isNaN(s) || s === Infinity) return '0:00'; var m = Math.floor(s/60), x = Math.floor(s%60); return m + ':' + String(x).padStart(2,'0'); };
+      var loaded = false, started = false;
+      function chapFor(t) { var c = CH[0]; CH.forEach(function (k) { if (t >= k.at * 60) c = k; }); return c; }
+      function ensure() {
+        if (loaded) return; audio.src = SRC; loaded = true;
+        var r = parseFloat(localStorage.getItem(POSKEY) || '0'); if (isNaN(r)) r = 0;
+        if (r > 0) audio.addEventListener('loadedmetadata', function once() { try { audio.currentTime = r; } catch (e) {} audio.removeEventListener('loadedmetadata', once); });
+      }
+      function paint() {
+        var d = audio.duration, ct = audio.currentTime || 0;
+        if (d && d !== Infinity) { fill.style.width = (ct/d*100) + '%'; durEl.textContent = fmt(d); }
+        curEl.textContent = fmt(ct);
+        var c = chapFor(ct); nowEl.innerHTML = '<b>' + c.n + '</b> · ' + c.t;
+      }
+      btn.addEventListener('click', function () {
+        if (root.getAttribute('data-film') === 'nav') { try { localStorage.setItem(POSKEY, String(audio.currentTime || 0)); } catch (e) {} window.location.href = 'concepts/the-documentary.html'; return; }
+        ensure();
+        if (audio.paused) { player.hidden = false; started = true; var pr = audio.play(); if (pr && pr.catch) pr.catch(function () {}); }
+        else audio.pause();
+      });
+      audio.addEventListener('play', function () { icon.setAttribute('d', ICON_PAUSE); label.textContent = 'Pause'; });
+      audio.addEventListener('pause', function () { icon.setAttribute('d', ICON_PLAY); label.textContent = started ? 'Resume' : 'Play the film'; });
+      audio.addEventListener('loadedmetadata', paint);
+      audio.addEventListener('timeupdate', function () { paint(); localStorage.setItem(POSKEY, String(audio.currentTime || 0)); });
+      seek.addEventListener('click', function (e) { var r = seek.getBoundingClientRect(); var p = Math.max(0, Math.min(1, (e.clientX - r.left)/r.width)); if (audio.duration && audio.duration !== Infinity) { audio.currentTime = p * audio.duration; paint(); } });
+      window.addEventListener('beforeunload', function () { if (loaded) localStorage.setItem(POSKEY, String(audio.currentTime || 0)); });
+    })();
+  </script>
+</body>
+</html>

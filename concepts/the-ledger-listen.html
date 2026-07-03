@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Ledger · Listen · Inside the Operating Envelope</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+
+  .masthead { border-top: var(--masthead-rule) solid var(--ink); display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px var(--gutter); position: sticky; top: 0; background: var(--paper); z-index: 30; border-bottom: 1px solid var(--fog); }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; white-space: nowrap; }
+  .ways { display: flex; border: 1px solid var(--ink); }
+  .ways a { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 7px 14px; color: var(--ash); border-right: 1px solid var(--ink); white-space: nowrap; }
+  .ways a:last-child { border-right: 0; }
+  .ways a:hover { background: var(--hover-overlay); color: var(--ink); text-decoration: none; }
+  .ways a.on { background: var(--ink); color: var(--paper); }
+
+  .wrap { flex: 1; width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 var(--gutter); }
+
+  /* ---- show header ---- */
+  .show-head { padding: 46px 0 30px; display: grid; grid-template-columns: 1fr auto; gap: 40px; align-items: end; border-bottom: 1px solid var(--ink); }
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; margin-bottom: 18px; }
+  .show-head h1 { font-size: clamp(32px, 4.6vw, 58px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.96; max-width: 16ch; }
+  .show-head .desc { font-family: var(--font-serif); font-style: italic; font-size: clamp(18px, 2.1vw, 23px); line-height: 1.4; color: var(--ash); margin-top: 18px; max-width: 56ch; }
+  .show-stat { text-align: right; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); line-height: 2; white-space: nowrap; }
+  .show-stat b { color: var(--ink); font-weight: var(--fw-regular); }
+  .show-stat .big { display: block; font-size: 30px; color: var(--ink); letter-spacing: 0.02em; margin-bottom: 6px; }
+
+  /* ---- sticky player ---- */
+  .player { position: sticky; top: 58px; z-index: 20; background: var(--ink); color: var(--paper); border: 1px solid var(--ink); margin-top: 26px; }
+  .player .p-top { display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; padding: 18px 22px 14px; }
+  .p-play { width: 52px; height: 52px; border-radius: 0; border: 1px solid var(--paper); background: var(--paper); color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; transition: background var(--dur-fast) var(--ease); }
+  .p-play:hover { background: var(--ink-hover); color: var(--paper); }
+  .p-play svg { width: 20px; height: 20px; display: block; }
+  .p-mid { min-width: 0; }
+  .p-ep { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); }
+  .p-title { font-size: 19px; font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: 1.15; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .p-tools { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+  .p-skip, .p-speed { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--paper); border: 1px solid rgba(242,240,235,0.4); background: none; padding: 8px 10px; cursor: pointer; }
+  .p-skip:hover, .p-speed:hover { border-color: var(--paper); }
+  .p-speed { min-width: 52px; }
+  .p-bottom { display: flex; align-items: center; gap: 14px; padding: 0 22px 18px; }
+  .p-time { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: rgba(242,240,235,0.75); white-space: nowrap; min-width: 42px; }
+  .p-time.end { text-align: right; }
+  .p-seek { flex: 1; height: 16px; position: relative; cursor: pointer; display: flex; align-items: center; }
+  .p-seek .track { position: absolute; left: 0; right: 0; height: 2px; background: rgba(242,240,235,0.28); }
+  .p-seek .fill { position: absolute; left: 0; height: 2px; background: var(--signal); width: 0; }
+  .p-seek .knob { position: absolute; width: 11px; height: 11px; background: var(--signal); transform: translate(-50%, 0); left: 0; }
+
+  /* ---- episodes ---- */
+  .sec-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); margin: 44px 0 4px; }
+  .eplist { border-top: 1px solid var(--ink); }
+  .ep { display: grid; grid-template-columns: 54px 1fr auto; gap: 22px; align-items: center; padding: 22px 8px; border-bottom: 1px solid var(--fog); cursor: pointer; transition: background var(--dur-fast) var(--ease); text-align: left; width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; font-family: inherit; }
+  .ep:hover { background: var(--hover-overlay); }
+  .ep.active { background: var(--bone); }
+  .ep .num { font-family: var(--font-mono); font-size: 13px; color: var(--fg2); letter-spacing: 0.1em; padding-top: 2px; align-self: start; }
+  .ep.active .num { color: var(--signal); }
+  .ep .body { min-width: 0; }
+  .ep .et { font-size: 20px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.15; color: var(--ink); }
+  .ep .es { font-size: 14.5px; line-height: 1.5; color: var(--ash); margin-top: 7px; max-width: 64ch; }
+  .ep .eline { font-family: var(--font-serif); font-style: italic; font-size: 14px; color: var(--signal); margin-top: 9px; }
+  .ep .right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; align-self: start; }
+  .ep .dur { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--fg2); white-space: nowrap; }
+  .ep .readcue { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); white-space: nowrap; align-self: start; }
+  .ep:hover .readcue { color: var(--ink); }
+  .ep.active .readcue { color: var(--signal); }
+  .ep .mini { width: 38px; height: 38px; border: 1px solid var(--ink); background: var(--paper); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .ep .mini svg { width: 14px; height: 14px; }
+  .ep.active .mini { background: var(--ink); }
+  .ep.active .mini svg { stroke: var(--paper); fill: var(--paper); }
+  .ep.playing .mini { background: var(--signal); border-color: var(--signal); }
+  .ep.playing .mini svg { fill: var(--paper); stroke: var(--paper); }
+
+  /* ---- detail (notes / transcript) ---- */
+  .detail { margin-top: 8px; padding: 30px 0 10px; border-top: 1px solid var(--ink); display: grid; grid-template-columns: 1fr; }
+  .tabs { display: flex; gap: 0; border: 1px solid var(--ink); width: fit-content; margin-bottom: 28px; }
+  .tabs button { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 9px 18px; color: var(--ash); border: 0; border-right: 1px solid var(--ink); background: var(--paper); cursor: pointer; }
+  .tabs button:last-child { border-right: 0; }
+  .tabs button.on { background: var(--ink); color: var(--paper); }
+  .d-ehead { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); }
+  .d-etitle { font-size: clamp(24px, 3vw, 34px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.04; margin: 8px 0 4px; }
+
+  .notes-grid { display: grid; grid-template-columns: 1fr 300px; gap: 48px; margin-top: 26px; }
+  .notes-grid .blk { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); margin: 26px 0 10px; }
+  .notes-grid p { font-size: 17px; line-height: 1.6; color: var(--ink); margin-top: 14px; max-width: 64ch; }
+  .notes-grid .first { margin-top: 0; }
+  .inthis { list-style: none; padding: 0; margin: 6px 0 0; }
+  .inthis li { font-size: 15px; line-height: 1.5; color: var(--ink); padding: 11px 0 11px 26px; border-top: 1px solid var(--fog); position: relative; }
+  .inthis li::before { content: "—"; position: absolute; left: 0; color: var(--signal); }
+  .d-line { font-family: var(--font-serif); font-style: italic; font-size: 24px; line-height: 1.3; color: var(--ink); border-left: var(--rule-thick) solid var(--signal); padding-left: 22px; }
+  .aside-card { border: 1px solid var(--ink); padding: 20px; align-self: start; }
+  .aside-card .blk { margin-top: 0; }
+  .fits { font-size: 14.5px; line-height: 1.55; color: var(--ash); }
+
+  .transcript { display: none; max-width: 70ch; margin-top: 8px; }
+  .transcript.on { display: block; }
+  .transcript p { font-size: 17px; line-height: 1.55; color: var(--ink); margin-top: 14px; }
+  .transcript p.q { color: var(--ash); }
+  .notes-pane.off { display: none; }
+
+  /* ---- about series ---- */
+  .about { border-top: 1px solid var(--ink); margin-top: 64px; padding: 40px 0 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+  .about h2 { font-size: 26px; font-weight: var(--fw-bold); letter-spacing: -0.02em; margin-bottom: 14px; }
+  .about p { font-size: 16px; line-height: 1.62; color: var(--ash); margin-top: 12px; max-width: 60ch; }
+  .about .blk { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); margin-bottom: 8px; }
+  .learn { list-style: none; padding: 0; margin: 0; }
+  .learn li { font-size: 15px; line-height: 1.5; color: var(--ink); padding: 12px 0 12px 26px; border-top: 1px solid var(--fog); position: relative; }
+  .learn li::before { content: "→"; position: absolute; left: 0; color: var(--signal); }
+  .start-note { border-left: var(--rule-thick) solid var(--ink); padding-left: 20px; margin-top: 22px; font-size: 15px; line-height: 1.55; color: var(--ink); }
+
+  .footer-nav { border-top: 1px solid var(--ink); margin-top: 56px; padding: 28px 0 70px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .footer-nav a { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ash); }
+  .footer-nav a:hover { color: var(--ink); }
+  .footer-nav a b { color: var(--signal); font-weight: var(--fw-regular); }
+
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) { .fadein { animation: fi var(--dur-slow) var(--ease) both; } }
+  @keyframes fi { from { transform: translateY(10px); } to { transform: none; } }
+
+  @media (max-width: 860px) {
+    .show-head, .about { grid-template-columns: 1fr; gap: 24px; }
+    .show-stat { text-align: left; }
+    .notes-grid { grid-template-columns: 1fr; gap: 8px; }
+    .p-title { white-space: normal; }
+    .ep { grid-template-columns: 36px 1fr; }
+    .ep .right { grid-column: 2; flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <nav class="ways">
+      <a href="the-ledger.html">Explore</a>
+      <a href="the-ledger-read.html">Read</a>
+      <a href="the-ledger-listen.html" class="on">Listen</a>
+    </nav>
+  </div>
+
+  <div class="wrap">
+    <header class="show-head fadein">
+      <div>
+        <div class="eyebrow-row">
+          <span class="eyebrow">The Ledger</span>
+          <span class="eyebrow" style="color:var(--signal)">Listen · Three-part series</span>
+        </div>
+        <h1 id="showTitle"></h1>
+        <p class="desc" id="showDesc"></p>
+      </div>
+      <div class="show-stat">
+        <span class="big">3</span>
+        episodes<br>
+        narrated<br>
+        Subject <b>IDI01 · Catherine</b>
+      </div>
+    </header>
+
+    <div class="player fadein" style="animation-delay:60ms">
+      <div class="p-top">
+        <button class="p-play" id="playBtn" aria-label="Play / pause">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="p-mid">
+          <div class="p-ep" id="pEp">Episode 01</div>
+          <div class="p-title" id="pTitle">—</div>
+        </div>
+        <div class="p-tools">
+          <button class="p-skip" id="back15" aria-label="Back 15 seconds">−15s</button>
+          <button class="p-skip" id="fwd15" aria-label="Forward 15 seconds">+15s</button>
+          <button class="p-speed" id="speedBtn" aria-label="Playback speed">1×</button>
+        </div>
+      </div>
+      <div class="p-bottom">
+        <span class="p-time" id="curTime">0:00</span>
+        <div class="p-seek" id="seek"><div class="track"></div><div class="fill" id="seekFill"></div><div class="knob" id="seekKnob"></div></div>
+        <span class="p-time end" id="durTime">0:00</span>
+      </div>
+    </div>
+    <audio id="audio" preload="none"></audio>
+
+    <div class="sec-label">The episode guide</div>
+    <div class="eplist" id="eplist"></div>
+
+    <!-- detail -->
+    <section class="detail">
+      <div class="tabs">
+        <button id="tabNotes" class="on">Show notes</button>
+        <button id="tabScript">Transcript</button>
+      </div>
+      <div class="d-ehead" id="dEhead"></div>
+      <div class="d-etitle" id="dEtitle"></div>
+
+      <div class="notes-pane" id="notesPane">
+        <div class="notes-grid">
+          <div>
+            <div class="blk first">In this episode</div>
+            <div id="dSummary"></div>
+            <div class="blk">What it makes concrete</div>
+            <ul class="inthis" id="dInThis"></ul>
+            <div class="blk">Why it matters</div>
+            <div id="dWhy"></div>
+            <div class="blk">The line that stays</div>
+            <div class="d-line" id="dLine"></div>
+          </div>
+          <aside class="aside-card">
+            <div class="blk">Where this fits</div>
+            <div class="fits" id="dFits"></div>
+          </aside>
+        </div>
+      </div>
+
+      <div class="transcript" id="transcript"></div>
+    </section>
+
+    <section class="about fadein">
+      <div>
+        <div class="blk">About this series</div>
+        <h2>One conversation, three ways in.</h2>
+        <div id="aboutText"></div>
+        <div class="start-note" id="startNote"></div>
+      </div>
+      <div>
+        <div class="blk">What you'll learn</div>
+        <ul class="learn" id="learnList"></ul>
+      </div>
+    </section>
+
+    <nav class="footer-nav">
+      <a href="the-ledger-read.html">Prefer the full page? <b>The feature article →</b></a>
+      <a href="the-ledger.html">See the six skills behind it <b>→</b></a>
+    </nav>
+  </div>
+
+  <script src="../ledger-content.js"></script>
+  <script>
+    const S = window.SESSION, EPS = S.episodes;
+    const PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg>';
+    const fmt = (s) => { if (!s || isNaN(s) || s === Infinity) return '0:00'; const m = Math.floor(s / 60), x = Math.floor(s % 60); return m + ':' + String(x).padStart(2, '0'); };
+    const isFin = (d) => d && d !== Infinity && !isNaN(d) && d > 0;
+
+    // ---- show header ----
+    document.getElementById('showTitle').textContent = S.show.title;
+    document.getElementById('showDesc').textContent = (S.show.about[0] || '').replace(/^[“"]|[”"]$/g, '');
+    const aboutText = document.getElementById('aboutText');
+    S.show.about.slice(1).forEach(p => { const el = document.createElement('p'); el.textContent = p; aboutText.appendChild(el); });
+    const learn = document.getElementById('learnList');
+    S.show.learn.forEach(it => { const li = document.createElement('li'); li.textContent = it; learn.appendChild(li); });
+    document.getElementById('startNote').textContent = S.show.start;
+
+    // ---- persistence (resume position + durations) ----
+    const POSKEY = 'ledger_audio_pos_v2', CURKEY = 'ledger_audio_cur_v2', DURKEY = 'ledger_durations_v2';
+    let posCache = {}, durCache = {};
+    try { posCache = JSON.parse(localStorage.getItem(POSKEY) || '{}'); } catch (e) {}
+    try { durCache = JSON.parse(localStorage.getItem(DURKEY) || '{}'); } catch (e) {}
+
+    // ---- episode rows ----
+    const eplist = document.getElementById('eplist');
+    const rows = [];
+    EPS.forEach((ep, i) => {
+      const b = document.createElement('button'); b.className = 'ep'; b.dataset.i = i;
+      b.innerHTML =
+        '<div class="num">' + String(ep.n).padStart(2, '0') + '</div>' +
+        '<div class="body"><div class="et">' + ep.title + '</div>' +
+        '<div class="es">' + (ep.summary[0] || '') + '</div>' +
+        '<div class="eline">“' + ep.line.replace(/^[“"]|[”"]$/g, '') + '”</div></div>' +
+        '<div class="right"><span class="dur" data-dur="' + i + '">' + (durCache[i] ? fmt(durCache[i]) : '··:··') + '</span>' +
+        '<span class="mini">' + PLAY + '</span></div>';
+      b.addEventListener('click', () => select(i, true));
+      b.querySelector('.mini').addEventListener('click', (e) => { e.stopPropagation(); select(i, false); togglePlay(); });
+      eplist.appendChild(b); rows.push(b);
+    });
+
+    // ---- player ----
+    const audio = document.getElementById('audio'); audio.preload = 'none';
+    const playIcon = document.getElementById('playIcon');
+    const ICON_PLAY = '<path d="M8 5v14l11-7z"/>', ICON_PAUSE = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+    const pEp = document.getElementById('pEp'), pTitle = document.getElementById('pTitle');
+    const curTime = document.getElementById('curTime'), durTime = document.getElementById('durTime');
+    const seekFill = document.getElementById('seekFill'), seekKnob = document.getElementById('seekKnob');
+    let current = 0, loaded = -1, speed = 1; const speeds = [1, 1.25, 1.5, 2];
+    function durOf() { return isFin(audio.duration) ? audio.duration : (durCache[current] || 0); }
+
+    function setDur(i, d) {
+      if (!isFin(d)) return;
+      durCache[i] = d; localStorage.setItem(DURKEY, JSON.stringify(durCache));
+      const el = eplist.querySelector('[data-dur="' + i + '"]'); if (el) el.textContent = fmt(d);
+      if (i === current) durTime.textContent = fmt(d);
+    }
+    function paint() {
+      const d = durOf(), ct = audio.currentTime || 0;
+      curTime.textContent = fmt(ct);
+      if (d) { seekFill.style.width = (ct / d * 100) + '%'; seekKnob.style.left = (ct / d * 100) + '%'; durTime.textContent = fmt(d); }
+    }
+    function load(i, resume = true) {
+      if (loaded === i) return;
+      loaded = i; current = i; localStorage.setItem(CURKEY, String(i));
+      const ep = EPS[i];
+      audio.src = ep.audio; audio.defaultPlaybackRate = speed; audio.playbackRate = speed;
+      pEp.textContent = 'Episode ' + String(ep.n).padStart(2, '0'); pTitle.textContent = ep.title;
+      durTime.textContent = durCache[i] ? fmt(durCache[i]) : '0:00';
+      curTime.textContent = '0:00'; seekFill.style.width = '0%'; seekKnob.style.left = '0%';
+      const resumeAt = resume ? (posCache[i] || 0) : 0;
+      const onMeta = () => { audio.removeEventListener('loadedmetadata', onMeta); if (loaded !== i) return; if (isFin(audio.duration)) setDur(i, audio.duration); if (resumeAt) { try { audio.currentTime = resumeAt; } catch (e) {} } paint(); };
+      audio.addEventListener('loadedmetadata', onMeta);
+    }
+    function play() { const pr = audio.play(); if (pr && pr.catch) pr.catch(() => {}); }
+    function togglePlay() { if (loaded !== current) load(current); audio.paused ? play() : audio.pause(); }
+    document.getElementById('playBtn').addEventListener('click', togglePlay);
+
+    audio.addEventListener('play', () => { playIcon.innerHTML = ICON_PAUSE; audio.playbackRate = speed; rows.forEach((r, k) => r.classList.toggle('playing', k === current)); });
+    audio.addEventListener('pause', () => { playIcon.innerHTML = ICON_PLAY; rows.forEach(r => r.classList.remove('playing')); });
+    audio.addEventListener('durationchange', () => { if (isFin(audio.duration)) setDur(current, audio.duration); });
+    audio.addEventListener('timeupdate', () => { posCache[current] = audio.currentTime; paint(); });
+    let stick = 0; audio.addEventListener('timeupdate', () => { if (++stick % 20 === 0) localStorage.setItem(POSKEY, JSON.stringify(posCache)); });
+    window.addEventListener('beforeunload', () => localStorage.setItem(POSKEY, JSON.stringify(posCache)));
+    audio.addEventListener('ended', () => { posCache[current] = 0; if (current < EPS.length - 1) { select(current + 1, false); play(); } });
+
+    document.getElementById('back15').addEventListener('click', () => { audio.currentTime = Math.max(0, (audio.currentTime || 0) - 15); });
+    document.getElementById('fwd15').addEventListener('click', () => { const d = durOf(); audio.currentTime = Math.min(d || 1e9, (audio.currentTime || 0) + 15); });
+    const speedBtn = document.getElementById('speedBtn');
+    speedBtn.addEventListener('click', () => { speed = speeds[(speeds.indexOf(speed) + 1) % speeds.length]; audio.defaultPlaybackRate = speed; audio.playbackRate = speed; speedBtn.textContent = speed + '×'; });
+    const seek = document.getElementById('seek');
+    function seekAt(clientX) { const r = seek.getBoundingClientRect(); const p = Math.max(0, Math.min(1, (clientX - r.left) / r.width)); const d = durOf(); if (d) { audio.currentTime = p * d; paint(); } }
+    let dragging = false;
+    seek.addEventListener('pointerdown', (e) => { if (loaded !== current) load(current); dragging = true; seek.setPointerCapture(e.pointerId); seekAt(e.clientX); });
+    seek.addEventListener('pointermove', (e) => { if (dragging) seekAt(e.clientX); });
+    seek.addEventListener('pointerup', () => dragging = false);
+
+    // ---- detail (notes + transcript) ----
+    const tabNotes = document.getElementById('tabNotes'), tabScript = document.getElementById('tabScript');
+    const notesPane = document.getElementById('notesPane'), transcript = document.getElementById('transcript');
+    function showNotes() { tabNotes.classList.add('on'); tabScript.classList.remove('on'); notesPane.classList.remove('off'); transcript.classList.remove('on'); }
+    function showScript() { tabScript.classList.add('on'); tabNotes.classList.remove('on'); notesPane.classList.add('off'); transcript.classList.add('on'); }
+    tabNotes.addEventListener('click', showNotes); tabScript.addEventListener('click', showScript);
+
+    function renderDetail(i) {
+      const ep = EPS[i];
+      document.getElementById('dEhead').textContent = 'Episode ' + ep.n;
+      document.getElementById('dEtitle').textContent = ep.title;
+      const sum = document.getElementById('dSummary'); sum.innerHTML = '';
+      ep.summary.forEach((p, k) => { const el = document.createElement('p'); if (k === 0) el.className = 'first'; el.textContent = p; sum.appendChild(el); });
+      const it = document.getElementById('dInThis'); it.innerHTML = '';
+      ep.inThis.forEach(x => { const li = document.createElement('li'); li.textContent = x; it.appendChild(li); });
+      const why = document.getElementById('dWhy'); why.innerHTML = '';
+      ep.why.forEach((p, k) => { const el = document.createElement('p'); if (k === 0) el.className = 'first'; el.textContent = p; why.appendChild(el); });
+      document.getElementById('dLine').textContent = '“' + ep.line.replace(/^[“"]|[”"]$/g, '') + '”';
+      document.getElementById('dFits').textContent = ep.fits.join(' ');
+      transcript.innerHTML = '';
+      ep.transcript.forEach(p => { const el = document.createElement('p'); if (/^[“"].*[”"]$/.test(p)) el.className = 'q'; el.textContent = p; transcript.appendChild(el); });
+    }
+
+    function select(i, scroll) {
+      current = i;
+      rows.forEach((r, k) => r.classList.toggle('active', k === i));
+      load(i);          // stage the audio (no autoplay)
+      renderDetail(i);
+      showNotes();
+      if (scroll) { const el = document.querySelector('.detail'); const y = el.getBoundingClientRect().top + window.scrollY - 70; window.scrollTo({ top: y, behavior: 'smooth' }); }
+    }
+
+    // ---- resolve durations for the row labels ----
+    (function resolveDurations() {
+      let qi = 0;
+      function next() {
+        while (qi < EPS.length && isFin(durCache[qi])) { setDur(qi, durCache[qi]); qi++; }
+        if (qi >= EPS.length) return;
+        const i = qi, a = new Audio(); a.preload = 'metadata'; a.muted = true; a.src = EPS[i].audio;
+        const done = () => { a.src = ''; qi++; next(); };
+        a.addEventListener('loadedmetadata', () => { if (isFin(a.duration)) setDur(i, a.duration); done(); });
+        a.addEventListener('error', done);
+      }
+      next();
+    })();
+
+    // ---- init on the last-played episode ----
+    let startI = parseInt(localStorage.getItem(CURKEY) || '0', 10);
+    if (isNaN(startI) || startI < 0 || startI >= EPS.length) startI = 0;
+    select(startI, false);
+  </script>
+</body>
+</html>

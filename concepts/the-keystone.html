@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Keystone · IDI01 Catherine</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { display: block; }
+  .screen { height: 100vh; display: flex; flex-direction: column; }
+  .masthead {
+    border-top: var(--masthead-rule) solid var(--ink);
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 18px var(--gutter) 0; flex: 0 0 auto;
+  }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; white-space: nowrap; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--fg2); text-transform: uppercase; white-space: nowrap; }
+  .nav-back { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); text-decoration: none; white-space: nowrap; }
+  .nav-back:hover { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+
+  .head { padding: 18px var(--gutter) 14px; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; flex: 0 0 auto; }
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; }
+  .head .eyebrow { white-space: nowrap; }
+  .head h1 { font-size: clamp(26px, 3.2vw, 40px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.95; margin-top: 8px; }
+  .head h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+  .head .sub { font-family: var(--font-serif); font-style: italic; font-size: 17px; color: var(--fg2); margin-top: 6px; max-width: 52ch; }
+  .legend { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .legend .li { display: flex; gap: 8px; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .gl-key { width: 13px; height: 13px; background: var(--signal); }
+  .gl-cand { width: 13px; height: 13px; border: 1.5px solid var(--ink); background: var(--paper); }
+  .gl-link { width: 18px; height: 0; border-top: 1.5px solid var(--ink); }
+
+  .stage { flex: 1 1 auto; display: grid; grid-template-columns: 1fr 400px; min-height: 0; }
+  .canvas-wrap { position: relative; min-width: 0; border-top: 1px solid var(--ink); }
+  svg#field { width: 100%; height: 100%; display: block; }
+
+  .axis-line { stroke: var(--ink); stroke-width: 1; }
+  .axis-lab { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; fill: var(--fg2); }
+  .quad-note { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; fill: var(--fog); }
+  .quad-div { stroke: var(--fog); stroke-width: 1; stroke-dasharray: 2 5; }
+  .quad-build { fill: var(--bone); opacity: 0.55; }
+  .quad-t { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; fill: var(--fg2); }
+  .quad-t.sig { fill: var(--signal); }
+  .quad-s { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.07em; text-transform: uppercase; fill: var(--fg3); }
+
+  .edge { stroke: var(--ink); stroke-width: 1.4; opacity: 0; transition: opacity var(--dur) var(--ease); }
+  .edge.on { opacity: 1; }
+  .edge-lab { opacity: 0; transition: opacity var(--dur) var(--ease); }
+  .edge-lab.on { opacity: 1; }
+  .edge-lab rect { fill: var(--paper); }
+  .edge-lab text { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; fill: var(--ink); }
+
+  .node { cursor: pointer; }
+  .node .blk { fill: var(--paper); stroke: var(--ink); stroke-width: 1.6; transition: stroke var(--dur) var(--ease); }
+  .node.key .blk { fill: var(--signal); stroke: var(--signal); }
+  .node .rk { font-family: var(--font-mono); font-size: 14px; fill: var(--ink); }
+  .node.key .rk { fill: var(--paper); }
+  .node .reticle { fill: none; stroke: var(--signal); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.85; }
+  .node .nlab { font-family: var(--font-sans); font-weight: 700; font-size: 13px; fill: var(--ink); letter-spacing: -0.01em; }
+  .node .nsub { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; fill: var(--fg2); text-transform: uppercase; }
+  .node.faded { opacity: 0.22; }
+  .node.sel .blk { stroke: var(--signal); stroke-width: 2.4; }
+  .node.key.sel .blk { stroke: var(--ink); }
+
+  /* ---- panel ---- */
+  .panel { border-left: 1px solid var(--ink); border-top: 1px solid var(--ink); padding: 24px 28px 36px; overflow-y: auto; background: var(--bone); }
+  .panel .ptype { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); display: flex; justify-content: space-between; gap: 12px; }
+  .panel .ptype b { color: var(--signal); font-weight: var(--fw-regular); }
+  .panel .ptype span { white-space: nowrap; flex-shrink: 0; }
+  .panel .ptype .rk { color: var(--ink); }
+  .panel .pid { font-family: var(--font-mono); font-size: 12px; color: var(--ink); letter-spacing: 0.1em; margin-top: 14px; }
+  .panel h3 { font-size: 22px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.12; margin: 6px 0 16px; }
+  .panel .pq { font-family: var(--font-serif); font-style: italic; font-size: 20px; line-height: 1.34; border-left: var(--rule-thick) solid var(--ink); padding-left: 18px; margin: 4px 0 20px; color: var(--ink); }
+  .panel .pq.sig { border-left-color: var(--signal); }
+
+  .bl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); margin-bottom: 6px; }
+  .pblock { margin-top: 18px; }
+  .pblock p { font-size: 14px; line-height: 1.55; color: var(--ink); }
+
+  /* cascade */
+  .casc { margin-top: 18px; border: 1px solid var(--ink); }
+  .casc .cell { padding: 13px 16px; border-bottom: 1px solid var(--fog); }
+  .casc .cell:last-child { border-bottom: 0; }
+  .casc .cl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); margin-bottom: 6px; }
+  .casc .ct { font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+  .casc .mid { background: var(--surface-inverse, var(--ink)); }
+  .casc .mid .cl { color: var(--signal); }
+  .casc .mid .ct { color: var(--paper); font-family: var(--font-serif); font-style: italic; font-size: 16px; line-height: 1.34; }
+  .casc .flowmark { text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--fog); padding: 2px 0; }
+
+  .prow { display: grid; grid-template-columns: 120px 1fr; gap: 12px; border-top: 1px solid var(--fog); padding: 9px 0; font-size: 13px; }
+  .prow .k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); }
+  .prow .v { color: var(--ink); }
+  .prow .v.sig { color: var(--signal); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chips button { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; border: 1px solid var(--ink); background: var(--paper); padding: 5px 9px; cursor: pointer; color: var(--ink); }
+  .chips button:hover { background: var(--hover-overlay); }
+
+  .atoms { margin-top: 8px; }
+  .atom { border-top: 1px solid var(--fog); padding: 12px 0; }
+  .atom:last-child { border-bottom: 1px solid var(--fog); }
+  .atom .ah { display: flex; justify-content: space-between; gap: 12px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .atom .ao { font-size: 13px; line-height: 1.45; color: var(--ink); margin: 7px 0 6px; }
+  .atom .aq { font-family: var(--font-serif); font-style: italic; font-size: 13.5px; line-height: 1.4; color: var(--ash); }
+
+  /* doubt ledger / empty state */
+  .ledger .lq { font-family: var(--font-serif); font-style: italic; font-size: 22px; line-height: 1.28; color: var(--ink); margin: 2px 0 16px; }
+  .ledger .diag { font-size: 14px; line-height: 1.6; color: var(--ash); }
+  .ledger .converge { font-size: 13px; line-height: 1.55; color: var(--ash); margin-top: 18px; border-left: 2px solid var(--signal); padding-left: 14px; }
+  .ledger .converge b { color: var(--ink); font-weight: var(--fw-medium); }
+  .keycall { border: 1px solid var(--signal); background: var(--paper); padding: 16px 18px; margin-top: 22px; cursor: pointer; transition: background var(--dur) var(--ease); }
+  .keycall:hover { background: var(--bone); }
+  .keycall .kk { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); }
+  .keycall h4 { font-size: 17px; font-weight: var(--fw-bold); letter-spacing: -0.015em; margin: 8px 0 4px; line-height: 1.1; }
+  .keycall p { font-size: 13px; line-height: 1.5; color: var(--ash); }
+  .keycall .go { margin-top: 10px; font-size: 13px; font-weight: var(--fw-medium); color: var(--ink); display: inline-flex; gap: 7px; }
+
+  .rank-pick { margin-top: 8px; display: flex; flex-direction: column; }
+  .rank-pick button { text-align: left; background: none; border: 0; border-top: 1px solid var(--fog); padding: 11px 0; cursor: pointer; color: var(--ash); display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: baseline; }
+  .rank-pick button:hover { color: var(--ink); }
+  .rank-pick button .rn { font-family: var(--font-mono); font-size: 12px; color: var(--fg3); }
+  .rank-pick button.key .rn { color: var(--signal); }
+  .rank-pick button .rt { font-size: 13.5px; line-height: 1.3; }
+  .rank-pick button .rt b { font-weight: var(--fw-bold); color: inherit; display: block; }
+  .rank-pick button .rt span { font-size: 12px; color: var(--fg2); }
+
+  .dlist { list-style: none; margin-top: 6px; }
+  .dlist li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; border-top: 1px solid var(--fog); padding: 9px 0; font-size: 13.5px; line-height: 1.45; color: var(--ink); }
+  .dlist li .dn { font-family: var(--font-mono); font-size: 11px; color: var(--signal); }
+
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) {
+    .fadein { animation: fi var(--dur-slow) var(--ease) both; }
+  }
+  @keyframes fi { from { transform: translateY(10px); } to { transform: none; } }
+
+  /* meaningful exit */
+  .handoff { border-top: var(--masthead-rule) solid var(--ink); padding: 30px var(--gutter) 48px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: start; background: var(--paper); }
+  .handoff .ho-k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); }
+  .handoff .ho-l h2 { font-size: clamp(22px, 2.6vw, 32px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.04; margin: 12px 0 14px; max-width: 22ch; }
+  .handoff .ho-l p { font-size: 14px; line-height: 1.6; color: var(--fg2); max-width: 50ch; }
+  .handoff .ho-l p b { color: var(--ink); font-weight: var(--fw-medium); }
+  .ho-back { display: inline-block; margin-top: 16px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
+  .ho-back:hover { color: var(--signal); border-color: var(--signal); text-decoration: none; }
+  .ho-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  .ho-list a { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--fog); text-decoration: none; }
+  .ho-list a:hover { text-decoration: none; }
+  .ho-list a .hn { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--fg2); }
+  .ho-list a:hover .hn { color: var(--signal); }
+  .ho-list a .ht { font-size: 14px; font-weight: var(--fw-medium); color: var(--ink); line-height: 1.25; }
+  .ho-list a:hover .ht { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  .ho-list a .hx { display: block; font-size: 12px; color: var(--fg2); font-weight: var(--fw-regular); margin-top: 2px; line-height: 1.35; }
+  .ho-list a.is-here { opacity: 0.5; }
+  .ho-list a.is-here .ht { text-decoration: none; }
+  @media (max-width: 720px) { .handoff { grid-template-columns: 1fr; gap: 24px; } .ho-list { grid-template-columns: 1fr; } }
+  @media (max-width: 940px) {
+    html, body { overflow: auto; }
+    .stage { grid-template-columns: 1fr; }
+    .canvas-wrap { height: 64vh; }
+    .legend { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="screen">
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <a class="nav-back" href="../index.html">← all seven lenses</a>
+    <span class="ref">Concept 05 / The Keystone</span>
+  </div>
+
+  <div class="head fadein">
+    <div>
+      <div class="eyebrow-row">
+        <span class="eyebrow">The Keystone</span>
+        <span class="eyebrow" style="color:var(--signal)">Leverage</span>
+      </div>
+      <h1>Find the one block <em>holding up</em> the rest.</h1>
+      <div class="sub">Six candidate cruxes, plotted by evidence and leverage. One of them, if it moved, would move the most.</div>
+    </div>
+    <div class="legend">
+      <span class="li"><span class="gl-key"></span> Most likely crux</span>
+      <span class="li"><span class="gl-cand"></span> Candidate crux</span>
+      <span class="li"><span class="gl-link"></span> Shared evidence</span>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="canvas-wrap fadein" style="animation-delay:100ms">
+      <svg id="field" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+        <g id="axes"></g>
+        <g id="edges"></g>
+        <g id="edgelabs"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+    <aside class="panel" id="panel"></aside>
+  </div>
+  </div><!-- /.screen -->
+
+  <section class="handoff">
+    <div class="ho-l">
+      <div class="ho-k">After the leverage read</div>
+      <h2>You’ve found the one block. Now see what rests on it.</h2>
+      <p>This lens ranks the cruxes and names the keystone. It is the same place every other lens converged: <b>upstream authorship</b>. The verdict is one click away.</p>
+      <a class="ho-back" href="../index.html">Back to all seven lenses and the verdict →</a>
+    </div>
+    <nav class="ho-list">
+      <a href="the-session.html"><span class="hn">01</span><span><span class="ht">The Session</span><span class="hx">Chronology · the raw tape</span></span></a>
+      <a href="the-constellation.html"><span class="hn">02</span><span><span class="ht">The Constellation</span><span class="hx">Relation · how the narratives pull</span></span></a>
+      <a href="the-shift.html"><span class="hn">03</span><span><span class="ht">The Shift</span><span class="hx">Transformation · which change is worth making</span></span></a>
+      <a href="the-ledger.html"><span class="hn">04</span><span><span class="ht">The Ledger</span><span class="hx">Argument · the skill to build</span></span></a>
+      <a class="is-here" href="the-keystone.html"><span class="hn">05</span><span><span class="ht">The Keystone</span><span class="hx">Leverage · you are here</span></span></a>
+      <a href="the-opportunity.html"><span class="hn">06</span><span><span class="ht">The Opportunity</span><span class="hx">Demand · what’s most under-served</span></span></a>
+      <a href="the-casefile.html"><span class="hn">07</span><span><span class="ht">The Casefile</span><span class="hx">Diagnosis · the decision brief</span></span></a>
+    </nav>
+  </section>
+
+  <script src="../data.js"></script>
+  <script src="../crux-data.js"></script>
+  <script>
+    const R = window.RESEARCH, CR = R.cruxes, CM = R.cruxMeta;
+    const byId = Object.fromEntries(CR.map(c => [c.id, c]));
+    const SVGNS = 'http://www.w3.org/2000/svg';
+
+    const SHORT = { crux_001:'Upstream lock-in', crux_002:'Time slack', crux_003:'Sponsor gaps',
+                    crux_004:'Protocol lock-in', crux_005:'Site capacity', crux_006:'Nursing capability' };
+    const LABSIDE = { crux_001:'left', crux_002:'right', crux_003:'left', crux_005:'left', crux_004:'right', crux_006:'right' };
+
+    // ---- shared-atom structure (the load-bearing links) ----
+    function overlap(a,b){ return R.cruxOverlap(a,b); }
+    function overlapCount(c){ return CR.filter(o => o.id!==c.id && overlap(c,o).length>0).length; }
+    const neighbors = {};
+    CR.forEach(c => { neighbors[c.id] = CR.filter(o => o.id!==c.id && overlap(c,o).length>0).map(o => ({ id:o.id, n:overlap(c,o).length })); });
+
+    // ---- leverage scoring → plot coords ----
+    function evScore(c){ return (c.ev==='High'?0.72:0.40) + (c.atoms.length-8)/4*0.06; }
+    function levScore(c){ return (c.lev==='High'?0.60:0.35) + overlapCount(c)*0.12; }
+    const W=1000, H=700, M={l:96,r:74,t:60,b:78}, pw=W-M.l-M.r, ph=H-M.t-M.b;
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    CR.forEach(c => {
+      const xf = clamp((evScore(c)-0.36)/(0.80-0.36), 0.04, 0.96);
+      const yf = clamp((levScore(c)-0.38)/(1.00-0.38), 0.04, 0.96);
+      c._x = M.l + xf*pw;
+      c._y = M.t + (1-yf)*ph;
+    });
+    // de-collide coincident nodes so a maxed-out pair (e.g. the top two cruxes) stay legible
+    for (let iter=0; iter<80; iter++){
+      for (let i=0;i<CR.length;i++) for (let j=i+1;j<CR.length;j++){
+        const a=CR[i], b=CR[j]; let dx=b._x-a._x, dy=b._y-a._y; let d=Math.hypot(dx,dy); const min=64;
+        if (d<0.5){ dx=(i%2?1:-1); dy=(j%2?1:-1); d=Math.hypot(dx,dy); }   // coincident: pick a direction
+        if (d<min){ const push=(min-d)/2, ux=dx/d, uy=dy/d; a._x-=ux*push; a._y-=uy*push; b._x+=ux*push; b._y+=uy*push; }
+      }
+      CR.forEach(c=>{ c._x=clamp(c._x, M.l+10, W-M.r-10); c._y=clamp(c._y, M.t+10, H-M.b-10); });
+    }
+
+    // ---- axes ----
+    const axes = document.getElementById('axes');
+    function el(tag, attrs, parent){ const e=document.createElementNS(SVGNS,tag); for(const k in attrs) e.setAttribute(k, attrs[k]); (parent||axes).appendChild(e); return e; }
+    el('line', { x1:M.l, y1:H-M.b, x2:W-M.r, y2:H-M.b, class:'axis-line' });
+    el('line', { x1:M.l, y1:M.t-6, x2:M.l, y2:H-M.b, class:'axis-line' });
+    const xl = el('text', { x:(M.l+W-M.r)/2, y:H-M.b+34, 'text-anchor':'middle', class:'axis-lab' }); xl.textContent='Evidence strength →';
+    const yl = el('text', { x:0, y:0, class:'axis-lab', 'text-anchor':'middle', transform:`translate(${M.l-30},${(M.t+H-M.b)/2}) rotate(-90)` }); yl.textContent='Leverage →';
+    // decision matrix: quadrant dividers + action labels, so a node's POSITION reads as a recommendation
+    const xMid = M.l + 0.46 * pw, yMid = M.t + (1 - 0.58) * ph;
+    el('rect', { x: xMid, y: M.t - 6, width: (W - M.r) - xMid, height: yMid - (M.t - 6), class: 'quad-build' });
+    el('line', { x1: xMid, y1: M.t - 6, x2: xMid, y2: H - M.b, class: 'quad-div' });
+    el('line', { x1: M.l, y1: yMid, x2: W - M.r, y2: yMid, class: 'quad-div' });
+    function qlabel(x, y, anchor, l1, l2, sig) {
+      const g = el('g', {}, axes);
+      const t1 = el('text', { x, y, 'text-anchor': anchor, class: 'quad-t' + (sig ? ' sig' : '') }, g); t1.textContent = l1;
+      const t2 = el('text', { x, y: y + 15, 'text-anchor': anchor, class: 'quad-s' }, g); t2.textContent = l2;
+    }
+    qlabel(W - M.r - 8, M.t + 14, 'end', 'Build now', 'High leverage · well evidenced', true);
+    qlabel(M.l + 8, M.t + 14, 'start', 'Investigate first', 'High leverage · thin evidence');
+    qlabel(W - M.r - 8, H - M.b - 24, 'end', 'Minor wins', 'Lower leverage · well evidenced');
+    qlabel(M.l + 8, H - M.b - 24, 'start', 'Deprioritise', 'Lower leverage · thin evidence');
+
+    // ---- edges (shared evidence) ----
+    const edgesG = document.getElementById('edges');
+    const edgeLabsG = document.getElementById('edgelabs');
+    const pairs = [];
+    for (let i=0;i<CR.length;i++) for (let j=i+1;j<CR.length;j++){
+      const sh = overlap(CR[i], CR[j]);
+      if (sh.length) pairs.push({ a:CR[i], b:CR[j], n:sh.length });
+    }
+    pairs.forEach(p => {
+      p.line = el('line', { x1:p.a._x, y1:p.a._y, x2:p.b._x, y2:p.b._y, class:'edge' }, edgesG);
+      const mx=(p.a._x+p.b._x)/2, my=(p.a._y+p.b._y)/2;
+      const g = el('g', { class:'edge-lab' }, edgeLabsG);
+      const txt = p.n + (p.n===1?' atom':' atoms');
+      const w = txt.length*6.0 + 12;
+      el('rect', { x:mx-w/2, y:my-9, width:w, height:18 }, g);
+      const t = el('text', { x:mx, y:my+3.5, 'text-anchor':'middle' }, g); t.textContent = txt;
+      p.lab = g;
+    });
+
+    // ---- nodes ----
+    const nodesG = document.getElementById('nodes');
+    CR.forEach(c => {
+      const isK = c.id===CM.mostLikely;
+      const s = isK ? 38 : 30;
+      const g = el('g', { class:'node'+(isK?' key':''), transform:`translate(${c._x},${c._y})` }, nodesG);
+      g.dataset.id = c.id;
+      if (isK) el('circle', { r:30, class:'reticle' }, g);
+      el('rect', { x:-s/2, y:-s/2, width:s, height:s, class:'blk' }, g);
+      const rk = el('text', { x:0, y:5, 'text-anchor':'middle', class:'rk' }, g); rk.textContent = c.rank;
+      // side label
+      const side = LABSIDE[c.id];
+      const lx = side==='left' ? -(s/2+12) : (s/2+12);
+      const anchor = side==='left' ? 'end' : 'start';
+      const lab = el('text', { x:lx, y:-1, 'text-anchor':anchor, class:'nlab' }, g); lab.textContent = SHORT[c.id];
+      const sub = el('text', { x:lx, y:14, 'text-anchor':anchor, class:'nsub' }, g); sub.textContent = c.id.replace('_',' ');
+      c._g = g;
+    });
+
+    // ---- interaction ----
+    const panel = document.getElementById('panel');
+    let selected = null;
+
+    function clearHi(){
+      CR.forEach(c => c._g.classList.remove('faded','sel'));
+      pairs.forEach(p => { p.line.classList.remove('on'); p.lab.classList.remove('on'); });
+    }
+    function highlight(id){
+      const nb = new Set(neighbors[id].map(x=>x.id)); nb.add(id);
+      CR.forEach(c => c._g.classList.toggle('faded', !nb.has(c.id)));
+      byId[id]._g.classList.add('sel');
+      pairs.forEach(p => {
+        const on = p.a.id===id || p.b.id===id;
+        p.line.classList.toggle('on', on); p.lab.classList.toggle('on', on);
+      });
+    }
+
+    function select(id){ selected=id; clearHi(); highlight(id); panel.innerHTML = cruxPanel(byId[id]); panel.scrollTop=0; bind(); }
+    function deselect(){ selected=null; clearHi(); panel.innerHTML = ledger(); bind(); }
+
+    function tq(s){ return '“' + String(s).replace(/^"|"$/g,'').replace(/'/g,'’') + '”'; }
+    const bandClass = v => v==='High' ? 'sig' : '';
+
+    function cruxPanel(c){
+      const isK = c.id===CM.mostLikely;
+      const nb = neighbors[c.id].slice().sort((x,y)=>y.n-x.n);
+      const atomRows = c.atoms.map(id => {
+        const a = R.atom(id); if(!a) return '';
+        return `<div class="atom">
+          <div class="ah"><span>${id.replace('_',' ')}</span><span>${a.loc}</span></div>
+          <div class="ao">${a.observation}</div>
+          <div class="aq">${tq(a.quote)}</div>
+        </div>`;
+      }).join('');
+      return `
+        <div class="ptype"><span>${isK?'<b>Most likely crux</b>':'Candidate crux'}</span><span class="rk">Rank ${c.rank} / 6</span></div>
+        <div class="pid">${c.id.replace('_',' ')}</div>
+        <h3>${c.title}</h3>
+        <div class="pq ${isK?'sig':''}">${c.statement}</div>
+
+        <div class="casc">
+          <div class="cell"><div class="cl">Upstream · what holds it in place</div><div class="ct">${c.upstream}</div></div>
+          <div class="flowmark">↓</div>
+          <div class="cell mid"><div class="cl">The crux</div><div class="ct">${c.statement}</div></div>
+          <div class="flowmark">↓</div>
+          <div class="cell"><div class="cl">Downstream · what it blocks</div><div class="ct">${c.downstream}</div></div>
+        </div>
+
+        <div class="pblock"><div class="bl">If it moved</div><p>${c.leverage}</p></div>
+        <div class="pblock"><div class="bl">Visible tension</div><p>${c.tension}</p></div>
+        <div class="pblock"><div class="bl">Recurring pattern</div><p>${c.recurring}</p></div>
+
+        <div class="prow"><span class="k">Type</span><span class="v">${c.type.replace(/_/g,' ')}</span></div>
+        <div class="prow"><span class="k">Evidence</span><span class="v ${bandClass(c.ev)}">${c.ev}</span></div>
+        <div class="prow"><span class="k">Leverage</span><span class="v ${bandClass(c.lev)}">${c.lev}</span></div>
+        <div class="prow"><span class="k">Confidence</span><span class="v ${bandClass(c.conf)}">${c.conf}</span></div>
+        <div class="prow"><span class="k">Scope</span><span class="v">${c.scope}</span></div>
+
+        ${nb.length?`<div class="pblock"><div class="bl">Shares load with</div><div class="chips">
+          ${nb.map(x=>`<button data-id="${x.id}">${SHORT[x.id]} · ${x.n} ${x.n===1?'atom':'atoms'}</button>`).join('')}
+        </div></div>`:''}
+
+        <div class="pblock"><div class="bl">Built from ${c.atoms.length} observations</div>
+          <div class="atoms">${atomRows}</div>
+        </div>
+
+        <div class="pblock"><div class="bl">Read against</div><p style="color:var(--ash)">${c.alt}</p></div>
+      `;
+    }
+
+    function ledger(){
+      const mk = byId[CM.mostLikely];
+      return `<div class="ledger">
+        <div class="ptype"><span>The leverage read</span><span>06 cruxes</span></div>
+        <div class="lq">${CM.question}</div>
+        <p class="diag">${CM.diagnosis}</p>
+
+        <div class="keycall" data-id="${mk.id}">
+          <div class="kk">Most likely keystone · Rank 1</div>
+          <h4>${mk.title}</h4>
+          <p>${mk.statement}</p>
+          <span class="go">Open the keystone →</span>
+        </div>
+
+        <p class="converge">This is the same place every other lens converged: the container count, the post-thaw clock, the protocol, all decided before the product ever shipped. <b>Upstream authorship</b> is the project’s single finding, read here as leverage.</p>
+
+        <div class="pblock"><div class="bl">The ranking</div>
+          <div class="rank-pick">
+            ${CM.ranked.map(r=>{const c=byId[r.id];const k=r.id===CM.mostLikely;return `<button data-id="${r.id}" class="${k?'key':''}"><span class="rn">${String(r.rank).padStart(2,'0')}</span><span class="rt"><b>${SHORT[r.id]}</b><span>${r.rationale}</span></span></button>`;}).join('')}
+          </div>
+        </div>
+
+        <div class="pblock"><div class="bl">What would re-rank this · open uncertainties</div>
+          <ul class="dlist">${CM.uncertainties.map((u,i)=>`<li><span class="dn">${String(i+1).padStart(2,'0')}</span><span>${u}</span></li>`).join('')}</ul>
+        </div>
+
+        <div class="pblock"><div class="bl">Evidence gaps</div>
+          <ul class="dlist">${CM.gaps.map((u,i)=>`<li><span class="dn">—</span><span>${u}</span></li>`).join('')}</ul>
+        </div>
+      </div>`;
+    }
+
+    function bind(){
+      panel.querySelectorAll('[data-id]').forEach(b => b.addEventListener('click', () => select(b.dataset.id)));
+    }
+
+    CR.forEach(c => {
+      c._g.addEventListener('click', (e) => { e.stopPropagation(); select(c.id); });
+    });
+    document.getElementById('field').addEventListener('click', () => { if(selected) deselect(); });
+
+    deselect();
+  </script>
+</body>
+</html>

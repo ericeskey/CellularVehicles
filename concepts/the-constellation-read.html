@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Constellation · Read · When the Therapy Works, but the Site Absorbs the Gap</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+
+  .masthead { border-top: var(--masthead-rule) solid var(--ink); display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px var(--gutter); position: sticky; top: 0; background: var(--paper); z-index: 20; border-bottom: 1px solid var(--fog); }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; white-space: nowrap; }
+  .masthead .right { display: flex; align-items: center; gap: 18px; }
+
+  .ways { display: flex; border: 1px solid var(--ink); }
+  .ways a { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 7px 14px; color: var(--ash); border-right: 1px solid var(--ink); white-space: nowrap; }
+  .ways a:last-child { border-right: 0; }
+  .ways a:hover { background: var(--hover-overlay); color: var(--ink); text-decoration: none; }
+  .ways a.on { background: var(--ink); color: var(--paper); }
+
+  .notes-toggle { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); border: 1px solid var(--ink); background: var(--paper); padding: 7px 13px; cursor: pointer; white-space: nowrap; }
+  .notes-toggle:hover { background: var(--hover-overlay); }
+  .notes-toggle b { color: var(--signal); font-weight: var(--fw-regular); }
+
+  .progress-rail { position: sticky; top: 57px; height: 2px; background: transparent; z-index: 19; }
+  .progress-bar { height: 2px; width: 0; background: var(--signal); transition: width 80ms linear; }
+
+  .wrap { flex: 1; display: grid; grid-template-columns: 210px minmax(0, 720px); justify-content: center; column-gap: 44px; align-items: start; padding: 0 var(--gutter); }
+  .toc-col { grid-column: 1; align-self: stretch; }
+  article.doc { grid-column: 2; width: 100%; padding: 56px 0 120px; }
+
+  .toc { position: sticky; top: 96px; width: 100%; max-height: calc(100vh - 130px); overflow-y: auto; padding: 4px 0 12px; }
+  .toc .toc-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); margin-bottom: 14px; padding-left: 16px; }
+  .toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--fog); }
+  .toc li a { display: block; padding: 9px 0 9px 16px; margin-left: -1px; border-left: 2px solid transparent; font-size: 13px; line-height: 1.38; color: var(--fg2); transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease); }
+  .toc li a:hover { color: var(--ink); text-decoration: none; }
+  .toc li a.active { color: var(--ink); border-left-color: var(--signal); }
+  .toc li a .ti { font-family: var(--font-mono); font-size: 10px; color: var(--fg3); margin-right: 9px; }
+  .toc li a.active .ti { color: var(--signal); }
+
+  .toc-inline { display: none; margin-top: 30px; border: 1px solid var(--ink); }
+  .toc-inline .ti-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 16px 10px; color: var(--ink); border-bottom: 1px solid var(--fog); }
+  .toc-inline ol { list-style: none; margin: 0; padding: 4px 0 8px; }
+  .toc-inline li a { display: flex; gap: 10px; padding: 9px 16px; font-size: 13.5px; line-height: 1.35; color: var(--fg2); }
+  .toc-inline li a:hover { color: var(--ink); text-decoration: none; }
+  .toc-inline li a.active { color: var(--ink); }
+  .toc-inline li a .ti { font-family: var(--font-mono); font-size: 10px; color: var(--fg3); }
+  .toc-inline li a.active .ti { color: var(--signal); }
+
+  .to-top { position: fixed; right: 24px; bottom: 24px; z-index: 30; width: 46px; height: 46px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; opacity: 0; visibility: hidden; transition: opacity var(--dur) var(--ease), visibility 0s linear var(--dur), background var(--dur-fast) var(--ease); }
+  .to-top.show { opacity: 1; visibility: visible; transition: opacity var(--dur) var(--ease), visibility 0s, background var(--dur-fast) var(--ease); }
+  .to-top:hover { background: var(--ink); color: var(--paper); }
+
+  /* ---- masthead of the article ---- */
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; margin-bottom: 22px; }
+  .a-title { font-size: clamp(34px, 5vw, 62px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.98; max-width: 16ch; }
+  .a-stand { font-family: var(--font-serif); font-style: italic; font-size: clamp(20px, 2.4vw, 26px); line-height: 1.34; color: var(--ash); margin-top: 24px; max-width: 36ch; }
+  .a-meta { display: flex; gap: 22px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); margin-top: 30px; padding: 14px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--fog); }
+  .a-meta b { color: var(--ink); font-weight: var(--fw-regular); }
+
+  /* ---- opener ---- */
+  .opener { margin-top: 44px; }
+  .opener p { font-size: 19px; line-height: 1.66; color: var(--ink); margin-top: 18px; max-width: 68ch; }
+  .opener p.lead { font-size: 23px; line-height: 1.5; font-weight: var(--fw-medium); letter-spacing: -0.01em; }
+
+  /* shared prose + pull quote */
+  .doc p { font-size: 19px; line-height: 1.66; color: var(--ink); margin-top: 18px; max-width: 68ch; }
+  .a-pq { font-family: var(--font-serif); font-style: italic; font-size: clamp(24px, 3vw, 32px); line-height: 1.3; color: var(--ink); border-left: var(--rule-thick) solid var(--signal); padding: 4px 0 4px 26px; margin: 38px 0; max-width: 28ch; }
+
+  /* ---- story header ---- */
+  .story { scroll-margin-top: 92px; }
+  .story-sep { border: 0; border-top: 1px solid var(--ink); margin: 84px 0 0; }
+  .story-head { padding-top: 40px; }
+  .story-kicker { display: flex; align-items: baseline; gap: 16px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); }
+  .story-kicker .sn { color: var(--signal); }
+  .story-kicker .sid { margin-left: auto; color: var(--fg3); }
+  .story-title { font-size: clamp(30px, 4vw, 46px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.0; margin: 16px 0 0; }
+  .story-dek { font-family: var(--font-serif); font-style: italic; font-size: clamp(19px, 2.2vw, 24px); line-height: 1.34; color: var(--ash); margin-top: 16px; max-width: 34ch; }
+  .story-dossier { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin-top: 24px; padding: 16px 0 4px; border-top: 1px solid var(--fog); max-width: 64ch; }
+  .story-dossier .dk { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); line-height: 1.7; }
+  .story-dossier .dv { font-size: 14px; line-height: 1.5; color: var(--ink); }
+  .story-body { margin-top: 14px; }
+
+  /* inline “play this story” control */
+  .story-listen { display: flex; align-items: center; gap: 14px; margin-top: 22px; padding: 11px 14px; border: 1px solid var(--ink); background: var(--paper); max-width: 64ch; }
+  .sl-play { width: 36px; height: 36px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; transition: background var(--dur-fast) var(--ease); }
+  .sl-play svg { width: 14px; height: 14px; display: block; }
+  .sl-play:hover { background: var(--ink-hover); }
+  .story-listen.playing .sl-play { background: var(--signal); border-color: var(--signal); }
+  .sl-seek { flex: 1; height: 14px; position: relative; cursor: pointer; display: flex; align-items: center; min-width: 60px; }
+  .sl-seek .slt { position: absolute; left: 0; right: 0; height: 2px; background: var(--fog); }
+  .sl-seek .slf { position: absolute; left: 0; height: 2px; background: var(--signal); width: 0; }
+  .sl-time { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); white-space: nowrap; flex: 0 0 auto; }
+
+  /* ---- what-changed coda ---- */
+  .changed { margin-top: 40px; border: 1px solid var(--ink); display: grid; grid-template-columns: repeat(3, 1fr); }
+  .changed .col { padding: 20px 22px 22px; border-right: 1px solid var(--fog); }
+  .changed .col:last-child { border-right: 0; }
+  .changed .cl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); margin-bottom: 12px; }
+  .changed .col.now { background: var(--bone); }
+  .changed .col.now .cl { color: var(--signal); }
+  .changed .col p { font-size: 15px; line-height: 1.5; color: var(--ink); margin: 0; max-width: none; }
+
+  /* selection-save */
+  .save-pop { position: fixed; z-index: 60; transform: translate(-50%, -130%); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: var(--ink); color: var(--paper); border: 0; padding: 8px 12px; cursor: pointer; display: none; white-space: nowrap; }
+  .save-pop::after { content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%) rotate(45deg); width: 8px; height: 8px; background: var(--ink); }
+  .save-pop:active { transform: translate(-50%, -130%) translateY(1px); }
+  ::selection { background: var(--signal); color: var(--paper); }
+
+  /* notes rail */
+  .scrim { position: fixed; inset: 0; background: rgba(10,10,10,0.18); opacity: 0; pointer-events: none; transition: opacity var(--dur) var(--ease); z-index: 40; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .rail { position: fixed; top: 0; right: calc(-1 * min(420px, 92vw)); bottom: 0; width: min(420px, 92vw); background: var(--paper); border-left: 1px solid var(--ink); z-index: 50; visibility: hidden; transition: right var(--dur) var(--ease), visibility 0s linear var(--dur); display: flex; flex-direction: column; }
+  .rail.open { right: 0; visibility: visible; transition: right var(--dur) var(--ease), visibility 0s; }
+  .rail .rhead { display: flex; align-items: baseline; justify-content: space-between; padding: 22px 24px 16px; border-bottom: 1px solid var(--ink); }
+  .rail .rhead .t { font-weight: var(--fw-black); font-size: 18px; letter-spacing: -0.02em; }
+  .rail .rhead .x { font-family: var(--font-mono); font-size: 18px; line-height: 1; background: none; border: 0; cursor: pointer; color: var(--ash); }
+  .rail .rhead .x:hover { color: var(--ink); }
+  .rail .rscroll { flex: 1; overflow-y: auto; padding: 8px 24px 24px; }
+  .rail .empty { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); line-height: 1.7; padding: 28px 0; }
+  .note { border-top: 1px solid var(--fog); padding: 14px 0; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
+  .note .nq { font-family: var(--font-serif); font-style: italic; font-size: 15.5px; line-height: 1.4; color: var(--ink); }
+  .note .ns { display: block; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); margin-top: 7px; }
+  .note .nx { font-family: var(--font-mono); font-size: 14px; line-height: 1; background: none; border: 0; cursor: pointer; color: var(--fg2); }
+  .note .nx:hover { color: var(--signal); }
+  .rail .blk { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); margin: 26px 0 8px; }
+  .rail textarea { width: 100%; min-height: 120px; resize: vertical; border: 1px solid var(--ink); background: var(--paper); padding: 12px 14px; font-family: var(--font-sans); font-size: 14px; line-height: 1.55; color: var(--ink); }
+  .rail textarea:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .rail .ractions { display: flex; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--ink); }
+  .rail .ractions button { flex: 1; font-family: var(--font-sans); font-size: 13px; font-weight: var(--fw-medium); border: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 11px; cursor: pointer; }
+  .rail .ractions button:hover { background: var(--hover-overlay); }
+  .rail .ractions button.primary { background: var(--ink); color: var(--paper); }
+  .rail .ractions button.primary:hover { background: var(--ink-hover); }
+
+  .a-close { font-family: var(--font-serif); font-style: italic; font-size: clamp(21px, 2.6vw, 28px); line-height: 1.36; color: var(--ink); margin: 76px 0 0; padding-top: 40px; border-top: 1px solid var(--ink); max-width: 32ch; }
+
+  .footer-nav { padding: 36px 0 0; margin-top: 40px; display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .footer-nav a { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ash); }
+  .footer-nav a:hover { color: var(--ink); }
+  .footer-nav a b { color: var(--signal); font-weight: var(--fw-regular); }
+
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) { .fadein { animation: fi var(--dur-slow) var(--ease) both; } }
+  @keyframes fi { from { transform: translateY(10px); } to { transform: none; } }
+  @media (max-width: 1080px) {
+    .wrap { grid-template-columns: 184px minmax(0, 720px); column-gap: 30px; padding: 0 24px; }
+  }
+  @media (max-width: 780px) {
+    .wrap { grid-template-columns: minmax(0, 720px); padding: 0 var(--gutter); }
+    .toc-col { display: none; }
+    .toc-inline { display: block; }
+  }
+  @media (max-width: 700px) {
+    .masthead { flex-wrap: wrap; }
+    .ways a { padding: 7px 10px; }
+    .doc p, .opener p { font-size: 18px; }
+    .changed { grid-template-columns: 1fr; }
+    .changed .col { border-right: 0; border-bottom: 1px solid var(--fog); }
+    .changed .col:last-child { border-bottom: 0; }
+  }
+  @media print {
+    .masthead, .progress-rail, .toc-col, .toc-mobile, .to-top, .notes-toggle, .save-pop, .rail, .scrim { display: none !important; }
+    .wrap { display: block; padding: 0; }
+    article.doc { padding: 0; }
+    .doc p, .opener p { font-size: 12pt; line-height: 1.5; color: #000; }
+    .story-sep { border-top-color: #000; }
+    .a-pq { border-left-color: #000; color: #000; }
+    .changed { border-color: #000; }
+    a { color: #000; }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <div class="right">
+      <nav class="ways">
+        <a href="the-constellation.html">Explore</a>
+        <a href="the-constellation-read.html" class="on">Read</a>
+        <a href="the-constellation-listen.html">Listen</a>
+      </nav>
+      <button class="notes-toggle" id="notesToggle">Notes <b id="noteCount">0</b></button>
+    </div>
+  </div>
+  <div class="progress-rail"><div class="progress-bar" id="progressBar"></div></div>
+
+  <div class="wrap">
+    <div class="toc-col">
+      <nav class="toc" id="toc" aria-label="Table of contents">
+        <div class="toc-label">Three stories</div>
+        <ol id="tocList"></ol>
+      </nav>
+    </div>
+    <article class="doc fadein" id="doc">
+      <div class="eyebrow-row">
+        <span class="eyebrow">The Constellation</span>
+        <span class="eyebrow" style="color:var(--signal)">Read · Anthology</span>
+      </div>
+      <h1 class="a-title" id="aTitle"></h1>
+      <p class="a-stand" id="aStand"></p>
+      <div class="a-meta">
+        <span>Subject <b>IDI01 · Catherine</b></span>
+        <span>Cell-therapy facility</span>
+        <span id="readTime"><b>9 min</b> read</span>
+        <span>Three narratives · one site</span>
+      </div>
+      <nav class="toc-inline" id="tocInline" aria-label="Contents">
+        <div class="ti-label">Contents</div>
+        <ol id="tocListM"></ol>
+      </nav>
+
+      <section class="opener" id="sec-opening"></section>
+
+      <div id="stories"></div>
+
+      <p class="a-close" id="aClose"></p>
+
+      <nav class="footer-nav">
+        <a href="the-constellation-listen.html">The narrated read-along <b>The three-story anthology →</b></a>
+        <a href="the-constellation.html">See how the three connect <b>The force field →</b></a>
+      </nav>
+    </article>
+  </div>
+
+  <button class="save-pop" id="savePop">+ Save to notes</button>
+  <button class="to-top" id="toTop" aria-label="Back to top">↑</button>
+
+  <div class="scrim" id="scrim"></div>
+  <aside class="rail" id="rail" aria-hidden="true">
+    <div class="rhead"><span class="t">Your notes</span><button class="x" id="railClose" aria-label="Close">✕</button></div>
+    <div class="rscroll">
+      <div class="blk">Saved passages</div>
+      <div id="noteList"></div>
+      <div class="blk">Margin note</div>
+      <textarea id="freeNote" placeholder="Write your own note as you read…"></textarea>
+    </div>
+    <div class="ractions">
+      <button id="copyNotes">Copy all</button>
+      <button id="clearNotes">Clear</button>
+    </div>
+  </aside>
+
+  <script src="../constellation-content.js"></script>
+  <script>
+    const C = window.CONSTELLATION;
+    document.getElementById('aTitle').textContent = C.title;
+    document.getElementById('aStand').textContent = C.standfirst;
+    document.getElementById('aClose').textContent = C.close;
+    const PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+
+    let words = 0;
+    const countWords = (s) => { words += String(s).split(/\s+/).filter(Boolean).length; };
+    function slug(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+    // ---- block renderer (prose + pull quotes) ----
+    function renderBlocks(parent, blocks, leadFirst) {
+      let first = !!leadFirst;
+      blocks.forEach(b => {
+        if (b.t === 'p') {
+          const p = document.createElement('p');
+          if (first) { p.className = 'lead'; first = false; }
+          p.textContent = b.v; countWords(b.v); parent.appendChild(p);
+        } else if (b.t === 'pq') {
+          const q = document.createElement('blockquote'); q.className = 'a-pq';
+          q.textContent = '“' + b.v.replace(/^[“"]|[”"]$/g, '') + '”'; countWords(b.v); parent.appendChild(q);
+        }
+      });
+    }
+
+    // ---- opener ----
+    renderBlocks(document.getElementById('sec-opening'), C.opener, true);
+
+    // ---- stories ----
+    const storiesWrap = document.getElementById('stories');
+    const sections = [{ id: 'sec-opening', n: 0, title: 'Opening' }];
+
+    C.stories.forEach((s, i) => {
+      const sep = document.createElement('hr'); sep.className = 'story-sep'; storiesWrap.appendChild(sep);
+
+      const sec = document.createElement('section');
+      sec.className = 'story';
+      const id = 'sec-' + slug(s.title); sec.id = id;
+      sections.push({ id, n: Number(s.num), title: s.title });
+
+      const head = document.createElement('div'); head.className = 'story-head';
+      head.innerHTML =
+        '<div class="story-kicker"><span class="sn">Story ' + s.num + '</span><span>Narrative</span><span class="sid">' + s.id + '</span></div>' +
+        '<h2 class="story-title">' + s.title + '</h2>' +
+        '<p class="story-dek">' + s.dek + '</p>' +
+        '<div class="story-dossier">' +
+          '<span class="dk">Protagonist</span><span class="dv">' + s.protagonist + '</span>' +
+          '<span class="dk">Tension</span><span class="dv">' + s.tension + '</span>' +
+        '</div>' +
+        '<div class="story-listen" id="sl-' + i + '">' +
+          '<button class="sl-play" id="slplay-' + i + '" aria-label="Play this story">' + PLAY_SVG + '</button>' +
+          '<div class="sl-seek" id="slseek-' + i + '"><div class="slt"></div><div class="slf" id="slfill-' + i + '"></div></div>' +
+          '<span class="sl-time" id="sltime-' + i + '">Listen · ··:··</span>' +
+        '</div>';
+      sec.appendChild(head);
+      countWords(s.title); countWords(s.dek);
+
+      const bodyEl = document.createElement('div'); bodyEl.className = 'story-body';
+      renderBlocks(bodyEl, s.blocks, false);
+      sec.appendChild(bodyEl);
+
+      const ch = document.createElement('div'); ch.className = 'changed';
+      ch.innerHTML =
+        '<div class="col"><div class="cl">Before</div><p>' + s.changed.before + '</p></div>' +
+        '<div class="col"><div class="cl">After</div><p>' + s.changed.after + '</p></div>' +
+        '<div class="col now"><div class="cl">Now you notice</div><p>' + s.changed.now + '</p></div>';
+      sec.appendChild(ch);
+
+      storiesWrap.appendChild(sec);
+    });
+
+    document.getElementById('readTime').innerHTML = '<b>' + Math.max(1, Math.round(words / 225)) + ' min</b> read';
+
+    // ---- inline “play this story” controls (resume position shared with the Listen view) ----
+    const PAUSE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+    const sAudio = new Audio(); sAudio.preload = 'none';
+    const POSKEY = 'constellation_audio_pos_v3', CURKEY = 'constellation_audio_cur_v3', DURKEY = 'constellation_durations_v3';
+    let posCache = {}, durCache = {};
+    try { posCache = JSON.parse(localStorage.getItem(POSKEY) || '{}'); } catch (e) {}
+    try { durCache = JSON.parse(localStorage.getItem(DURKEY) || '{}'); } catch (e) {}
+    const afmt = (s) => { if (!s || isNaN(s) || s === Infinity) return '··:··'; const m = Math.floor(s / 60), x = Math.floor(s % 60); return m + ':' + String(x).padStart(2, '0'); };
+    let activeI = -1;
+    const ctrl = (i) => ({ row: document.getElementById('sl-' + i), play: document.getElementById('slplay-' + i), fill: document.getElementById('slfill-' + i), time: document.getElementById('sltime-' + i), seek: document.getElementById('slseek-' + i) });
+    function label(i) { const c = ctrl(i); if (!c.time) return; const cur = (i === activeI) ? sAudio.currentTime : (posCache[i] || 0); const d = durCache[i]; c.time.textContent = (cur ? afmt(cur) + ' / ' : 'Listen · ') + (d ? afmt(d) : '··:··'); if (c.fill && d) c.fill.style.width = (cur / d * 100) + '%'; }
+    function loadStory(i) {
+      if (activeI === i) return;
+      if (activeI >= 0) { const p = ctrl(activeI); if (p.row) { p.row.classList.remove('playing'); p.play.innerHTML = PLAY_SVG; } }
+      activeI = i; sAudio.src = C.stories[i].audio; localStorage.setItem(CURKEY, String(i));
+      const resume = posCache[i] || 0;
+      const onMeta = () => { sAudio.removeEventListener('loadedmetadata', onMeta); if (resume) { try { sAudio.currentTime = resume; } catch (e) {} } if (sAudio.duration && sAudio.duration !== Infinity) { durCache[i] = sAudio.duration; localStorage.setItem(DURKEY, JSON.stringify(durCache)); } label(i); };
+      sAudio.addEventListener('loadedmetadata', onMeta);
+    }
+    function toggleStory(i) { if (activeI !== i) { loadStory(i); sAudio.play(); } else { sAudio.paused ? sAudio.play() : sAudio.pause(); } }
+    sAudio.addEventListener('play', () => { if (activeI < 0) return; const c = ctrl(activeI); if (c.row) { c.row.classList.add('playing'); c.play.innerHTML = PAUSE_SVG; } });
+    sAudio.addEventListener('pause', () => { if (activeI < 0) return; const c = ctrl(activeI); if (c.row) { c.row.classList.remove('playing'); c.play.innerHTML = PLAY_SVG; } });
+    sAudio.addEventListener('timeupdate', () => { if (activeI < 0) return; const i = activeI; posCache[i] = sAudio.currentTime; label(i); });
+    let stick = 0; sAudio.addEventListener('timeupdate', () => { if (++stick % 20 === 0) localStorage.setItem(POSKEY, JSON.stringify(posCache)); });
+    window.addEventListener('beforeunload', () => localStorage.setItem(POSKEY, JSON.stringify(posCache)));
+    sAudio.addEventListener('ended', () => { const i = activeI; posCache[i] = 0; label(i); });
+    C.stories.forEach((s, i) => {
+      const c = ctrl(i); if (!c.play) return;
+      label(i);
+      c.play.addEventListener('click', () => toggleStory(i));
+      c.seek.addEventListener('pointerdown', (e) => {
+        if (activeI !== i) loadStory(i);
+        const r = c.seek.getBoundingClientRect(); const p = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); const d = durCache[i] || sAudio.duration;
+        const setT = () => { if (d && d !== Infinity) { try { sAudio.currentTime = p * d; } catch (err) {} } };
+        if (sAudio.readyState > 0) setT(); else sAudio.addEventListener('loadedmetadata', function o() { sAudio.removeEventListener('loadedmetadata', o); setT(); });
+      });
+    });
+
+    // ---- table of contents + scrollspy ----
+    function scrollToY(targetY) {
+      targetY = Math.max(0, targetY);
+      const startY = window.scrollY, dist = targetY - startY, dur = 440; let t0 = null;
+      if (Math.abs(dist) < 4) { window.scrollTo(0, targetY); return; }
+      function step(ts) { if (t0 === null) t0 = ts; const p = Math.min(1, (ts - t0) / dur); const e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; window.scrollTo(0, startY + dist * e); if (p < 1) requestAnimationFrame(step); }
+      requestAnimationFrame(step);
+    }
+    function scrollToId(id) { const el = document.getElementById(id); if (el) scrollToY(el.getBoundingClientRect().top + window.scrollY - 84); }
+    function buildToc(ol, mobile) {
+      sections.forEach((s, i) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a'); a.href = '#' + s.id; a.dataset.id = s.id;
+        a.innerHTML = '<span class="ti">' + (s.n === 0 ? '·' : String(s.n).padStart(2, '0')) + '</span>' + s.title;
+        a.addEventListener('click', (e) => { e.preventDefault(); scrollToId(s.id); history.replaceState(null, '', '#' + s.id); });
+        li.appendChild(a); ol.appendChild(li);
+      });
+    }
+    buildToc(document.getElementById('tocList'), false);
+    buildToc(document.getElementById('tocListM'), true);
+
+    const tocLinks = () => [...document.querySelectorAll('#tocList a, #tocListM a')];
+    function setActive(id) { tocLinks().forEach(a => { const on = a.dataset.id === id; a.classList.toggle('active', on); if (on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current'); }); }
+    let spyScheduled = false;
+    function spy() { spyScheduled = false; let act = sections[0]; for (const s of sections) { const el = document.getElementById(s.id); if (el && el.getBoundingClientRect().top <= 120) act = s; } if (act) setActive(act.id); }
+    window.addEventListener('scroll', () => { if (!spyScheduled) { spyScheduled = true; requestAnimationFrame(spy); } }, { passive: true });
+    spy();
+
+    // ---- back to top ----
+    const toTop = document.getElementById('toTop');
+    toTop.addEventListener('click', () => scrollToY(0));
+    window.addEventListener('scroll', () => toTop.classList.toggle('show', window.scrollY > 600), { passive: true });
+
+    // ---- deep link on load ----
+    if (location.hash) { const id = location.hash.slice(1); if (document.getElementById(id)) setTimeout(() => scrollToId(id), 80); }
+
+    // ---- reading progress ----
+    const bar = document.getElementById('progressBar');
+    function onScroll() {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    }
+    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+    // ---- notes (story-aware) ----
+    const NKEY = 'constellation_notes_v1', FKEY = 'constellation_notes_free_v1';
+    let notes = []; try { notes = JSON.parse(localStorage.getItem(NKEY) || '[]'); } catch (e) {}
+    const rail = document.getElementById('rail'), scrim = document.getElementById('scrim');
+    const noteList = document.getElementById('noteList'), noteCount = document.getElementById('noteCount');
+
+    function saveNotes() { localStorage.setItem(NKEY, JSON.stringify(notes)); }
+    function renderNotes() {
+      noteCount.textContent = notes.length;
+      if (!notes.length) { noteList.innerHTML = '<div class="empty">Select any sentence in a story to save it here.</div>'; return; }
+      noteList.innerHTML = '';
+      notes.forEach((n, i) => {
+        const d = document.createElement('div'); d.className = 'note';
+        const q = document.createElement('div'); q.className = 'nq';
+        q.innerHTML = '“' + n.q.replace(/^[“"]|[”"]$/g, '') + '”' + (n.from ? '<span class="ns">' + n.from + '</span>' : '');
+        const x = document.createElement('button'); x.className = 'nx'; x.textContent = '✕'; x.setAttribute('aria-label', 'Remove note');
+        x.addEventListener('click', () => { notes.splice(i, 1); saveNotes(); renderNotes(); });
+        d.appendChild(q); d.appendChild(x); noteList.appendChild(d);
+      });
+    }
+    function openRail() { rail.classList.add('open'); scrim.classList.add('open'); rail.setAttribute('aria-hidden', 'false'); }
+    function closeRail() { rail.classList.remove('open'); scrim.classList.remove('open'); rail.setAttribute('aria-hidden', 'true'); }
+    document.getElementById('notesToggle').addEventListener('click', () => rail.classList.contains('open') ? closeRail() : openRail());
+    document.getElementById('railClose').addEventListener('click', closeRail);
+    scrim.addEventListener('click', closeRail);
+
+    const freeNote = document.getElementById('freeNote');
+    freeNote.value = localStorage.getItem(FKEY) || '';
+    freeNote.addEventListener('input', () => localStorage.setItem(FKEY, freeNote.value));
+
+    document.getElementById('copyNotes').addEventListener('click', () => {
+      const txt = notes.map(n => '“' + n.q + '”' + (n.from ? '  — ' + n.from : '')).join('\n\n') + (freeNote.value ? '\n\n— — —\n' + freeNote.value : '');
+      navigator.clipboard && navigator.clipboard.writeText(txt.trim());
+      const b = document.getElementById('copyNotes'); const o = b.textContent; b.textContent = 'Copied'; setTimeout(() => b.textContent = o, 1200);
+    });
+    document.getElementById('clearNotes').addEventListener('click', () => { if (!notes.length) return; notes = []; saveNotes(); renderNotes(); });
+
+    // ---- selection → save (tagged with the story it came from) ----
+    function storyTitleFromNode(node) {
+      let el = node && node.nodeType === 3 ? node.parentElement : node;
+      while (el && el !== document.body) {
+        if (el.classList && el.classList.contains('story')) { const h = el.querySelector('.story-title'); return h ? h.textContent : null; }
+        if (el.id === 'sec-opening') return 'Opening';
+        el = el.parentElement;
+      }
+      return null;
+    }
+    const pop = document.getElementById('savePop');
+    let pending = '', pendingFrom = null;
+    document.getElementById('doc').addEventListener('mouseup', (e) => {
+      const sel = window.getSelection(); const txt = (sel ? sel.toString() : '').replace(/\s+/g, ' ').trim();
+      if (txt.length > 4) { pending = txt; pendingFrom = sel.anchorNode ? storyTitleFromNode(sel.anchorNode) : null; pop.style.left = e.clientX + 'px'; pop.style.top = e.clientY + 'px'; pop.style.display = 'block'; }
+      else pop.style.display = 'none';
+    });
+    pop.addEventListener('click', () => {
+      if (!pending) return;
+      notes.push({ q: pending, from: pendingFrom, at: Date.now() }); saveNotes(); renderNotes(); openRail();
+      pop.style.display = 'none'; const s = window.getSelection(); s && s.removeAllRanges(); pending = '';
+    });
+    window.addEventListener('scroll', () => pop.style.display = 'none', { passive: true });
+    document.addEventListener('mousedown', (e) => { if (e.target !== pop) pop.style.display = 'none'; });
+
+    renderNotes();
+  </script>
+</body>
+</html>

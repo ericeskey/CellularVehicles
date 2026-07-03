@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Constellation · IDI01 Catherine</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { display: block; }
+  .screen { height: 100vh; display: flex; flex-direction: column; }
+  .masthead {
+    border-top: var(--masthead-rule) solid var(--ink);
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 18px var(--gutter) 0; flex: 0 0 auto;
+  }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--fg2); text-transform: uppercase; }
+  .nav-back { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); }
+  .nav-back:hover { color: var(--ink); }
+  .mh-right { display: flex; align-items: center; gap: 18px; }
+  .ways { display: flex; border: 1px solid var(--ink); }
+  .ways a { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 13px; color: var(--ash); border-right: 1px solid var(--ink); }
+  .ways a:last-child { border-right: 0; }
+  .ways a:hover { background: var(--hover-overlay); color: var(--ink); text-decoration: none; }
+  .ways a.on { background: var(--ink); color: var(--paper); }
+
+  .head { padding: 18px var(--gutter) 14px; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; flex: 0 0 auto; }
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; }
+  .head h1 { font-size: clamp(26px, 3.2vw, 40px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.95; margin-top: 8px; }
+  .head .sub { font-family: var(--font-serif); font-style: italic; font-size: 17px; color: var(--fg2); margin-top: 6px; }
+  .legend { display: flex; gap: 22px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+  .legend .li { display: flex; gap: 8px; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .gl-sq { width: 11px; height: 11px; background: var(--ink); }
+  .gl-peak { width: 13px; height: 13px; border-radius: 50%; background: var(--signal); }
+  .gl-fr { width: 11px; height: 11px; border-radius: 50%; background: var(--ink); }
+  .gl-de { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--ink); background: var(--paper); }
+  .gl-ct { width: 9px; height: 9px; border-radius: 50%; background: var(--fog); }
+
+  .stage { flex: 1 1 auto; display: grid; grid-template-columns: 1fr 340px; min-height: 0; }
+  .canvas-wrap { position: relative; min-width: 0; border-top: 1px solid var(--ink); }
+  svg#net { width: 100%; height: 100%; display: block; cursor: grab; }
+  svg#net:active { cursor: grabbing; }
+
+  .edge { stroke: var(--fog); stroke-width: 1; transition: stroke var(--dur) var(--ease), stroke-width var(--dur) var(--ease), opacity var(--dur) var(--ease); }
+  .edge.hot { stroke: var(--ink); stroke-width: 1.4; }
+  .edge.faded { opacity: 0.16; }
+
+  .node { cursor: pointer; }
+  .node circle, .node rect { transition: transform var(--dur) var(--ease); }
+  .node .ring { fill: var(--paper); stroke: var(--ink); stroke-width: 1.6; }
+  .node.faded { opacity: 0.2; }
+  .node .lab { font-family: var(--font-mono); font-size: 11px; fill: var(--ash); letter-spacing: 0.02em; pointer-events: none; opacity: 0; transition: opacity var(--dur) var(--ease); }
+  .node.show-lab .lab, .node.sel .lab { opacity: 1; }
+  .node.narr .lab { font-family: var(--font-sans); font-weight: 700; font-size: 12px; fill: var(--ink); opacity: 1; letter-spacing: -0.01em; }
+  .node.sel circle, .node.sel rect { stroke: var(--signal); }
+  .node.peak.sel circle { stroke: var(--ink); stroke-width: 2; }
+
+  /* ---- side panel ---- */
+  .panel { border-left: 1px solid var(--ink); border-top: 1px solid var(--ink); padding: 24px 28px 28px; overflow-y: auto; background: var(--bone); }
+  .panel .ptype { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); }
+  .panel .ptype b { color: var(--signal); }
+  .panel .pid { font-family: var(--font-mono); font-size: 12px; color: var(--ink); letter-spacing: 0.1em; margin-top: 14px; }
+  .panel .ptime { font-family: var(--font-mono); font-size: 22px; color: var(--ink); margin: 2px 0 14px; }
+  .panel h3 { font-size: 21px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.15; margin: 6px 0 16px; }
+  .panel .pq { font-family: var(--font-serif); font-style: italic; font-size: 20px; line-height: 1.35; border-left: var(--rule-thick) solid var(--ink); padding-left: 18px; margin: 4px 0 18px; }
+  .panel .pq.sig { border-left-color: var(--signal); }
+  .panel .prow { display: grid; grid-template-columns: 96px 1fr; gap: 12px; border-top: 1px solid var(--fog); padding: 9px 0; font-size: 13px; }
+  .panel .prow .k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); }
+  .panel .prow .v { color: var(--ink); }
+  .panel .pblock { margin-top: 16px; }
+  .panel .pblock .bl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); margin-bottom: 6px; }
+  .panel .pblock p { font-size: 14px; line-height: 1.55; color: var(--ink); }
+  .panel .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .panel .chips button { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; border: 1px solid var(--ink); background: var(--paper); padding: 4px 8px; cursor: pointer; color: var(--ink); }
+  .panel .chips button:hover { background: var(--hover-overlay); }
+  .panel .chips button.sig { border-color: var(--signal); color: var(--signal); }
+  .panel .empty { color: var(--fg2); font-size: 14px; line-height: 1.6; }
+  .panel .empty .nb { display: block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; color: var(--ink); }
+  .panel .narr-pick { margin-top: 22px; display: flex; flex-direction: column; gap: 2px; }
+  .panel .narr-pick button { text-align: left; background: none; border: 0; border-top: 1px solid var(--fog); padding: 10px 0; cursor: pointer; color: var(--ash); font-family: var(--font-sans); font-size: 13px; line-height: 1.35; display: flex; gap: 10px; }
+  .panel .narr-pick button:hover { color: var(--ink); }
+  .panel .narr-pick button .nx { font-family: var(--font-mono); font-size: 11px; color: var(--fg3); }
+
+  /* story + player injected when a narrative is selected */
+  .panel .pstory { margin-top: 26px; border-top: var(--rule-thick) solid var(--ink); padding-top: 18px; }
+  .panel .ps-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .panel .ps-k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); }
+  .panel .ps-id { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--fg3); text-align: right; }
+  .panel .cplayer { display: flex; align-items: center; gap: 10px; margin: 14px 0 18px; padding: 9px 11px; border: 1px solid var(--ink); background: var(--paper); }
+  .panel .cp-play { width: 32px; height: 32px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); cursor: pointer; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; transition: background var(--dur-fast) var(--ease); }
+  .panel .cp-play svg { width: 12px; height: 12px; display: block; }
+  .panel .cp-play:hover { background: var(--ink-hover); }
+  .panel .cplayer.playing .cp-play { background: var(--signal); border-color: var(--signal); }
+  .panel .cp-seek { flex: 1; height: 12px; position: relative; cursor: pointer; display: flex; align-items: center; min-width: 40px; }
+  .panel .cp-seek .cpt { position: absolute; left: 0; right: 0; height: 2px; background: var(--fog); }
+  .panel .cp-seek .cpf { position: absolute; left: 0; height: 2px; background: var(--signal); width: 0; }
+  .panel .cp-time { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg2); white-space: nowrap; }
+  .panel .ps-prose p { font-size: 13.5px; line-height: 1.58; color: var(--ink); margin-top: 11px; }
+  .panel .ps-prose p:first-child { margin-top: 0; }
+  .panel .ps-pq { font-family: var(--font-serif); font-style: italic; font-size: 16px; line-height: 1.34; color: var(--ink); border-left: var(--rule-thick) solid var(--signal); padding-left: 14px; margin: 15px 0; }
+  .panel .ps-links { display: flex; gap: 18px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--fog); }
+  .panel .ps-links a { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+  .panel .ps-links a:hover { color: var(--signal); }
+
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) {
+    .fadein { animation: fi var(--dur-slow) var(--ease) both; }
+  }
+  @keyframes fi { from { transform: translateY(8px); } to { transform: none; } }
+
+  /* ---- structured map view (v2) ---- */
+  .head-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .view-seg { display: inline-flex; border: 1px solid var(--ink); }
+  .view-seg button { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 6px 12px; background: var(--paper); color: var(--ash); border: 0; border-right: 1px solid var(--ink); cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .view-seg button:last-child { border-right: 0; }
+  .view-seg button:hover { background: var(--hover-overlay); color: var(--ink); }
+  .view-seg button.on { background: var(--ink); color: var(--paper); }
+  .ways-hint { display: inline-block; margin-top: 10px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .ways-hint:hover { color: var(--signal); }
+  .view-hidden { display: none !important; }
+  #map, svg#net { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  .mp-stage-div { stroke: var(--fog); stroke-width: 1; stroke-dasharray: 2 5; }
+  .mp-stage-h { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--ink); }
+  .mp-stage-band.dense .mp-stage-h { fill: var(--signal); }
+  .mp-stage-s { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.03em; fill: var(--fg2); }
+  .mp-lane-sep { stroke: var(--fog); stroke-width: 1; opacity: 0.5; }
+  .mp-lane-id { font-family: var(--font-mono); font-size: 9px; fill: var(--fg2); letter-spacing: 0.06em; }
+  .mp-lane-lab { font-family: var(--font-sans); font-weight: 700; font-size: 12.5px; fill: var(--ink); }
+  .mp-lane { cursor: pointer; }
+  .mp-lane:hover .mp-lane-lab, .mp-lane.sel .mp-lane-lab { fill: var(--signal); }
+  .mp-pull { stroke: var(--ink); stroke-width: 1.4; }
+  .mp-share { cursor: pointer; }
+  .mp-share circle { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+  .mp-share .sh-l { font-family: var(--font-mono); font-size: 9px; fill: var(--ash); letter-spacing: 0.04em; }
+  .mp-share:hover .sh-l { fill: var(--signal); }
+  .mp-peak { cursor: pointer; }
+  .mp-peak circle { fill: var(--signal); }
+  .mp-peak > g, .mp-peak { transition: opacity var(--dur) var(--ease); }
+  .mp-peak .pk-t { font-family: var(--font-sans); font-weight: 600; font-size: 11.5px; fill: var(--ink); opacity: 0; transition: opacity var(--dur) var(--ease); pointer-events: none; }
+  .mp-peak.mp-key .pk-t, .mp-peak .pk-t.pk-show, .mp-peak.sel .pk-t { opacity: 1; }
+  .mp-peak.dim { opacity: 0.2; }
+  .mp-peak.sel circle { stroke: var(--ink); stroke-width: 2.5; }
+  .kflag-map { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.16em; fill: var(--signal); pointer-events: none; }
+  .narr-pick button.sig-pick .nx { color: var(--signal); }
+
+  @media (max-width: 920px) {
+    .stage { grid-template-columns: 1fr; }
+    .panel { display: none; }
+    .legend { display: none; }
+  }
+
+  /* meaningful exit / handoff */
+  .handoff { border-top: var(--masthead-rule) solid var(--ink); padding: 30px var(--gutter) 40px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: start; background: var(--paper); }
+  .handoff .ho-k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); }
+  .handoff .ho-l h2 { font-size: clamp(22px, 2.6vw, 32px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.04; margin: 12px 0 14px; max-width: 20ch; }
+  .handoff .ho-l p { font-size: 14px; line-height: 1.6; color: var(--fg2); max-width: 50ch; }
+  .handoff .ho-l p b { color: var(--ink); font-weight: var(--fw-medium); }
+  .ho-back { display: inline-block; margin-top: 16px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
+  .ho-back:hover { color: var(--signal); border-color: var(--signal); text-decoration: none; }
+  .ho-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  .ho-list a { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--fog); text-decoration: none; }
+  .ho-list a:hover { text-decoration: none; }
+  .ho-list a .hn { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--fg2); }
+  .ho-list a:hover .hn { color: var(--signal); }
+  .ho-list a .ht { font-size: 14px; font-weight: var(--fw-medium); color: var(--ink); line-height: 1.25; }
+  .ho-list a:hover .ht { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  .ho-list a .hx { display: block; font-size: 12px; color: var(--fg2); font-weight: var(--fw-regular); margin-top: 2px; line-height: 1.35; }
+  .ho-list a.is-here { opacity: 0.5; }
+  .ho-list a.is-here .ht { text-decoration: none; }
+  @media (max-width: 920px) { .handoff { grid-template-columns: 1fr; gap: 24px; } .ho-list { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+  <div class="screen">
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <a class="nav-back" href="../index.html">← all seven lenses</a>
+    <div class="mh-right">
+      <nav class="ways">
+        <a href="the-constellation.html" class="on">Explore</a>
+        <a href="the-constellation-read.html">Read</a>
+        <a href="the-constellation-listen.html">Listen</a>
+      </nav>
+      <span class="ref">Concept 03 / The Constellation</span>
+    </div>
+  </div>
+
+  <div class="head fadein">
+    <div>
+      <div class="eyebrow-row">
+        <span class="eyebrow">The Constellation</span>
+        <span class="eyebrow" style="color:var(--signal)">Relation</span>
+      </div>
+      <h1>See what pulls on what.</h1>
+      <div class="sub">Three ways to tell it. They keep pulling on the same upstream decisions.</div>
+      <a class="ways-hint" href="the-constellation-read.html">New here? Read the three stories first →</a>
+    </div>
+    <div class="head-right">
+      <div class="view-seg" id="viewSeg">
+        <button type="button" data-view="map">Map</button>
+        <button type="button" data-view="field">Field</button>
+      </div>
+      <div class="legend" id="legendMap">
+        <span class="li"><span class="gl-sq"></span> Narrative</span>
+        <span class="li"><span class="gl-peak"></span> Peak</span>
+        <span class="li"><span class="gl-de"></span> Shared moment</span>
+      </div>
+      <div class="legend" id="legendField">
+        <span class="li"><span class="gl-sq"></span> Narrative</span>
+        <span class="li"><span class="gl-peak"></span> Peak</span>
+        <span class="li"><span class="gl-fr"></span> Friction</span>
+        <span class="li"><span class="gl-de"></span> Desire</span>
+        <span class="li"><span class="gl-ct"></span> Context</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="canvas-wrap fadein" style="animation-delay:100ms">
+      <svg id="map" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet">
+        <g id="mpBands"></g>
+        <g id="mpLanes"></g>
+        <g id="mpPulls"></g>
+        <g id="mpPeaks"></g>
+      </svg>
+      <svg id="net" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+        <g id="edges"></g>
+        <g id="nodes"></g>
+      </svg>
+    </div>
+    <aside class="panel" id="panel"></aside>
+  </div>
+  </div><!-- /.screen -->
+
+  <section class="handoff">
+    <div class="ho-l">
+      <div class="ho-k">After the relation</div>
+      <h2>You’ve seen what pulls on what. Now read it six other ways.</h2>
+      <p>This lens shows how the three narratives pull on the same moments. Each remaining lens asks a different question of the same evidence. <b>Upstream authorship</b> is where they keep landing.</p>
+      <a class="ho-back" href="../index.html">Back to all seven lenses and the verdict →</a>
+    </div>
+    <nav class="ho-list">
+      <a href="the-session.html"><span class="hn">01</span><span><span class="ht">The Session</span><span class="hx">Chronology · the raw tape</span></span></a>
+      <a class="is-here" href="the-constellation.html"><span class="hn">02</span><span><span class="ht">The Constellation</span><span class="hx">Relation · you are here</span></span></a>
+      <a href="the-shift.html"><span class="hn">03</span><span><span class="ht">The Shift</span><span class="hx">Transformation · before to after</span></span></a>
+      <a href="the-ledger.html"><span class="hn">04</span><span><span class="ht">The Ledger</span><span class="hx">Argument · the hidden expertise, priced</span></span></a>
+      <a href="the-keystone.html"><span class="hn">05</span><span><span class="ht">The Keystone</span><span class="hx">Leverage · the one move that matters</span></span></a>
+      <a href="the-opportunity.html"><span class="hn">06</span><span><span class="ht">The Opportunity</span><span class="hx">Demand · what’s most under-served</span></span></a>
+      <a href="the-casefile.html"><span class="hn">07</span><span><span class="ht">The Casefile</span><span class="hx">Diagnosis · the decision brief</span></span></a>
+    </nav>
+  </section>
+
+  <audio id="cAudio" preload="none"></audio>
+
+  <script src="../data.js"></script>
+  <script src="../constellation-content.js"></script>
+  <script>
+    const R = window.RESEARCH;
+    const NS = R.narratives, PK = R.peaks, EV = R.events;
+    const W = 1000, H = 700, CX = W/2, CY = H/2;
+
+    // ---- node model ----
+    const nodes = [];   // {key,type,ref,x,y,vx,vy,r,fixed,anchor}
+    const byKey = {};
+    function add(n) { nodes.push(n); byKey[n.key] = n; return n; }
+
+    const anchors = { 'NS-001':[300,190], 'NS-002':[700,210], 'NS-003':[500,520] };
+    NS.forEach(n => add({ key:n.key||n.id, type:'narr', ref:n, x:anchors[n.id][0], y:anchors[n.id][1], vx:0, vy:0, r:9, anchor:anchors[n.id] }));
+    // home narrative of each peak
+    const homeOfPeak = {};
+    NS.forEach(n => n.peaks.forEach(pid => homeOfPeak[pid] = n.id));
+    PK.forEach(p => {
+      const home = anchors[homeOfPeak[p.id]] || [CX,CY];
+      add({ key:p.id, type:'peak', ref:p, x:home[0]+(Math.random()-0.5)*120, y:home[1]+(Math.random()-0.5)*120, vx:0, vy:0, r:7+p.charge*2 });
+    });
+    EV.forEach(e => {
+      const peaks = R.peakOf(e.id), narrs = R.narrativeOf(e.id);
+      const orphan = peaks.length===0 && narrs.length===0;
+      let seed;
+      if (peaks.length) seed = byKey[peaks[0].id];
+      else if (narrs.length) { const a = anchors[narrs[0].id]; seed = {x:a[0],y:a[1]}; }
+      if (orphan) {
+        const ang = Math.random()*Math.PI*2, rad = 360+Math.random()*40;
+        seed = { x: CX+Math.cos(ang)*rad*1.05, y: CY+Math.sin(ang)*rad*0.62 };
+      }
+      add({ key:e.id, type:'event', ref:e, kind:e.kind, orphan,
+            x: seed.x+(Math.random()-0.5)*60, y: seed.y+(Math.random()-0.5)*60, vx:0, vy:0, r:4+e.sig*1.4 });
+    });
+
+    // ---- links ----
+    const links = [];
+    function link(a,b,L,k){ if(byKey[a]&&byKey[b]) links.push({a:byKey[a],b:byKey[b],L,k}); }
+    NS.forEach(n => n.peaks.forEach(pid => link(n.id, pid, 90, 0.05)));
+    PK.forEach(p => p.events.forEach(eid => link(p.id, eid, 64, 0.045)));
+    NS.forEach(n => n.events.forEach(eid => {
+      // only add event->narrative link if event not already linked through a peak of this narrative
+      const inPeak = n.peaks.some(pid => PK.find(p=>p.id===pid).events.includes(eid));
+      if (!inPeak) link(n.id, eid, 100, 0.03);
+    }));
+
+    // ---- force simulation (settle on load, then static + draggable) ----
+    function step() {
+      // repulsion
+      for (let i=0;i<nodes.length;i++){
+        const a=nodes[i];
+        for (let j=i+1;j<nodes.length;j++){
+          const b=nodes[j];
+          let dx=a.x-b.x, dy=a.y-b.y; let d2=dx*dx+dy*dy; if(d2<0.01)d2=0.01;
+          const d=Math.sqrt(d2);
+          const rep = (a.type==='narr'||b.type==='narr'? 5200 : 2400)/d2;
+          const fx=dx/d*rep, fy=dy/d*rep;
+          a.vx+=fx; a.vy+=fy; b.vx-=fx; b.vy-=fy;
+        }
+      }
+      // springs
+      links.forEach(l=>{
+        let dx=l.b.x-l.a.x, dy=l.b.y-l.a.y; let d=Math.sqrt(dx*dx+dy*dy)||0.01;
+        const f=(d-l.L)*l.k;
+        const fx=dx/d*f, fy=dy/d*f;
+        l.a.vx+=fx; l.a.vy+=fy; l.b.vx-=fx; l.b.vy-=fy;
+      });
+      // anchors + centering
+      nodes.forEach(n=>{
+        if (n.anchor){ n.vx+=(n.anchor[0]-n.x)*0.08; n.vy+=(n.anchor[1]-n.y)*0.08; }
+        else { n.vx+=(CX-n.x)*0.0016; n.vy+=(CY-n.y)*0.0016; }
+        n.vx*=0.86; n.vy*=0.86;
+        n.x+=n.vx; n.y+=n.vy;
+        n.x=Math.max(28,Math.min(W-28,n.x)); n.y=Math.max(24,Math.min(H-24,n.y));
+      });
+    }
+    for (let i=0;i<480;i++) step();
+
+    // ---- render ----
+    const edgesG = document.getElementById('edges');
+    const nodesG = document.getElementById('nodes');
+    const SVGNS = 'http://www.w3.org/2000/svg';
+    const edgeEls = [];
+    links.forEach(l=>{
+      const ln=document.createElementNS(SVGNS,'line'); ln.setAttribute('class','edge');
+      ln.setAttribute('x1',l.a.x); ln.setAttribute('y1',l.a.y); ln.setAttribute('x2',l.b.x); ln.setAttribute('y2',l.b.y);
+      edgesG.appendChild(ln); edgeEls.push({el:ln,l});
+    });
+
+    nodes.forEach(n=>{
+      const g=document.createElementNS(SVGNS,'g'); g.setAttribute('class','node '+n.type); g.dataset.key=n.key;
+      let shape;
+      if (n.type==='narr'){
+        shape=document.createElementNS(SVGNS,'rect');
+        shape.setAttribute('x',-n.r); shape.setAttribute('y',-n.r); shape.setAttribute('width',n.r*2); shape.setAttribute('height',n.r*2);
+        shape.setAttribute('fill','var(--ink)');
+      } else if (n.type==='peak'){
+        shape=document.createElementNS(SVGNS,'circle'); shape.setAttribute('r',n.r);
+        shape.setAttribute('fill','var(--signal)');
+      } else {
+        shape=document.createElementNS(SVGNS,'circle'); shape.setAttribute('r',n.r);
+        if (n.kind==='friction'){ shape.setAttribute('fill','var(--ink)'); }
+        else if (n.kind==='desire'){ shape.setAttribute('class','ring'); }
+        else { shape.setAttribute('fill','var(--fog)'); }
+      }
+      g.appendChild(shape);
+      const lab=document.createElementNS(SVGNS,'text'); lab.setAttribute('class','lab');
+      lab.setAttribute('x', n.r+6); lab.setAttribute('y', 4);
+      lab.textContent = n.type==='narr' ? shortNarr(n.ref) : (n.type==='peak' ? n.ref.title : n.ref.id);
+      g.appendChild(lab);
+      g.setAttribute('transform',`translate(${n.x},${n.y})`);
+      nodesG.appendChild(g);
+      n.g=g;
+    });
+    function shortNarr(n){ return 'NS-'+n.id.split('-')[1]; }
+
+    // ---- adjacency for highlighting ----
+    const adj = {}; nodes.forEach(n=>adj[n.key]=new Set());
+    links.forEach(l=>{ adj[l.a.key].add(l.b.key); adj[l.b.key].add(l.a.key); });
+
+    // ---- interaction ----
+    const panel = document.getElementById('panel');
+    let selected = null;
+
+    // ---- story + player (anthology) injected into the narrative panel ----
+    const CC = window.CONSTELLATION;
+    const PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+    const PAUSE_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
+    const cAudio = document.getElementById('cAudio');
+    const POSKEY = 'constellation_audio_pos_v1', CURKEY = 'constellation_audio_cur_v1', DURKEY = 'constellation_durations_v1';
+    let posC = {}, durC = {};
+    try { posC = JSON.parse(localStorage.getItem(POSKEY) || '{}'); } catch (e) {}
+    try { durC = JSON.parse(localStorage.getItem(DURKEY) || '{}'); } catch (e) {}
+    const fin = (d) => d && d !== Infinity && !isNaN(d) && d > 0;
+    const tfmt = (s) => { if (!fin(s)) return '··:··'; const m = Math.floor(s / 60), x = Math.floor(s % 60); return m + ':' + String(x).padStart(2, '0'); };
+    const storyOf = (id) => CC ? CC.stories.find(s => s.id === id) : null;
+    const slugOf = (t) => 'sec-' + t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    let loadedId = null, panelStory = null;
+
+    function storySection(id) {
+      const s = storyOf(id); if (!s) return '';
+      const prose = s.blocks.map(b => b.t === 'pq'
+        ? `<div class="ps-pq">“${b.v.replace(/^[“"]|[”"]$/g, '')}”</div>`
+        : `<p>${b.v}</p>`).join('');
+      return `
+        <div class="pstory">
+          <div class="ps-head"><span class="ps-k">The story</span><span class="ps-id">Story ${s.num} · ${s.title}</span></div>
+          <div class="cplayer" id="cplayer">
+            <button class="cp-play" id="cpPlay" aria-label="Play this story">${PLAY_SVG}</button>
+            <div class="cp-seek" id="cpSeek"><div class="cpt"></div><div class="cpf" id="cpFill"></div></div>
+            <span class="cp-time" id="cpTime">Listen · ··:··</span>
+          </div>
+          <div class="ps-prose">${prose}</div>
+          <div class="ps-links">
+            <a href="the-constellation-read.html#${slugOf(s.title)}">Read in full →</a>
+            <a href="the-constellation-listen.html">Listen →</a>
+          </div>
+        </div>`;
+    }
+    function loadStory(idx) {
+      loadedId = CC.stories[idx].id; cAudio.src = CC.stories[idx].audio; localStorage.setItem(CURKEY, String(idx));
+      const resume = posC[idx] || 0;
+      const onMeta = () => { cAudio.removeEventListener('loadedmetadata', onMeta); if (resume) { try { cAudio.currentTime = resume; } catch (e) {} } if (fin(cAudio.duration)) { durC[idx] = cAudio.duration; localStorage.setItem(DURKEY, JSON.stringify(durC)); } refreshPanelPlayer(); };
+      cAudio.addEventListener('loadedmetadata', onMeta);
+    }
+    function refreshPanelPlayer() {
+      if (!panelStory) return;
+      const { idx, id } = panelStory;
+      const play = document.getElementById('cpPlay'), fill = document.getElementById('cpFill'), time = document.getElementById('cpTime'), wrap = document.getElementById('cplayer');
+      if (!play) return;
+      const cur = (loadedId === id) ? cAudio.currentTime : (posC[idx] || 0);
+      const d = durC[idx];
+      time.textContent = (cur ? tfmt(cur) + ' / ' : 'Listen · ') + (d ? tfmt(d) : '··:··');
+      if (fill && d) fill.style.width = (cur / d * 100) + '%';
+      const playing = (loadedId === id && !cAudio.paused);
+      play.innerHTML = playing ? PAUSE_SVG : PLAY_SVG;
+      if (wrap) wrap.classList.toggle('playing', playing);
+    }
+    function bindPanelStory() {
+      const play = document.getElementById('cpPlay'); if (!play || !CC) { panelStory = null; return; }
+      const s = storyOf(selected); if (!s) { panelStory = null; return; }
+      const idx = CC.stories.indexOf(s);
+      panelStory = { idx, id: s.id };
+      refreshPanelPlayer();
+      play.addEventListener('click', () => { if (loadedId !== s.id) { loadStory(idx); cAudio.play(); } else { cAudio.paused ? cAudio.play() : cAudio.pause(); } });
+      const seek = document.getElementById('cpSeek');
+      seek.addEventListener('pointerdown', (e) => {
+        if (loadedId !== s.id) loadStory(idx);
+        const r = seek.getBoundingClientRect(); const p = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); const d = durC[idx] || cAudio.duration;
+        const setT = () => { if (fin(d)) { try { cAudio.currentTime = p * d; } catch (_) {} } };
+        if (cAudio.readyState > 0) setT(); else cAudio.addEventListener('loadedmetadata', function o() { cAudio.removeEventListener('loadedmetadata', o); setT(); });
+      });
+    }
+    cAudio.addEventListener('play', refreshPanelPlayer);
+    cAudio.addEventListener('pause', refreshPanelPlayer);
+    cAudio.addEventListener('timeupdate', () => {
+      const idx = CC ? CC.stories.findIndex(s => s.id === loadedId) : -1;
+      if (idx >= 0) posC[idx] = cAudio.currentTime;
+      if (panelStory && panelStory.id === loadedId) {
+        const fill = document.getElementById('cpFill'), time = document.getElementById('cpTime');
+        const d = durC[panelStory.idx] || cAudio.duration;
+        if (fill && fin(d)) fill.style.width = (cAudio.currentTime / d * 100) + '%';
+        if (time) time.textContent = tfmt(cAudio.currentTime) + ' / ' + (fin(d) ? tfmt(d) : '··:··');
+      }
+    });
+    let cTick = 0; cAudio.addEventListener('timeupdate', () => { if (++cTick % 20 === 0) localStorage.setItem(POSKEY, JSON.stringify(posC)); });
+    window.addEventListener('beforeunload', () => localStorage.setItem(POSKEY, JSON.stringify(posC)));
+    cAudio.addEventListener('ended', () => { const idx = CC ? CC.stories.findIndex(s => s.id === loadedId) : -1; if (idx >= 0) posC[idx] = 0; refreshPanelPlayer(); });
+
+    function clearHi(){
+      nodes.forEach(n=>n.g.classList.remove('faded','sel','show-lab'));
+      edgeEls.forEach(e=>e.el.classList.remove('hot','faded'));
+    }
+    function highlight(key){
+      const near = adj[key]; 
+      nodes.forEach(n=>{
+        const on = n.key===key || near.has(n.key);
+        n.g.classList.toggle('faded', !on);
+        if (n.key!==key && near.has(n.key)) n.g.classList.add('show-lab');
+      });
+      byKey[key].g.classList.remove('faded'); byKey[key].g.classList.add('sel','show-lab');
+      edgeEls.forEach(e=>{
+        const on = e.l.a.key===key || e.l.b.key===key;
+        e.el.classList.toggle('hot', on); e.el.classList.toggle('faded', !on);
+      });
+    }
+    function highlightNarr(nid){
+      const n = NS.find(x=>x.id===nid);
+      const set = new Set([nid, ...n.peaks, ...n.events]);
+      n.peaks.forEach(pid=>PK.find(p=>p.id===pid).events.forEach(e=>set.add(e)));
+      nodes.forEach(nd=>nd.g.classList.toggle('faded', !set.has(nd.key)));
+      set.forEach(k=>byKey[k] && byKey[k].g.classList.add('show-lab'));
+      byKey[nid].g.classList.add('sel');
+      edgeEls.forEach(e=>{ const on=set.has(e.l.a.key)&&set.has(e.l.b.key); e.el.classList.toggle('hot',on); e.el.classList.toggle('faded',!on); });
+    }
+
+    function select(key){
+      selected=key; clearHi();
+      if (byKey[key].type==='narr') highlightNarr(byKey[key].ref.id); else highlight(key);
+      renderPanel(byKey[key]);
+    }
+    function deselect(){ selected=null; clearHi(); emptyPanel(); }
+
+    function renderPanel(n){
+      panelStory = null;
+      if (n.type==='event') panel.innerHTML = eventPanel(n.ref);
+      else if (n.type==='peak') panel.innerHTML = peakPanel(n.ref);
+      else panel.innerHTML = narrPanel(n.ref);
+      bindChips();
+      bindPanelStory();
+    }
+
+    function eventPanel(e){
+      const peaks=R.peakOf(e.id), narrs=R.narrativeOf(e.id);
+      const isPeak=peaks.length>0;
+      const chip=(k,label,cls)=>`<button data-key="${k}" class="${cls||''}">${label}</button>`;
+      return `
+        <div class="ptype">${e.orphan?'Ambient context':'Moment'} · ${e.kind}</div>
+        <div class="pid">${e.id}</div>
+        <div class="ptime">${e.time}</div>
+        <h3>${e.title}</h3>
+        <div class="pq ${isPeak?'sig':''}">“${e.quote.replace(/^"|"$/g,'')}”</div>
+        <div class="prow"><span class="k">Type</span><span class="v">${e.type}</span></div>
+        <div class="prow"><span class="k">Charge</span><span class="v">${['','low','medium','high'][e.charge]}</span></div>
+        <div class="prow"><span class="k">Significance</span><span class="v">${['','medium','high','very high'][e.sig]}</span></div>
+        <div class="pblock"><div class="bl">Reading</div><p>${e.summary}</p></div>
+        ${(peaks.length||narrs.length)?`<div class="pblock"><div class="bl">Pulls toward</div><div class="chips">
+          ${peaks.map(p=>chip(p.id,'Peak · '+p.title,'sig')).join('')}
+          ${narrs.map(nr=>chip(nr.id,'NS-'+nr.id.split('-')[1]+' · '+nr.title)).join('')}
+        </div></div>`:`<div class="pblock"><div class="bl">Pulls toward</div><p class="empty">Not yet bound to a narrative: context that colors the session.</p></div>`}`;
+    }
+    function peakPanel(p){
+      const evs=p.events.map(id=>R.byId(id)).filter(Boolean);
+      const home=NS.find(n=>n.peaks.includes(p.id));
+      return `
+        <div class="ptype"><b>Peak</b> · ${p.type}</div>
+        <div class="pid">${p.id}</div>
+        <h3 style="margin-top:14px">${p.title}</h3>
+        <div class="pblock"><div class="bl">What converges</div><p>${p.summary}</p></div>
+        <div class="pblock"><div class="bl">Visible tension</div><p>${p.tension}</p></div>
+        <div class="pblock"><div class="bl">Possible transformation</div><p>${p.transform}</p></div>
+        <div class="pblock"><div class="bl">Built from</div><div class="chips">
+          ${evs.map(e=>`<button data-key="${e.id}">${e.id} · ${e.time}</button>`).join('')}
+        </div></div>
+        ${home?`<div class="pblock"><div class="bl">Inside narrative</div><div class="chips"><button data-key="${home.id}">NS-${home.id.split('-')[1]} · ${home.title}</button></div></div>`:''}`;
+    }
+    function narrPanel(n){
+      return `
+        <div class="ptype">Narrative · ${n.resolution}</div>
+        <div class="pid">${n.id}</div>
+        <h3 style="margin-top:14px">${n.title}</h3>
+        <div class="pblock"><div class="bl">Central tension</div><p>${n.tension}</p></div>
+        <div class="pblock"><div class="bl">Theme</div><p>${n.theme}</p></div>
+        <div class="prow"><span class="k">Before</span><span class="v">${n.before}</span></div>
+        <div class="prow"><span class="k">After</span><span class="v">${n.after}</span></div>
+        <div class="pblock"><div class="bl">Peaks</div><div class="chips">
+          ${n.peaks.map(pid=>{const p=PK.find(x=>x.id===pid);return `<button data-key="${pid}" class="${pid===n.climax?'sig':''}">${pid===n.climax?'★ ':''}${p.title}</button>`;}).join('')}
+        </div></div>
+        ${storySection(n.id)}`;
+    }
+    function emptyPanel(){
+      panelStory = null;
+      panel.innerHTML = `
+        <div class="empty">
+          <span class="nb">Reading the field</span>
+          Each moment is pulled toward the peaks and narratives it belongs to. Friction sits solid, desire sits hollow, context drifts at the edge.
+          <div class="pblock" style="margin-top:24px"><div class="bl">Enter through a narrative</div></div>
+          <div class="narr-pick">
+            ${NS.map(n=>`<button data-key="${n.id}"><span class="nx">NS-${n.id.split('-')[1]}</span><span>${n.title}</span></button>`).join('')}
+          </div>
+        </div>`;
+      bindChips();
+    }
+    function bindChips(){
+      panel.querySelectorAll('button[data-key]').forEach(b=>b.addEventListener('click',()=>gotoKey(b.dataset.key)));
+    }
+
+    // node click + hover
+    nodes.forEach(n=>{
+      n.g.addEventListener('click',(ev)=>{ ev.stopPropagation(); select(n.key); });
+      n.g.addEventListener('pointerenter',()=>{ if(!selected){ n.g.classList.add('show-lab'); } });
+      n.g.addEventListener('pointerleave',()=>{ if(!selected){ n.g.classList.remove('show-lab'); } });
+    });
+
+    // ---- drag (reposition node, no re-sim) ----
+    const svg=document.getElementById('net');
+    let drag=null, moved=false;
+    function toSvg(ev){ const pt=svg.createSVGPoint(); pt.x=ev.clientX; pt.y=ev.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); }
+    nodes.forEach(n=>{
+      n.g.addEventListener('pointerdown',(ev)=>{ drag=n; moved=false; n.g.setPointerCapture(ev.pointerId); ev.stopPropagation(); });
+    });
+    svg.addEventListener('pointermove',(ev)=>{
+      if(!drag) return; moved=true;
+      const p=toSvg(ev); drag.x=p.x; drag.y=p.y;
+      drag.g.setAttribute('transform',`translate(${drag.x},${drag.y})`);
+      edgeEls.forEach(e=>{ if(e.l.a===drag){e.el.setAttribute('x1',drag.x);e.el.setAttribute('y1',drag.y);} if(e.l.b===drag){e.el.setAttribute('x2',drag.x);e.el.setAttribute('y2',drag.y);} });
+    });
+    svg.addEventListener('pointerup',()=>{ drag=null; });
+    svg.addEventListener('click',()=>{ if(!moved) deselect(); });
+
+    // ============ STRUCTURED MAP VIEW (v2) ============
+    // Position carries meaning: x = workflow stage, y = narrative lane. The seven peaks
+    // land where they actually occur, so the eye reads the finding: the hardest peaks
+    // cluster BEFORE the run, and the keystone pulls shared moments across narratives.
+    const mapSvg = document.getElementById('map');
+    const mEl = (t,a,p)=>{ const e=document.createElementNS(SVGNS,t); for(const k in a) e.setAttribute(k,a[k]); if(p)p.appendChild(e); return e; };
+    const STAGES = [
+      { id:'upstream', label:'Authored upstream', sub:'container · stability · protocol', x:215, dense:true },
+      { id:'site', label:'At the site', sub:'receive · reconcile · educate', x:600 },
+      { id:'patient',  label:'To the patient & beyond',  sub:'administer · adopt · fix', x:855 }
+    ];
+    const STAGE_DIV = [435, 720];
+    const LANES = [ { id:'NS-001', y:180 }, { id:'NS-002', y:350 }, { id:'NS-003', y:520 } ];
+    const laneY = id => (LANES.find(l=>l.id===id)||{}).y;
+    const PKLABEL = { 'NP-001':'Product design collides with feasibility','NP-002':'A barrier becomes a trial-stopping conflict','NP-003':'Adoption moves upstream' };
+    const PXY = { 'NP-001':[235,180],'NP-002':[600,350],'NP-003':[855,520] };
+    const KEY_PEAK = 'NP-001';
+    const SHARES = [];
+    const shortTitle = t => t.length > 30 ? t.slice(0,29).replace(/\s\S*$/,'') + '…' : t;
+    let view = 'map', selectedMap = null;
+
+    function buildMap(){
+      const bands=document.getElementById('mpBands'), lanesG=document.getElementById('mpLanes'), pullsG=document.getElementById('mpPulls'), peaksG=document.getElementById('mpPeaks');
+      STAGE_DIV.forEach(x=> mEl('line',{class:'mp-stage-div',x1:x,y1:74,x2:x,y2:610}, bands));
+      STAGES.forEach(st=>{
+        const g=mEl('g',{class:'mp-stage-band'+(st.dense?' dense':'')}, bands);
+        const h=mEl('text',{class:'mp-stage-h','text-anchor':'middle',x:st.x,y:42}, g); h.textContent=st.label;
+        const s=mEl('text',{class:'mp-stage-s','text-anchor':'middle',x:st.x,y:60}, g); s.textContent=st.sub;
+      });
+      LANES.forEach((ln,i)=>{
+        const n=NS.find(x=>x.id===ln.id);
+        if(i>0) mEl('line',{class:'mp-lane-sep',x1:24,y1:(ln.y+LANES[i-1].y)/2,x2:980,y2:(ln.y+LANES[i-1].y)/2}, lanesG);
+        const g=mEl('g',{class:'mp-lane'}, lanesG); g.dataset.key=ln.id;
+        const id=mEl('text',{class:'mp-lane-id',x:24,y:ln.y-7}, g); id.textContent='NS-'+ln.id.split('-')[1];
+        const t=mEl('text',{class:'mp-lane-lab',x:24,y:ln.y+11}, g); t.textContent=shortTitle(n.title);
+        g.addEventListener('click',(e)=>{ e.stopPropagation(); gotoKey(ln.id); });
+      });
+      // keystone pull: only drawn when narratives literally share moments (guarded)
+      const kxy=PXY[KEY_PEAK];
+      if (kxy && SHARES.length){
+        const [kx,ky]=kxy;
+        mEl('line',{class:'mp-pull',x1:kx,y1:ky,x2:kx,y2:SHARES[SHARES.length-1].toY}, pullsG);
+        SHARES.forEach(sh=>{
+          const sg=mEl('g',{class:'mp-share'}, pullsG); sg.dataset.key=sh.ev;
+          mEl('circle',{cx:kx,cy:sh.toY,r:6}, sg);
+          const l=mEl('text',{class:'sh-l',x:kx+12,y:sh.toY+3}, sg); l.textContent=sh.ev+' · shared moment';
+          sg.addEventListener('click',(e)=>{ e.stopPropagation(); gotoKey(sh.ev); });
+        });
+      }
+      PK.forEach(p=>{
+        const xy=PXY[p.id]; if(!xy) return;
+        const isKey=p.id===KEY_PEAK, r=8+p.charge*2.4;
+        const g=mEl('g',{class:'mp-peak'+(isKey?' mp-key':'')}, peaksG); g.dataset.key=p.id;
+        if(isKey) mEl('circle',{cx:xy[0],cy:xy[1],r:26,fill:'rgba(214,74,31,0.14)'}, g);
+        mEl('circle',{cx:xy[0],cy:xy[1],r:r}, g);
+        if(isKey){ const f=mEl('text',{class:'kflag-map','text-anchor':'middle',x:xy[0],y:xy[1]-r-13}, g); f.textContent='KEYSTONE'; }
+        const lab=mEl('text',{class:'pk-t','text-anchor':'middle',x:xy[0],y:xy[1]+r+16}, g); lab.textContent=PKLABEL[p.id]||p.title;
+        g.addEventListener('click',(e)=>{ e.stopPropagation(); gotoKey(p.id); });
+        g.addEventListener('pointerenter',()=>{ if(!selectedMap) lab.classList.add('pk-show'); });
+        g.addEventListener('pointerleave',()=>{ if(!selectedMap) lab.classList.remove('pk-show'); });
+      });
+      mapSvg.addEventListener('click',()=> mapDeselect());
+    }
+
+    function relatedKeys(key){
+      const s=new Set([key]), n=byKey[key];
+      if(!n) return s;
+      if(n.type==='narr') n.ref.peaks.forEach(p=>s.add(p));
+      else if(n.type==='peak'){ const home=NS.find(x=>x.peaks.includes(key)); if(home) s.add(home.id); }
+      else { R.peakOf(key).forEach(p=>s.add(p.id)); R.narrativeOf(key).forEach(nr=>s.add(nr.id)); }
+      return s;
+    }
+    function mapMark(key){
+      const rel=relatedKeys(key);
+      document.querySelectorAll('#map .mp-peak').forEach(g=>{ const on=g.dataset.key===key||rel.has(g.dataset.key); g.classList.toggle('dim',!on); g.classList.toggle('sel',g.dataset.key===key); });
+      document.querySelectorAll('#map .mp-lane').forEach(g=>{ g.classList.toggle('sel', g.dataset.key===key||rel.has(g.dataset.key)); });
+    }
+    function mapSelect(key){ selectedMap=key; renderPanel(byKey[key]); mapMark(key); }
+    function mapDeselect(){ selectedMap=null; document.querySelectorAll('#map .mp-peak').forEach(g=>g.classList.remove('dim','sel')); document.querySelectorAll('#map .mp-lane').forEach(g=>g.classList.remove('sel')); mapEmptyPanel(); }
+
+    function mapEmptyPanel(){
+      panelStory = null;
+      panel.innerHTML = `
+        <div class="empty">
+          <span class="nb">The relation</span>
+          Three ways to tell it, and they are not separate stories: they trace back to the same upstream decisions. The heaviest peak sits <b>in the product’s design</b>, before it ever reaches the site.
+          <div class="pblock" style="margin-top:22px"><div class="bl">Start at the keystone</div></div>
+          <div class="narr-pick">
+            <button data-key="${KEY_PEAK}" class="sig-pick"><span class="nx">${KEY_PEAK}</span><span>Product design collides with large-hospital feasibility</span></button>
+          </div>
+          <div class="pblock" style="margin-top:18px"><div class="bl">Or enter through a narrative</div></div>
+          <div class="narr-pick">
+            ${NS.map(n=>`<button data-key="${n.id}"><span class="nx">NS-${n.id.split('-')[1]}</span><span>${shortTitle(n.title)}</span></button>`).join('')}
+          </div>
+        </div>`;
+      bindChips();
+    }
+
+    function gotoKey(key){ if(view==='map') mapSelect(key); else select(key); }
+
+    // ---- view toggle (Map default; Field is the demoted force graph) ----
+    function applyView(v){
+      view = (v==='field') ? 'field' : 'map';
+      document.getElementById('map').classList.toggle('view-hidden', view!=='map');
+      document.getElementById('net').classList.toggle('view-hidden', view!=='field');
+      document.getElementById('legendMap').classList.toggle('view-hidden', view!=='map');
+      document.getElementById('legendField').classList.toggle('view-hidden', view!=='field');
+      document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on', b.dataset.view===view));
+      try { localStorage.setItem('constellation_view', view); } catch(e){}
+      if(view==='map'){ selected=null; clearHi(); mapDeselect(); }
+      else { selectedMap=null; deselect(); }
+    }
+    document.getElementById('viewSeg').addEventListener('click',(e)=>{ const b=e.target.closest('button'); if(b) applyView(b.dataset.view); });
+
+    buildMap();
+    let storedView='map'; try { storedView=localStorage.getItem('constellation_view')||'map'; } catch(e){}
+    applyView(storedView);
+  </script>
+</body>
+</html>

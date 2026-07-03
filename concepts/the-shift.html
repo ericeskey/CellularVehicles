@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Shift · IDI01 Catherine</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+  .masthead {
+    border-top: var(--masthead-rule) solid var(--ink);
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 18px var(--gutter) 0;
+  }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--fg2); text-transform: uppercase; }
+  .nav-back { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); }
+  .nav-back:hover { color: var(--ink); }
+
+  .viewtoggle { display: inline-flex; border: 1px solid var(--ink); margin-top: 16px; }
+  .viewtoggle a { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 14px; color: var(--ash); border-right: 1px solid var(--ink); transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .viewtoggle a:last-child { border-right: 0; }
+  .viewtoggle a:hover { background: var(--bone); }
+  .viewtoggle a.on { background: var(--ink); color: var(--paper); }
+  .viewtoggle a.on:hover { background: var(--ink); }
+
+  .shell { flex: 1; display: flex; flex-direction: column; padding: 0 var(--gutter) 0; max-width: 1080px; width: 100%; margin: 0 auto; }
+  .head { padding: 24px 0 14px; }
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; }
+  .head h1 { font-size: clamp(30px, 4vw, 52px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.95; margin-top: 10px; }
+  .head .sub { font-family: var(--font-serif); font-style: italic; font-size: 19px; color: var(--fg2); margin-top: 8px; max-width: 60ch; }
+
+  /* ---- the finding ---- */
+  .finding { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: start; margin: 22px 0 6px; padding: 18px 0 22px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--fog); }
+  .finding .fk { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); white-space: nowrap; padding-top: 3px; }
+  .finding .ft { font-size: 16px; line-height: 1.55; color: var(--ink); max-width: 92ch; }
+  .finding .ft b { font-weight: var(--fw-medium); }
+
+  /* ---- controls ---- */
+  .controls { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 18px 0 16px; }
+  .sort-seg { display: inline-flex; border: 1px solid var(--ink); }
+  .sort-seg button { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 13px; background: var(--paper); color: var(--ash); border: 0; border-right: 1px solid var(--ink); cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .sort-seg button:last-child { border-right: 0; }
+  .sort-seg button:hover { background: var(--hover-overlay); color: var(--ink); }
+  .sort-seg button.on { background: var(--ink); color: var(--paper); }
+  .sort-lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); }
+  .pre-toggle { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); background: var(--paper); border: 1px solid var(--ink); padding: 8px 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; }
+  .pre-toggle .dot { width: 9px; height: 9px; border: 1px solid var(--signal); transform: rotate(45deg); }
+  .pre-toggle.on { background: var(--signal); color: var(--paper); border-color: var(--signal); }
+  .pre-toggle.on .dot { background: var(--paper); border-color: var(--paper); }
+  .ct { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); margin-left: auto; }
+
+  /* ---- column header ---- */
+  .col-head { display: grid; grid-template-columns: 1fr 300px; gap: 28px; align-items: end; padding: 0 0 10px; border-bottom: 1px solid var(--ink); }
+  .col-head .ch-l { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); }
+  .col-head .ch-r { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); text-align: left; }
+  .scale-note { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--fg2); padding: 12px 0 0; max-width: 84ch; line-height: 1.6; }
+  .scale-note b { color: var(--ink); font-weight: var(--fw-regular); }
+
+  /* ---- shift rows ---- */
+  .shifts { display: flex; flex-direction: column; padding-bottom: 8px; }
+  .shift { display: grid; grid-template-columns: 1fr 300px; gap: 28px; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--fog); padding: 22px 0 22px; cursor: pointer; color: inherit; font-family: var(--font-sans); transition: opacity var(--dur) var(--ease); }
+  .shift.hide { display: none; }
+  .shift.lead { background: linear-gradient(var(--bone), var(--bone)) no-repeat; }
+
+  .sh-left { min-width: 0; }
+  .sh-top { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .sh-rank { font-family: var(--font-mono); font-size: 12px; color: var(--fg3); letter-spacing: 0.04em; flex: 0 0 auto; }
+  .shift.lead .sh-rank { color: var(--signal); }
+  .sh-name { font-size: 18px; font-weight: var(--fw-bold); letter-spacing: -0.018em; line-height: 1.15; }
+  .shift:hover .sh-name { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  .tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; padding: 2px 7px; white-space: nowrap; }
+  .tag.wand { color: var(--signal); border: 1px solid var(--signal); }
+  .tag.pre { color: var(--paper); background: var(--ink); }
+
+  .sh-states { display: grid; grid-template-columns: 1fr 40px 1fr; align-items: center; margin-top: 14px; }
+  .sh-states .now { text-align: right; font-size: 14px; line-height: 1.5; color: var(--ash); padding-right: 6px; }
+  .sh-states .poss { text-align: left; font-size: 14px; line-height: 1.5; color: var(--ink); padding-left: 6px; }
+  .sh-node { justify-self: center; width: 12px; height: 12px; background: var(--paper); border: 1px solid var(--ash); transform: rotate(45deg); flex: 0 0 auto; }
+  .shift:hover .sh-node { border-color: var(--ink); }
+  .shift.open .sh-node { background: var(--signal); border-color: var(--signal); }
+
+  /* ---- magnitude column ---- */
+  .sh-metrics { align-self: center; }
+  .mx-gap { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); margin-bottom: 9px; }
+  .mx-gap b { color: var(--ink); font-weight: var(--fw-regular); }
+  .trk { position: relative; height: 16px; margin: 4px 0 4px; }
+  .trk-line { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--fog); }
+  .trk-tick { position: absolute; top: 50%; width: 1px; height: 5px; background: var(--fog); transform: translate(-50%, -50%); }
+  .trk-span { position: absolute; top: 50%; height: 2.5px; background: var(--ink); transform: translateY(-50%); }
+  .trk-now, .trk-ideal { position: absolute; top: 50%; width: 10px; height: 10px; transform: translate(-50%, -50%) rotate(45deg); z-index: 2; }
+  .trk-now { background: var(--paper); border: 1.5px solid var(--ash); }
+  .trk-ideal { background: var(--signal); border: 1.5px solid var(--signal); }
+  .trk-poles { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg3); margin-top: 2px; }
+  .sh-da { display: flex; gap: 18px; margin-top: 12px; }
+  .da { display: flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); }
+  .da .da-b { display: inline-flex; gap: 2px; }
+  .da .da-b i { width: 4px; height: 9px; background: var(--fog); display: inline-block; }
+  .da.want .da-b i.on { background: var(--signal); }
+  .da.ready .da-b i.on { background: var(--ink); }
+
+  /* ---- detail ---- */
+  .sh-detail { grid-column: 1 / -1; max-height: 0; overflow: hidden; transition: max-height var(--dur-slow) var(--ease); }
+  .shift.open .sh-detail { max-height: 640px; }
+  .sh-detail-in { padding-top: 22px; margin-top: 22px; border-top: 1px solid var(--fog); display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px; }
+  .dl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); margin-bottom: 9px; }
+  .axisline { font-family: var(--font-serif); font-style: italic; font-size: 15px; line-height: 1.45; color: var(--fg2); grid-column: 1 / -1; max-width: 78ch; }
+  .dims { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dims .chip { font-size: 12px; border: 1px solid var(--ink); padding: 4px 9px; color: var(--ink); }
+  .val { font-size: 14px; line-height: 1.55; color: var(--ink); }
+  .meta-row { display: flex; gap: 28px; margin-top: 12px; }
+  .meta-row .mi { font-family: var(--font-mono); font-size: 10.5px; color: var(--fg2); text-transform: uppercase; letter-spacing: 0.06em; }
+  .meta-row .mi b { color: var(--ink); display: block; font-size: 14px; letter-spacing: 0; margin-top: 3px; font-family: var(--font-sans); text-transform: none; }
+  .evid { grid-column: 1 / -1; border-top: 1px solid var(--fog); padding-top: 16px; display: grid; grid-template-columns: 64px 1fr; gap: 16px; align-items: start; }
+  .evid .et { font-family: var(--font-mono); font-size: 11px; color: var(--fg2); letter-spacing: 0.06em; }
+  .evid .eq { font-family: var(--font-serif); font-style: italic; font-size: 16px; line-height: 1.4; color: var(--ink); border-left: 2px solid var(--ink); padding-left: 16px; }
+
+  /* ---- handoff ---- */
+  .handoff { border-top: var(--masthead-rule) solid var(--ink); margin-top: 44px; padding: 30px 0 48px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: start; }
+  .handoff .ho-k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); }
+  .handoff .ho-l h2 { font-size: clamp(22px, 2.6vw, 32px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.04; margin: 12px 0 14px; max-width: 20ch; }
+  .handoff .ho-l p { font-size: 14px; line-height: 1.6; color: var(--fg2); max-width: 50ch; }
+  .handoff .ho-l p b { color: var(--ink); font-weight: var(--fw-medium); }
+  .ho-back { display: inline-block; margin-top: 16px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
+  .ho-back:hover { color: var(--signal); border-color: var(--signal); text-decoration: none; }
+  .ho-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  .ho-list a { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--fog); text-decoration: none; }
+  .ho-list a:hover { text-decoration: none; }
+  .ho-list a .hn { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--fg2); }
+  .ho-list a:hover .hn { color: var(--signal); }
+  .ho-list a .ht { font-size: 14px; font-weight: var(--fw-medium); color: var(--ink); line-height: 1.25; }
+  .ho-list a:hover .ht { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  .ho-list a .hx { display: block; font-size: 12px; color: var(--fg2); font-weight: var(--fw-regular); margin-top: 2px; line-height: 1.35; }
+  .ho-list a.is-here { opacity: 0.5; }
+  .ho-list a.is-here .ht { text-decoration: none; }
+
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) {
+    .fadein { animation: fi var(--dur-slow) var(--ease) both; }
+  }
+  @keyframes fi { from { transform: translateY(8px); } to { transform: none; } }
+
+  @media (max-width: 900px) {
+    .col-head, .shift { grid-template-columns: 1fr; gap: 16px; }
+    .col-head .ch-r { display: none; }
+    .sh-detail-in { grid-template-columns: 1fr; }
+    .handoff { grid-template-columns: 1fr; gap: 24px; }
+    .ho-list { grid-template-columns: 1fr; }
+    .finding { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <a class="nav-back" href="../index.html">← all seven lenses</a>
+    <span class="ref">Concept 03 / The Shift</span>
+  </div>
+
+  <div class="shell">
+    <div class="head fadein">
+      <div class="eyebrow-row">
+        <span class="eyebrow">The Shift</span>
+        <span class="eyebrow" style="color:var(--signal)">Transformation</span>
+      </div>
+      <h1>Which change is worth making?</h1>
+      <div class="sub">Nine frictions, each rewritten as a state change, then ranked by how badly Catherine wants the shift and how ready it is to build.</div>
+      <div class="viewtoggle">
+        <a class="on" href="the-shift.html">Ranked</a>
+        <a href="the-shift-graded.html">Graded</a>
+      </div>
+    </div>
+
+    <div class="finding fadein" style="animation-delay:60ms">
+      <span class="fk">The finding</span>
+      <div class="ft" id="findingText"></div>
+    </div>
+
+    <div class="controls fadein" style="animation-delay:90ms">
+      <span class="sort-lbl">Rank by</span>
+      <div class="sort-seg" id="sortSeg">
+        <button data-sort="want" class="on">Most wanted</button>
+        <button data-sort="gap">Biggest gap</button>
+        <button data-sort="ready">Most ready</button>
+      </div>
+      <button class="pre-toggle" id="preToggle"><span class="dot"></span> Upstream-authored only</button>
+      <span class="ct" id="shiftCount"></span>
+    </div>
+
+    <div class="col-head fadein" style="animation-delay:110ms">
+      <span class="ch-l">The world as it is&nbsp;&nbsp;◇&nbsp;&nbsp;the world it could be</span>
+      <span class="ch-r">Now → ideal · want · ready</span>
+    </div>
+
+    <div class="scale-note fadein" style="animation-delay:120ms"><b>Now → ideal</b> is Catherine’s current and desired rung on each shift’s 7-point scale. <b>Want</b> and <b>Ready</b> are our reading of the interview and of feasibility, not measured scores.</div>
+
+    <div class="shifts fadein" id="shifts" style="animation-delay:130ms"></div>
+
+    <section class="handoff">
+      <div class="ho-l">
+        <div class="ho-k">After the shift</div>
+        <h2>You’ve seen which change is worth making. Now read it six other ways.</h2>
+        <p>This lens ranks the possible transformations. The most wanted are the ones the site can least build: they are <b>authored upstream</b>, in the product’s design. That is where the other lenses keep landing too.</p>
+        <a class="ho-back" href="../index.html">Back to all seven lenses and the verdict →</a>
+      </div>
+      <nav class="ho-list">
+        <a href="the-session.html"><span class="hn">01</span><span><span class="ht">The Session</span><span class="hx">Chronology · the raw tape</span></span></a>
+        <a href="the-constellation.html"><span class="hn">02</span><span><span class="ht">The Constellation</span><span class="hx">Relation · how the narratives pull</span></span></a>
+        <a class="is-here" href="the-shift.html"><span class="hn">03</span><span><span class="ht">The Shift</span><span class="hx">Transformation · you are here</span></span></a>
+        <a href="the-ledger.html"><span class="hn">04</span><span><span class="ht">The Ledger</span><span class="hx">Argument · the hidden expertise, priced</span></span></a>
+        <a href="the-keystone.html"><span class="hn">05</span><span><span class="ht">The Keystone</span><span class="hx">Leverage · the one move that matters</span></span></a>
+        <a href="the-opportunity.html"><span class="hn">06</span><span><span class="ht">The Opportunity</span><span class="hx">Demand · what’s most under-served</span></span></a>
+        <a href="the-casefile.html"><span class="hn">07</span><span><span class="ht">The Casefile</span><span class="hx">Diagnosis · the decision brief</span></span></a>
+      </nav>
+    </section>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="../shift-shifts-15.js"></script>
+  <script>
+    const R = window.RESEARCH;
+    const S15 = window.SHIFT_15;
+    const txById = {}; R.transformations.forEach(t => txById[t.id] = t);
+
+    // upstream-authored shifts: the change is decided before the product ships,
+    // so the site cannot build it unilaterally (tagged on each transformation).
+    // merge magnitude (S15) with the transformation detail (R)
+    const SHIFTS = S15.map(s => {
+      const tx = txById[s.id] || {};
+      const preRun = !!tx.upstream;
+      return {
+        id: s.id, name: s.name, wand: s.wand, frame: tx.frame || s.frame,
+        now: s.now, ideal: s.ideal, gap: s.ideal - s.now, desire: s.desire, ability: s.ability,
+        lowPole: s.lowPole, highPole: s.highPole, axis: s.axis, ev: s.ev,
+        evQuote: tx.evQuote || '', evCite: tx.evCite || '',
+        input: tx.input || '', output: tx.output || '', dims: tx.dims || [],
+        value: tx.value || '', frequency: tx.frequency || '', position: tx.position || '',
+        preRun
+      };
+    });
+
+    const SORTS = {
+      want:  (a, b) => b.desire - a.desire || b.ability - a.ability || b.gap - a.gap,
+      gap:   (a, b) => b.gap - a.gap || b.desire - a.desire,
+      ready: (a, b) => b.ability - a.ability || b.desire - a.desire
+    };
+    let sortKey = 'want', preOnly = false;
+
+    const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const pos = v => ((v - 1) / 6 * 100);
+    const barsHtml = (val, cls) => `<span class="da-b">${[1,2,3,4,5,6,7].map(i => `<i class="${i<=val?'on':''}"></i>`).join('')}</span>`;
+
+    function trackHtml(s) {
+      const a = Math.min(s.now, s.ideal), b = Math.max(s.now, s.ideal);
+      return `
+        <div class="mx-gap"><span>now <b>${s.now}</b> → ideal <b>${s.ideal}</b></span><span>gap <b>+${s.gap}</b></span></div>
+        <div class="trk">
+          <div class="trk-line"></div>
+          ${[1,2,3,4,5,6,7].map(i => `<span class="trk-tick" style="left:${pos(i)}%"></span>`).join('')}
+          <div class="trk-span" style="left:${pos(a)}%; width:${pos(b)-pos(a)}%"></div>
+          <span class="trk-now" style="left:${pos(s.now)}%"></span>
+          <span class="trk-ideal" style="left:${pos(s.ideal)}%"></span>
+        </div>
+        <div class="trk-poles"><span>${esc(s.lowPole)}</span><span>${esc(s.highPole)}</span></div>
+        <div class="sh-da">
+          <span class="da want"><span>Want</span>${barsHtml(s.desire,'want')}</span>
+          <span class="da ready"><span>Ready</span>${barsHtml(s.ability,'ready')}</span>
+        </div>`;
+    }
+
+    function rowHtml(s, rank) {
+      const hasEv = s.evQuote;
+      return `
+        <div class="sh-left">
+          <div class="sh-top">
+            <span class="sh-rank">${String(rank).padStart(2,'0')}</span>
+            <span class="sh-name">${esc(s.name)}</span>
+            ${s.wand ? '<span class="tag wand">Magic wand</span>' : ''}
+            ${s.preRun ? '<span class="tag pre">Upstream</span>' : ''}
+          </div>
+          <div class="sh-states">
+            <div class="now">${esc(s.input)}</div>
+            <div class="sh-node"></div>
+            <div class="poss">${esc(s.output)}</div>
+          </div>
+        </div>
+        <div class="sh-metrics">${trackHtml(s)}</div>
+        <div class="sh-detail"><div class="sh-detail-in">
+          <div class="axisline">${esc(s.axis)}</div>
+          <div>
+            <div class="dl">Dimensions that move</div>
+            <div class="dims">${s.dims.map(d => `<span class="chip">${esc(d)}</span>`).join('')}</div>
+          </div>
+          <div>
+            <div class="dl">Why it matters</div>
+            <div class="val">${esc(s.value)}</div>
+            <div class="meta-row">
+              <span class="mi">Frequency<b>${esc(s.frequency)}</b></span>
+              <span class="mi">Workflow stage<b>${esc(s.position)}</b></span>
+              <span class="mi">Frame<b>${esc(s.frame)}</b></span>
+            </div>
+          </div>
+          ${hasEv ? `<div class="evid"><span class="et">${esc(s.evCite)}</span><span class="eq">“${esc(s.evQuote.replace(/^["“]|["”]$/g,''))}”</span></div>` : ''}
+        </div></div>`;
+    }
+
+    const shiftsEl = document.getElementById('shifts');
+    function render() {
+      const list = SHIFTS.filter(s => !preOnly || s.preRun).slice().sort(SORTS[sortKey]);
+      shiftsEl.innerHTML = '';
+      list.forEach((s, i) => {
+        const b = document.createElement('button');
+        b.className = 'shift' + (i === 0 ? ' lead' : '');
+        b.dataset.id = s.id;
+        b.innerHTML = rowHtml(s, i + 1);
+        b.addEventListener('click', () => {
+          const wasOpen = b.classList.contains('open');
+          [...shiftsEl.querySelectorAll('.shift.open')].forEach(o => o.classList.remove('open'));
+          if (!wasOpen) b.classList.add('open');
+        });
+        shiftsEl.appendChild(b);
+      });
+      document.getElementById('shiftCount').textContent = list.length + (preOnly ? ' of 9 shifts · upstream' : ' shifts');
+    }
+
+    document.getElementById('sortSeg').addEventListener('click', (e) => {
+      const btn = e.target.closest('button'); if (!btn) return;
+      sortKey = btn.dataset.sort;
+      [...document.querySelectorAll('#sortSeg button')].forEach(x => x.classList.toggle('on', x === btn));
+      render();
+    });
+    const preBtn = document.getElementById('preToggle');
+    preBtn.addEventListener('click', () => { preOnly = !preOnly; preBtn.classList.toggle('on', preOnly); render(); });
+
+    // finding: lead with the most-wanted, name the wanted+ready quick win
+    const mostWanted = SHIFTS.slice().sort(SORTS.want)[0];
+    const quickWin = SHIFTS.filter(s => s.id !== mostWanted.id).sort((a,b)=> (b.desire+b.ability)-(a.desire+a.ability))[0];
+    const preCount = SHIFTS.filter(s => s.preRun).length;
+    document.getElementById('findingText').innerHTML =
+      `Of nine possible shifts, the one Catherine wants most is <b>${esc(mostWanted.name.toLowerCase())}</b>. ` +
+      `But the shifts she wants most are the ones the site can least build: they are <b>authored upstream</b>, in the product’s design and protocol. ` +
+      `<b>${preCount} of the nine</b> are decided before the therapy ever ships. That is where the leverage sits, and why it was never the site’s to fix.`;
+
+    render();
+  </script>
+</body>
+</html>

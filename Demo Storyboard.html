@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Demo Storyboard · the full arc</title>
+<link rel="stylesheet" href="assets/colors_and_type.css" />
+<style>
+  body { background: var(--paper); color: var(--ink); margin: 0; font-family: var(--font-sans); }
+  .doc { max-width: 820px; margin: 0 auto; padding: 0 var(--gutter) 100px; }
+  .masthead { border-top: var(--masthead-rule) solid var(--ink); display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 16px 0; }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--ash); text-transform: uppercase; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
+
+  .lede { padding: 40px 0 30px; border-bottom: 1px solid var(--ink); }
+  .lede h1 { font-size: clamp(32px, 5vw, 54px); font-weight: var(--fw-black); letter-spacing: -0.04em; line-height: 0.98; margin: 18px 0 0; max-width: 18ch; }
+  .lede h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+  .lede p { font-size: 17px; line-height: 1.6; color: var(--ash); max-width: 60ch; margin-top: 18px; }
+  .lede p b { color: var(--ink); font-weight: var(--fw-medium); }
+  .lede .stamp { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg3); margin-top: 22px; }
+
+  .beat { padding: 30px 0; border-bottom: 1px solid var(--fog); display: grid; grid-template-columns: 64px 1fr; gap: 24px; }
+  .beat .num { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; color: var(--ash); padding-top: 4px; }
+  .beat h2 { font-size: 24px; font-weight: var(--fw-bold); letter-spacing: -0.025em; line-height: 1.15; margin: 0; }
+  .beat h2 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
+  .tag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--fog); color: var(--ash); margin-left: 4px; vertical-align: middle; }
+  .tag.have { border-color: var(--ink); color: var(--ink); }
+  .tag.new { border-color: var(--signal); color: var(--signal); }
+  .beat .row { margin-top: 14px; }
+  .beat .k { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); }
+  .beat .v { font-size: 15.5px; line-height: 1.6; color: var(--ink); margin-top: 5px; }
+  .beat .v.muted { color: var(--ash); }
+  .beat .v b { font-weight: var(--fw-medium); }
+
+  .progress { background: var(--bone); border: 1px solid var(--ink); padding: 22px 24px; margin: 30px 0; }
+  .progress .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); }
+  .progress .steps { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .progress .steps .s { color: var(--ink); }
+  .progress .steps .s.end { color: var(--signal); font-weight: 500; }
+  .progress .steps .ar { color: var(--fog); }
+  .progress p { font-size: 14px; line-height: 1.6; color: var(--ash); margin-top: 14px; }
+
+  .notes { padding: 34px 0 0; }
+  .notes h3 { font-size: 19px; font-weight: var(--fw-bold); letter-spacing: -0.02em; margin: 0 0 6px; }
+  .notes ul { margin: 12px 0 0; padding: 0; list-style: none; }
+  .notes li { font-size: 14.5px; line-height: 1.55; color: var(--ash); padding: 9px 0 9px 20px; border-top: 1px solid var(--fog); position: relative; }
+  .notes li:before { content: "—"; position: absolute; left: 0; color: var(--fog); }
+  .notes li b { color: var(--ink); font-weight: var(--fw-medium); }
+  @media print { .tag.new { -webkit-print-color-adjust: exact; } }
+</style>
+</head>
+<body>
+  <div class="doc">
+    <div class="masthead">
+      <span class="wm">DARK HORSE WORKS</span>
+      <span class="ref">Captured idea · demo arc</span>
+    </div>
+
+    <div class="lede">
+      <div class="eyebrow">Storyboard · do not lose this</div>
+      <h1>The demo, as a <em>belief moving</em>.</h1>
+      <p>The demo is not a tour of a finished analysis. It is a short film of <b>one belief being updated by evidence</b> — staged as the method runs, live, on a real interview. Below is the arc, beat by beat, in the order a prospect would experience it. Tags mark what already stands in a prototype versus what is new.</p>
+      <div class="stamp">Captured June 2026 · R01 Martin · source for the build</div>
+    </div>
+
+    <div class="beat">
+      <div class="num">00</div>
+      <div>
+        <h2>Open on the naive prior <span class="tag have">prototyped</span></h2>
+        <div class="row"><div class="k">On screen</div><div class="v">The belief the market already holds, stated plainly: <b>“just make it faster.”</b> Nothing else yet.</div></div>
+        <div class="row"><div class="k">Why</div><div class="v muted">Name the prior out loud so the prospect feels their own assumption — then watch it move. Already the opening state of the Convergence Engine.</div></div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="num">01</div>
+      <div>
+        <h2>Receive the raw material <span class="tag new">new</span></h2>
+        <div class="row"><div class="k">On screen</div><div class="v">An audio file or transcript is dropped in — the prospect’s own, or Martin’s. The thing we start from is visibly <b>raw and real</b>, not pre-baked.</div></div>
+        <div class="row"><div class="k">Why</div><div class="v muted">Proof the method operates on real material the prospect could hand us. This is the projection hook: “that could be my transcript.”</div></div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="num">02</div>
+      <div>
+        <h2>A horizontal timeline of moments <span class="tag have">prototyped</span></h2>
+        <div class="row"><div class="k">On screen</div><div class="v">The interview becomes a left-to-right field of atoms — every moment, in the order it was spoken. Raw voice, parsed.</div></div>
+        <div class="row"><div class="k">Why</div><div class="v muted">The persistent substrate everything else is built on. Exists in the Lens Field and Convergence Engine.</div></div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="num">03</div>
+      <div>
+        <h2>Deep listening — the line comes <em>alive</em> <span class="tag new">new</span></h2>
+        <div class="row"><div class="k">On screen</div><div class="v">Dimensions are detected and frames produced. The system listens to what is <b>said</b> — and what is <b>unsaid, between the lines</b>. A few key quotes surface. Narrative moments and peaks emerge, and the flat line of dots becomes a living graph.</div></div>
+        <div class="row"><div class="k">Why</div><div class="v muted">This is the “we hear what they didn’t say” beat — the empathy proof. The moment the prospect sees the depth of attention their own customers would receive.</div></div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="num">04</div>
+      <div>
+        <h2>Apply each lens — evidence builds <span class="tag have">prototyped</span></h2>
+        <div class="row"><div class="k">On screen</div><div class="v">One reading at a time votes; voted moments rise and grow; the core ignites; divergence stays low. The timeline evolves with each lens.</div></div>
+        <div class="row"><div class="k">New layer</div><div class="v">At <b>each transition to a new lens</b>, a short teaching card: <b>what the lens is, why it matters, and one example.</b> The lens stops being a label and becomes understood.</div></div>
+        <div class="row"><div class="k">Why</div><div class="v muted">Accumulation is built (Convergence Engine). The teaching card on each transition is the new piece.</div></div>
+      </div>
+    </div>
+
+    <div class="beat">
+      <div class="num">05</div>
+      <div>
+        <h2>The choice-point reorganization <span class="tag new">new</span></h2>
+        <div class="row"><div class="k">On screen</div><div class="v">Once — and only once — the timeline reorders itself: from the <b>chronology of interview moments</b> to the <b>chronology of steps in getting the job done</b> (stage the work → surface failure → recompose → protect the loop → configure the handoff).</div></div>
+        <div class="row"><div class="k">Why</div><div class="v muted">The axis flip is the structural “aha”: the same evidence, re-seen as the customer’s actual workflow. The five job stages already exist in the data (RESEARCH.stages).</div></div>
+      </div>
+    </div>
+
+    <div class="progress">
+      <div class="k">The card to the right · a running record of belief moving</div>
+      <div class="steps">
+        <span class="s">Raw voice</span><span class="ar">→</span>
+        <span class="s">Evidence</span><span class="ar">→</span>
+        <span class="s">Belief</span><span class="ar">→</span>
+        <span class="s end">Decision-ready proposition</span>
+      </div>
+      <p>The right-hand panel stops being a static inspector and becomes a <b>progress record</b> — perhaps literally a progress bar — that fills as the demo advances. It shows the prospect exactly where they are in the move from raw voice to a proposition the team can act on. The old belief (“faster”) is visibly left behind; the new belief (pre-run readiness) forms in its place.</p>
+    </div>
+
+    <div class="notes">
+      <h3>What already stands</h3>
+      <ul>
+        <li><b>The Convergence Engine</b> — the naive prior (00), the timeline (02), and lens-by-lens accumulation (04) with honest votes and the prior→posterior framing.</li>
+        <li><b>The Lens Field</b> — the persistent moment-field with lenses as overlays; the filterable cousin of the accumulation view.</li>
+        <li><b>The Reading Room</b> — the seven readings over one corpus, with verbatim traceability.</li>
+        <li><b>The Unbroken Thread</b> — the continuity narrative and the honest Illumina market-validation close, for the bookend.</li>
+      </ul>
+      <h3 style="margin-top:30px;">Open questions to resolve before building this end to end</h3>
+      <ul>
+        <li><b>“Said vs. unsaid” (beat 03)</b> needs the atoms tagged for subtext — what’s inferred between the lines vs. quoted directly. The data has observations + quotes; the “unspoken” layer would need to be marked, honestly, or it becomes a claim we can’t back.</li>
+        <li><b>The reorganization (beat 05)</b> needs each moment mapped to a job stage. The five stages exist; the moment→stage assignment must be derived, not hand-placed — same discipline as the moment-linking.</li>
+        <li><b>The teaching cards (beat 04)</b> risk slowing the build-up. Keep each to one sentence + one example; they should accelerate understanding, not interrupt the motion.</li>
+        <li><b>Live vs. forwarded.</b> The “drop in a file” open (01) is powerful narrated; in the forwarded version it should auto-run with Martin’s interview pre-loaded.</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

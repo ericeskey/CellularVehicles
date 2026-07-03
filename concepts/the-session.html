@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="reader">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Session · IDI01 Catherine · the tape, mapped</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+  .masthead {
+    border-top: var(--masthead-rule) solid var(--ink);
+    display: flex; align-items: baseline; justify-content: space-between; gap: 18px;
+    padding: 18px var(--gutter) 0;
+  }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; white-space: nowrap; }
+  .masthead .right { display: flex; align-items: center; gap: 18px; }
+  .nav-back { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); white-space: nowrap; }
+  .nav-back:hover { color: var(--ink); }
+  .film-link { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); border: 1px solid var(--ink); padding: 7px 13px; white-space: nowrap; }
+  .film-link:hover { background: var(--hover-overlay); text-decoration: none; }
+  .film-link b { color: var(--signal); font-weight: var(--fw-regular); }
+
+  .shell { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 0 var(--gutter); }
+
+  .head { padding: 22px 0 14px; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; flex: 0 0 auto; }
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; }
+  .head h1 { font-size: clamp(28px, 3.6vw, 46px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.96; margin-top: 10px; }
+  .head .sub { font-family: var(--font-serif); font-style: italic; font-size: 18px; color: var(--fg2); margin-top: 8px; max-width: 48ch; }
+  .meta { text-align: right; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; color: var(--fg2); line-height: 1.9; text-transform: uppercase; white-space: nowrap; }
+  .meta b { color: var(--ink); font-weight: var(--fw-medium); }
+
+  /* seismograph */
+  .plotwrap { position: relative; flex: 0 0 auto; }
+  .plot { position: relative; width: 100%; height: clamp(170px, 24vh, 260px); border-bottom: 1px solid var(--ink); border-top: 1px solid var(--fog); }
+  .plot svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .axis { position: absolute; left: 0; right: 0; top: 0; bottom: 0; pointer-events: none; }
+  .tick { position: absolute; top: 0; bottom: 0; transform: translateX(-50%); }
+  .tick .gl { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--fog); opacity: 0.5; }
+  .tick .tl { position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; color: var(--fg2); white-space: nowrap; }
+  .marker { position: absolute; top: 0; bottom: 0; width: 0; cursor: pointer; background: none; border: 0; padding: 0; z-index: 2; }
+  .marker .stem { position: absolute; left: 0; transform: translateX(-50%); width: 1px; bottom: 18%; background: var(--ash); opacity: 0.5; transition: background var(--dur) var(--ease), opacity var(--dur) var(--ease), width var(--dur) var(--ease); }
+  .marker .dot { position: absolute; left: 0; transform: translate(-50%, 50%); width: 9px; height: 9px; border: 1px solid var(--ink); background: var(--paper); transition: transform var(--dur) var(--ease), background var(--dur) var(--ease), border-color var(--dur) var(--ease); }
+  .marker.peak .dot { background: var(--signal); border-color: var(--signal); width: 12px; height: 12px; }
+  .marker.peak .stem { background: var(--signal); opacity: 0.45; }
+  .marker:hover .stem { opacity: 1; }
+  .marker:hover .dot { transform: translate(-50%, 50%) scale(1.3); }
+  .marker.active .stem { background: var(--ink); opacity: 1; width: 2px; }
+  .marker.active .dot { background: var(--ink); border-color: var(--ink); transform: translate(-50%, 50%) scale(1.45); }
+  .marker.active.peak .dot { background: var(--signal); border-color: var(--signal); }
+  .marker .plab { position: absolute; left: 0; transform: translateX(-50%); font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal); white-space: nowrap; opacity: 0; transition: opacity var(--dur) var(--ease); pointer-events: none; }
+  .marker.peak.active .plab, .marker.peak:hover .plab { opacity: 1; }
+  .playhead { position: absolute; top: -6px; bottom: 0; width: 1px; background: var(--ink); transform: translateX(-50%); pointer-events: none; z-index: 4; }
+  .playhead.playing { transition: left 240ms linear; }
+  .playhead::before { content: ""; position: absolute; top: -1px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 7px; height: 7px; background: var(--ink); }
+  .scrubzone { position: absolute; inset: 0; z-index: 3; cursor: crosshair; }
+  .legend { display: flex; gap: 26px; align-items: center; padding: 28px 0 0; flex-wrap: wrap; }
+  .legend .item { display: flex; gap: 9px; align-items: center; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .legend .sq { width: 10px; height: 10px; border: 1px solid var(--ink); background: var(--paper); }
+  .legend .sq.sig { background: var(--signal); border-color: var(--signal); }
+  .legend .bars { display: flex; align-items: flex-end; gap: 2px; height: 16px; }
+  .legend .bars span { width: 3px; background: var(--ash); }
+
+  /* transport */
+  .transport { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding: 12px 16px; background: var(--ink); color: var(--paper); flex-wrap: wrap; }
+  .t-play { width: 46px; height: 46px; border: 1px solid var(--paper); background: var(--paper); color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; flex: 0 0 auto; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .t-play:hover { background: var(--ink-hover); color: var(--paper); }
+  .t-play svg { width: 18px; height: 18px; display: block; }
+  .t-skip { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--paper); border: 1px solid rgba(242,240,235,0.4); background: none; padding: 9px 11px; cursor: pointer; }
+  .t-skip:hover { border-color: var(--paper); }
+  .t-time { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.06em; color: rgba(242,240,235,0.85); white-space: nowrap; }
+  .t-time b { color: var(--paper); font-weight: var(--fw-regular); }
+  .t-spacer { flex: 1; }
+  .t-hint { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(242,240,235,0.5); white-space: nowrap; }
+  .t-speed { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; color: var(--paper); border: 1px solid rgba(242,240,235,0.4); background: none; padding: 9px 11px; cursor: pointer; min-width: 46px; }
+  .t-speed:hover { border-color: var(--paper); }
+
+  /* lower split */
+  .lower { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(0, 420px); gap: 36px; padding: 26px 0 30px; align-items: stretch; }
+  .moment { min-width: 0; display: flex; flex-direction: column; }
+  .m-kicker { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); display: flex; gap: 12px; align-items: baseline; }
+  .m-kicker .mk-id { color: var(--ink); letter-spacing: 0.1em; }
+  .m-kicker .mk-time { margin-left: auto; color: var(--ink); font-size: 22px; }
+  .m-title { font-size: clamp(22px, 2.6vw, 30px); font-weight: var(--fw-bold); letter-spacing: -0.022em; line-height: 1.1; margin: 12px 0 16px; max-width: 24ch; }
+  .m-quote { font-family: var(--font-serif); font-style: italic; font-size: clamp(20px, 2.3vw, 27px); line-height: 1.32; color: var(--ink); border-left: var(--rule-thick) solid var(--ink); padding-left: 22px; }
+  .m-quote.peak { border-left-color: var(--signal); }
+  .m-sum { font-size: 14.5px; color: var(--fg2); line-height: 1.6; margin-top: 18px; max-width: 56ch; }
+  .m-peak { margin-top: 20px; border-top: 1px solid var(--fog); padding-top: 16px; max-width: 56ch; display: none; }
+  .m-peak.on { display: block; }
+  .m-peak .pl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); }
+  .m-peak .pt { font-size: 16px; font-weight: var(--fw-medium); line-height: 1.25; margin: 7px 0 6px; }
+  .m-peak .px { font-size: 13.5px; color: var(--fg2); line-height: 1.5; }
+  .m-foot { margin-top: auto; display: flex; gap: 22px; padding-top: 20px; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .m-foot .mf b { color: var(--ink); font-weight: var(--fw-regular); }
+  .charge-dots { display: inline-flex; gap: 3px; vertical-align: middle; }
+  .charge-dots i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--ink); display: inline-block; }
+  .charge-dots i.on { background: var(--ink); }
+  .charge-dots.hi i.on { background: var(--signal); border-color: var(--signal); }
+
+  /* the tape */
+  .tape { min-width: 0; border-left: 1px solid var(--ink); padding-left: 28px; display: flex; flex-direction: column; min-height: 0; }
+  .tape-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--fog); flex: 0 0 auto; }
+  .tape-head .th-t { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); }
+  .th-actions { display: flex; gap: 8px; }
+  .th-actions button { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); border: 1px solid var(--ink); background: var(--paper); padding: 6px 10px; cursor: pointer; transition: background var(--dur-fast) var(--ease); }
+  .th-actions button:hover { background: var(--hover-overlay); }
+  .th-actions button b { color: var(--signal); font-weight: var(--fw-regular); }
+  .tape-search { display: flex; align-items: center; gap: 8px; padding: 10px 0 4px; flex: 0 0 auto; }
+  .tape-search input { flex: 1; min-width: 0; border: 1px solid var(--fog); background: var(--paper); padding: 8px 10px; font-family: var(--font-sans); font-size: 13px; color: var(--ink); }
+  .tape-search input:focus { outline: none; border-color: var(--ink); }
+  .tape-search .s-count { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); white-space: nowrap; min-width: 56px; text-align: right; }
+  .tape-search .s-step { font-family: var(--font-mono); font-size: 14px; line-height: 1; color: var(--ink); border: 1px solid var(--fog); background: var(--paper); width: 28px; height: 28px; cursor: pointer; }
+  .tape-search .s-step:hover { border-color: var(--ink); background: var(--hover-overlay); }
+  .tape-scroll { overflow-y: auto; flex: 1 1 auto; min-height: 220px; max-height: 50vh; padding: 8px 4px 40px 0; scroll-behavior: smooth; }
+
+  .chap { width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--ink); cursor: pointer; padding: 16px 0 8px; margin-top: 12px; display: flex; gap: 10px; align-items: baseline; font-family: inherit; }
+  .chap:first-child { margin-top: 0; }
+  .chap .csq { width: 8px; height: 8px; border: 1px solid var(--ink); background: var(--paper); flex: 0 0 auto; position: relative; top: 4px; }
+  .chap.peak .csq { background: var(--signal); border-color: var(--signal); }
+  .chap .cbody { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+  .chap .cid { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); }
+  .chap.peak .cid { color: var(--signal); }
+  .chap .ctitle { font-size: 13.5px; font-weight: var(--fw-bold); letter-spacing: -0.01em; line-height: 1.22; color: var(--ink); margin-top: 3px; }
+  .chap:hover .ctitle { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  .chap .ctime { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--fg2); flex: 0 0 auto; padding-left: 10px; }
+  .chap.active .ctitle { color: var(--signal); }
+
+  .seg { display: grid; grid-template-columns: 16px 1fr; gap: 12px; padding: 7px 0; cursor: pointer; border: 0; background: none; text-align: left; width: 100%; font-family: inherit; align-items: start; }
+  .seg .sp { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--fg3); padding-top: 4px; }
+  .seg.m .sp { color: var(--ash); }
+  .seg .tt { font-size: 14.5px; line-height: 1.5; color: var(--fg3); transition: color var(--dur-fast) var(--ease); }
+  .seg.m .tt { color: var(--fg2); }
+  .seg:hover .tt { color: var(--ink); }
+  .seg.cur .sp { color: var(--signal); }
+  .seg.cur .tt { color: var(--ink); }
+  .seg.past .tt { color: var(--fg2); }
+  .seg.nomatch { opacity: 0.28; }
+  .seg .tt mark { background: var(--signal); color: var(--paper); padding: 0 1px; }
+  .seg.hitcur .tt mark { background: var(--ink); }
+
+  /* save-to-notes popup */
+  .save-pop { position: fixed; z-index: 60; transform: translate(-50%, -130%); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: var(--ink); color: var(--paper); border: 0; padding: 8px 12px; cursor: pointer; display: none; white-space: nowrap; }
+  .save-pop::after { content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%) rotate(45deg); width: 8px; height: 8px; background: var(--ink); }
+  ::selection { background: var(--signal); color: var(--paper); }
+
+  /* rail (contents + notes) */
+  .scrim { position: fixed; inset: 0; background: rgba(10,10,10,0.2); opacity: 0; pointer-events: none; transition: opacity var(--dur) var(--ease); z-index: 40; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .rail { position: fixed; top: 0; right: calc(-1 * min(440px, 94vw)); bottom: 0; width: min(440px, 94vw); background: var(--paper); border-left: 1px solid var(--ink); z-index: 50; visibility: hidden; transition: right var(--dur) var(--ease), visibility 0s linear var(--dur); display: flex; flex-direction: column; }
+  .rail.open { right: 0; visibility: visible; transition: right var(--dur) var(--ease), visibility 0s; }
+  .rail-head { display: flex; align-items: stretch; justify-content: space-between; border-bottom: 1px solid var(--ink); flex: 0 0 auto; }
+  .rail-tabs { display: flex; }
+  .rail-tabs button { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); border: 0; border-right: 1px solid var(--fog); background: var(--paper); padding: 18px 20px; cursor: pointer; }
+  .rail-tabs button.on { background: var(--ink); color: var(--paper); }
+  .rail-x { font-family: var(--font-mono); font-size: 16px; background: none; border: 0; border-left: 1px solid var(--fog); cursor: pointer; color: var(--ash); padding: 0 20px; }
+  .rail-x:hover { color: var(--ink); }
+  .rail-body { flex: 1; overflow-y: auto; padding: 6px 22px 30px; }
+  .rail-pane[hidden] { display: none; }
+  .rp-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); margin: 24px 0 4px; }
+  .ix { width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--fog); cursor: pointer; padding: 12px 0; display: grid; grid-template-columns: 52px 1fr; gap: 14px; align-items: start; font-family: inherit; }
+  .ix:hover .ix-t { color: var(--signal); }
+  .ix .ix-time { font-family: var(--font-mono); font-size: 11px; color: var(--fg2); padding-top: 2px; }
+  .ix.pk .ix-time { color: var(--signal); }
+  .ix-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .ix .ix-id { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg3); }
+  .ix .ix-t { font-size: 14px; font-weight: var(--fw-medium); line-height: 1.25; color: var(--ink); }
+  .note { border-top: 1px solid var(--fog); padding: 14px 0; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; }
+  .note .nq { font-family: var(--font-serif); font-style: italic; font-size: 15px; line-height: 1.4; color: var(--ink); }
+  .note .ns { display: block; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg3); margin-top: 7px; cursor: pointer; }
+  .note .ns:hover { color: var(--signal); }
+  .note .nx { font-family: var(--font-mono); font-size: 14px; background: none; border: 0; cursor: pointer; color: var(--fg2); }
+  .note .nx:hover { color: var(--signal); }
+  .empty { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); line-height: 1.7; padding: 24px 0; }
+  .rail textarea { width: 100%; min-height: 110px; resize: vertical; border: 1px solid var(--ink); background: var(--paper); padding: 12px; font-family: var(--font-sans); font-size: 14px; line-height: 1.55; color: var(--ink); margin-top: 4px; }
+  .rail textarea:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .rail-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .rail-actions button { flex: 1; font-family: var(--font-sans); font-size: 13px; font-weight: var(--fw-medium); border: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 11px; cursor: pointer; }
+  .rail-actions button:hover { background: var(--hover-overlay); }
+
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) { .fadein { animation: fi var(--dur-slow) var(--ease) both; } }
+  @keyframes fi { from { transform: translateY(8px); } to { transform: none; } }
+  @media (max-width: 980px) {
+    .lower { grid-template-columns: 1fr; gap: 24px; }
+    .tape { border-left: 0; padding-left: 0; border-top: 1px solid var(--ink); padding-top: 18px; }
+    .tape-scroll { max-height: 420px; }
+    .head { grid-template-columns: 1fr; }
+    .meta { text-align: left; }
+    .t-hint { display: none; }
+  }
+
+  /* ============ v2: reader/analyst, arc, keystone, exit ============ */
+  /* mode toggle */
+  .head-right { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+  .mode-seg { display: inline-flex; border: 1px solid var(--ink); }
+  .mode-seg button { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 7px 12px; background: var(--paper); color: var(--ash); border: 0; border-right: 1px solid var(--ink); cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .mode-seg button:last-child { border-right: 0; }
+  .mode-seg button:hover { background: var(--hover-overlay); color: var(--ink); }
+  .mode-seg button.on { background: var(--ink); color: var(--paper); }
+  .mode-tag { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); max-width: 30ch; text-align: right; line-height: 1.5; }
+
+  /* reader mode hides the analyst workbench */
+  html[data-mode="reader"] .tape-search,
+  html[data-mode="reader"] #notesBtn,
+  html[data-mode="reader"] .t-hint { display: none; }
+  html[data-mode="reader"] .save-pop { display: none !important; }
+
+  /* arc read + trust note */
+  .axis-note { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--fg2); margin-left: auto; text-transform: none; }
+  .arc-read { display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: start; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--fog); }
+  .arc-read .ar-k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); white-space: nowrap; padding-top: 2px; }
+  .arc-read .ar-t { font-size: 15px; line-height: 1.55; color: var(--ink); max-width: 86ch; }
+  .arc-read .ar-t b { font-weight: var(--fw-medium); }
+  .arc-read .ar-jump { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); background: none; border: 0; border-bottom: 1px solid var(--ink); padding: 0 0 3px; cursor: pointer; }
+  .arc-read .ar-jump:hover { color: var(--signal); border-color: var(--signal); }
+
+  /* keystone marker */
+  .marker.keystone .dot { width: 16px; height: 16px; background: var(--signal); border-color: var(--signal); box-shadow: 0 0 0 5px rgba(214,74,31,0.16); }
+  .marker.keystone .stem { background: var(--signal); opacity: 0.6; width: 2px; }
+  .marker.keystone:hover .dot { transform: translate(-50%, 50%) scale(1.25); }
+  .kflag { position: absolute; left: 0; transform: translateX(-50%); font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper); background: var(--signal); padding: 3px 6px 2px; white-space: nowrap; pointer-events: none; }
+
+  /* keystone badge in the moment panel */
+  .m-keyflag { display: none; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--paper); background: var(--signal); padding: 5px 10px; width: fit-content; margin-bottom: 14px; }
+  .moment.is-keystone .m-keyflag { display: inline-flex; }
+
+  /* primary play label (reader) */
+  .t-play.primary { width: auto; gap: 10px; padding: 0 16px 0 14px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: var(--fw-medium); }
+  html[data-mode="analyst"] .t-play .t-play-l { display: none; }
+  .t-play .t-play-l { white-space: nowrap; }
+
+  /* meaningful exit / handoff */
+  .handoff { border-top: var(--masthead-rule) solid var(--ink); margin-top: 8px; padding: 30px 0 40px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: start; }
+  .handoff .ho-l .ho-k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); }
+  .handoff .ho-l h2 { font-size: clamp(24px, 2.8vw, 34px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.02; margin: 12px 0 14px; max-width: 18ch; }
+  .handoff .ho-l p { font-size: 14.5px; line-height: 1.6; color: var(--fg2); max-width: 48ch; }
+  .handoff .ho-l p b { color: var(--ink); font-weight: var(--fw-medium); }
+  .ho-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  .ho-list a { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; padding: 13px 0; border-top: 1px solid var(--fog); text-decoration: none; }
+  .ho-list a:hover { text-decoration: none; }
+  .ho-list a .hn { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--fg2); }
+  .ho-list a:hover .hn { color: var(--signal); }
+  .ho-list a .ht { font-size: 14px; font-weight: var(--fw-medium); color: var(--ink); line-height: 1.25; }
+  .ho-list a:hover .ht { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  .ho-list a .hx { display: block; font-size: 12px; color: var(--fg2); font-weight: var(--fw-regular); margin-top: 2px; line-height: 1.35; }
+  .ho-list a.is-here { opacity: 0.5; }
+  .ho-list a.is-here .ht { text-decoration: none; }
+  @media (max-width: 980px) {
+    .head-right { align-items: flex-start; }
+    .mode-tag { text-align: left; }
+    .arc-read { grid-template-columns: 1fr; gap: 8px; }
+    .handoff { grid-template-columns: 1fr; gap: 28px; }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <div class="right">
+      <a class="film-link" href="the-documentary.html">↳ Start with the film · <b>Within Four Hours</b></a>
+      <a class="nav-back" href="../index.html">← all seven lenses</a>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="head fadein">
+      <div>
+        <div class="eyebrow-row">
+          <span class="eyebrow">The Session</span>
+          <span class="eyebrow" style="color:var(--signal)">Chronology · the raw tape</span>
+        </div>
+        <h1>Everything the site absorbs, in order.</h1>
+        <div class="sub">Press play. The actual interview, moving across its own structure: every moment and peak, in the order they were said.</div>
+      </div>
+      <div class="head-right">
+        <div class="mode-seg" id="modeSeg">
+          <button type="button" data-mode="reader">Reader</button>
+          <button type="button" data-mode="analyst">Analyst</button>
+        </div>
+        <div class="meta" id="sessionMeta"></div>
+      </div>
+    </div>
+
+    <div class="plotwrap fadein" style="animation-delay:80ms">
+      <div class="plot" id="plot">
+        <svg id="trace" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+          <polyline id="traceLine" fill="none" stroke="#0A0A0A" stroke-width="1.25" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+        </svg>
+        <div class="axis" id="axis"></div>
+        <div id="markers"></div>
+        <div class="playhead" id="playhead" style="left:0"></div>
+        <div class="scrubzone" id="scrubzone"></div>
+      </div>
+      <div class="legend">
+        <span class="item"><span class="bars"><span style="height:6px"></span><span style="height:11px"></span><span style="height:16px"></span></span> Height = emotional charge</span>
+        <span class="item"><span class="sq sig"></span> Narrative peak</span>
+        <span class="item"><span class="sq"></span> Moment in the session</span>
+        <span class="axis-note">Charge is our reading of each moment, coded from what Catherine says. Not a voice meter.</span>
+      </div>
+      <div class="arc-read fadein" style="animation-delay:100ms">
+        <span class="ar-k">Read the shape</span>
+        <div>
+          <div class="ar-t">The line spikes whenever Catherine describes what the product forces on the site: the eighteen vials, the thirty-minute clock, the sponsor who mistakes regulation for obstruction. It settles when she talks about educating sponsors and finding a compromise, then climbs again at the end, when she decides to help fix it. The friction doesn’t live in the therapy; it lives in the decisions made before it ships.</div>
+          <button type="button" class="ar-jump" id="arcJump">Jump to the moment that matters →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="transport fadein" style="animation-delay:120ms">
+      <button class="t-play primary" id="play" aria-label="Play / pause">
+        <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <span class="t-play-l" id="playLabel">Play the hour</span>
+      </button>
+      <button class="t-skip" id="back15" aria-label="Back 15 seconds">−15s</button>
+      <button class="t-skip" id="fwd15" aria-label="Forward 15 seconds">+15s</button>
+      <span class="t-time"><b id="curTime">0:00</b> / <span id="durTime">32:06</span></span>
+      <span class="t-spacer"></span>
+      <span class="t-hint">Drag the timeline · ← → step moments · / to search · space to play</span>
+      <button class="t-speed" id="speed" aria-label="Playback speed">1×</button>
+    </div>
+
+    <div class="lower fadein" id="lower" style="animation-delay:160ms">
+      <div class="moment" id="momentCol">
+        <div class="m-keyflag">Keystone moment</div>
+        <div class="m-kicker">
+          <span class="mk-id" id="mId">NE-001</span>
+          <span id="mType">moment</span>
+          <span class="mk-time" id="mTime">02:04</span>
+        </div>
+        <div class="m-title" id="mTitle"></div>
+        <blockquote class="m-quote" id="mQuote"></blockquote>
+        <div class="m-sum" id="mSum"></div>
+        <div class="m-peak" id="mPeak">
+          <div class="pl" id="mPeakId">Peak</div>
+          <div class="pt" id="mPeakTitle"></div>
+          <div class="px" id="mPeakTension"></div>
+        </div>
+        <div class="m-foot">
+          <span class="mf">Charge <b id="mCharge"></b></span>
+          <span class="mf">Significance <b id="mSig"></b></span>
+          <span class="mf">Moment <b id="mSeq"></b></span>
+        </div>
+      </div>
+
+      <div class="tape">
+        <div class="tape-head">
+          <span class="th-t">The tape</span>
+          <div class="th-actions">
+            <button id="contentsBtn">Contents</button>
+            <button id="notesBtn">Notes <b id="noteCount">0</b></button>
+          </div>
+        </div>
+        <div class="tape-search">
+          <input id="tapeSearch" type="text" placeholder="Search the transcript…" aria-label="Search transcript" />
+          <span class="s-count" id="searchCount"></span>
+          <button class="s-step" id="searchPrev" aria-label="Previous match">‹</button>
+          <button class="s-step" id="searchNext" aria-label="Next match">›</button>
+        </div>
+        <div class="tape-scroll" id="tapeScroll"></div>
+      </div>
+    </div>
+
+    <section class="handoff fadein" id="handoff">
+      <div class="ho-l">
+        <div class="ho-k">After the tape</div>
+        <h2>You’ve heard the interview. Now watch it re-read.</h2>
+        <p>Six other lenses take these same 15 moments and three peaks and ask different questions. The keystone you just heard, <b>upstream authorship</b>, is where most of them land too. Notice how often they arrive back at it.</p>
+        <a class="ar-jump" style="display:inline-flex;margin-top:18px" href="../index.html">Back to all seven lenses and the verdict →</a>
+      </div>
+      <nav class="ho-list">
+        <a class="is-here" href="the-session.html"><span class="hn">01</span><span><span class="ht">The Session</span><span class="hx">Chronology · you are here</span></span></a>
+        <a href="the-constellation.html"><span class="hn">02</span><span><span class="ht">The Constellation</span><span class="hx">Relation · how the narratives pull</span></span></a>
+        <a href="the-shift.html"><span class="hn">03</span><span><span class="ht">The Shift</span><span class="hx">Transformation · before to after</span></span></a>
+        <a href="the-ledger.html"><span class="hn">04</span><span><span class="ht">The Ledger</span><span class="hx">Argument · the hidden expertise, priced</span></span></a>
+        <a href="the-keystone.html"><span class="hn">05</span><span><span class="ht">The Keystone</span><span class="hx">Leverage · the one move that matters</span></span></a>
+        <a href="the-opportunity.html"><span class="hn">06</span><span><span class="ht">The Opportunity</span><span class="hx">Demand · what’s most under-served</span></span></a>
+        <a href="the-casefile.html"><span class="hn">07</span><span><span class="ht">The Casefile</span><span class="hx">Diagnosis · the decision brief</span></span></a>
+      </nav>
+    </section>
+  </div>
+
+  <audio id="audio" preload="metadata"></audio>
+
+  <button class="save-pop" id="savePop">+ Save to notes</button>
+  <div class="scrim" id="scrim"></div>
+  <aside class="rail" id="rail" aria-hidden="true">
+    <div class="rail-head">
+      <div class="rail-tabs">
+        <button id="tabContents" class="on">Contents</button>
+        <button id="tabNotes">Notes</button>
+      </div>
+      <button class="rail-x" id="railClose" aria-label="Close">✕</button>
+    </div>
+    <div class="rail-body">
+      <div class="rail-pane" id="paneContents">
+        <div class="rp-label">Narrative peaks · 3</div>
+        <div id="peakList"></div>
+        <div class="rp-label">Every moment · 15</div>
+        <div id="momentList"></div>
+      </div>
+      <div class="rail-pane" id="paneNotes" hidden>
+        <div class="rp-label">Saved passages</div>
+        <div id="noteList"></div>
+        <div class="rp-label">Margin note</div>
+        <textarea id="freeNote" placeholder="Write your own note as you listen…"></textarea>
+        <div class="rail-actions">
+          <button id="copyNotes">Copy all</button>
+          <button id="clearNotes">Clear</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <script src="../data.js"></script>
+  <script src="../session-replay.js"></script>
+  <script>
+    const R = window.RESEARCH, SR = window.SESSION_REPLAY;
+    const EV = R.events.filter(e => SR.eventAt[e.id] != null);
+    const atOf = (e) => SR.eventAt[e.id];
+    let DUR = SR.audioDur;
+    const KEYSTONE_ID = 'NE-003';   // “impossible in a large hospital” — the sharpest upstream-authored friction
+    const pct = (t) => Math.max(0, Math.min(100, (t / DUR) * 100));
+    const fmt = (s) => { s = Math.max(0, Math.floor(s||0)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); };
+    const fmtm = (s) => { s = Math.max(0, Math.round(s||0)); return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); };
+    const esc = (s) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+    document.getElementById('sessionMeta').innerHTML =
+      `<b>${R.meta.participant}</b> · ${R.meta.role}<br>` +
+      `Interviewer ${SR.interviewer} · ${SR.date}<br>` +
+      `Ref ${SR.ref} · ${fmtm(DUR)} · ${EV.length} moments · ${R.peaks.length} peaks`;
+    document.getElementById('durTime').textContent = fmt(DUR);
+
+    // A peak spans several moments; mark only ONE representative (highest charge,
+    // earliest on tie) so the timeline shows one labelled peak per narrative peak,
+    // not the whole cluster painted red with a duplicated tag.
+    const peakByEvent = {};
+    const peakIds = new Set();
+    R.peaks.forEach(p => {
+      const evs = p.events.map(id => R.byId(id)).filter(Boolean);
+      if (!evs.length) return;
+      const anchor = evs.slice().sort((a, b) => b.charge - a.charge || a.t - b.t)[0];
+      peakIds.add(anchor.id);
+      peakByEvent[anchor.id] = p;
+    });
+
+    // ---- seismograph ----
+    const axis = document.getElementById('axis');
+    const markersEl = document.getElementById('markers');
+    const traceLine = document.getElementById('traceLine');
+    const BASE = 820, TOP = 150;
+    const yOf = (e) => BASE - (e.charge / 3) * (BASE - TOP);
+    let markerEls = [];
+    function layout() {
+      axis.innerHTML = '';
+      for (let m = 0; m * 60 <= DUR + 1; m += 5) {
+        const x = pct(m * 60);
+        const tk = document.createElement('div'); tk.className = 'tick'; tk.style.left = x + '%';
+        tk.innerHTML = `<div class="gl"></div><div class="tl">${String(m).padStart(2,'0')}:00</div>`;
+        axis.appendChild(tk);
+      }
+      const pts = [[0, BASE]];
+      EV.forEach(e => pts.push([pct(atOf(e)) * 10, yOf(e)]));
+      pts.push([1000, BASE]);
+      traceLine.setAttribute('points', pts.map(p => p.join(',')).join(' '));
+      markersEl.innerHTML = '';
+      EV.forEach((e) => {
+        const isPeak = peakIds.has(e.id);
+        const isKey = e.id === KEYSTONE_ID;
+        const b = document.createElement('button');
+        b.className = 'marker' + (isPeak ? ' peak' : '') + (isKey ? ' keystone' : '');
+        b.style.left = pct(atOf(e)) + '%';
+        const baseBottom = 18, pointBottom = (1000 - yOf(e)) / 1000 * 100;
+        b.innerHTML =
+          (isKey ? `<span class="kflag" style="bottom:calc(${pointBottom}% + 16px)">Keystone</span>`
+                 : (isPeak ? `<span class="plab" style="bottom:calc(${pointBottom}% + 12px)">${peakByEvent[e.id].title}</span>` : '')) +
+          `<span class="stem" style="height:${(pointBottom - baseBottom)}%"></span>` +
+          `<span class="dot" style="bottom:${pointBottom}%"></span>`;
+        b.addEventListener('click', () => selectMoment(atOf(e)));
+        markersEl.appendChild(b);
+      });
+      markerEls = [...markersEl.querySelectorAll('.marker')];
+    }
+
+    // ---- transcript with chapter markers ----
+    const tapeScroll = document.getElementById('tapeScroll');
+    const SEG = SR.segments;
+    const segEls = new Array(SEG.length);
+    const chapByEvent = {};            // event index -> chapter element
+    function segIdxAt(t) { let idx = 0; for (let i = 0; i < SEG.length; i++) { if (SEG[i].t <= t + 0.001) idx = i; else break; } return idx; }
+
+    // anchor each event to the segment being spoken at its timecode
+    const eventsBySeg = {};
+    EV.forEach((e, ei) => { const si = segIdxAt(atOf(e)); (eventsBySeg[si] = eventsBySeg[si] || []).push(ei); });
+
+    function buildTape() {
+      tapeScroll.innerHTML = '';
+      SEG.forEach((s, i) => {
+        if (eventsBySeg[i]) {
+          eventsBySeg[i].forEach(ei => {
+            const e = EV[ei]; const isPeak = peakIds.has(e.id);
+            const c = document.createElement('button');
+            c.className = 'chap' + (isPeak ? ' peak' : '');
+            c.innerHTML =
+              `<span class="csq"></span>` +
+              `<span class="cbody"><span class="cid">${e.id}${isPeak ? ' · peak' : ''}</span>` +
+              `<span class="ctitle">${esc(e.title)}</span></span>` +
+              `<span class="ctime">${fmt(atOf(e))}</span>`;
+            c.addEventListener('click', () => selectMoment(atOf(e)));
+            tapeScroll.appendChild(c);
+            chapByEvent[ei] = c;
+          });
+        }
+        const b = document.createElement('button');
+        b.className = 'seg ' + (s.sp === 'M' ? 'm' : 's');
+        b.innerHTML = `<span class="sp">${s.sp}</span><span class="tt">${esc(s.text)}</span>`;
+        b.addEventListener('click', () => seekTo(s.t));
+        tapeScroll.appendChild(b); segEls[i] = b;
+      });
+    }
+
+    // ---- state ----
+    const POSKEY = 'session_replay_pos_v1';
+    let playPos = parseFloat(localStorage.getItem(POSKEY) || '0'); if (isNaN(playPos)) playPos = 0;
+    let curEvent = -1, curSeg = -1, userScrollUntil = 0;
+    const playhead = document.getElementById('playhead');
+    const audio = document.getElementById('audio');
+
+    function eventIdxAt(t) { let idx = 0; for (let i = 0; i < EV.length; i++) { if (atOf(EV[i]) <= t + 0.001) idx = i; else break; } return idx; }
+
+    function renderMoment(i) {
+      const e = EV[i], isPeak = peakIds.has(e.id), peak = peakByEvent[e.id];
+      document.getElementById('mId').textContent = e.id;
+      document.getElementById('mType').textContent = e.type;
+      document.getElementById('mTime').textContent = fmt(atOf(e));
+      document.getElementById('mTitle').textContent = e.title;
+      const q = document.getElementById('mQuote');
+      q.textContent = '“' + e.quote.replace(/^[“"]|[”"]$/g, '') + '”';
+      q.classList.toggle('peak', isPeak);
+      document.getElementById('mSum').textContent = e.summary;
+      const mp = document.getElementById('mPeak');
+      if (peak) { mp.classList.add('on'); document.getElementById('mPeakId').textContent = 'Peak · ' + peak.id; document.getElementById('mPeakTitle').textContent = peak.title; document.getElementById('mPeakTension').textContent = peak.tension; }
+      else mp.classList.remove('on');
+      const chargeWord = ['', 'low', 'medium', 'high'][e.charge], sigWord = ['', 'medium', 'high', 'very high'][e.sig];
+      const dots = (n, hi) => `<span class="charge-dots ${hi?'hi':''}">${[1,2,3].map(k=>`<i class="${k<=n?'on':''}"></i>`).join('')}</span>`;
+      document.getElementById('mCharge').innerHTML = dots(e.charge, e.charge===3) + ' ' + chargeWord;
+      document.getElementById('mSig').textContent = sigWord;
+      document.getElementById('mSeq').textContent = e.n + ' / 15';
+      document.getElementById('momentCol').classList.toggle('is-keystone', e.id === KEYSTONE_ID);
+      markerEls.forEach((m, k) => m.classList.toggle('active', k === i));
+      Object.keys(chapByEvent).forEach(k => chapByEvent[k].classList.toggle('active', +k === i));
+    }
+    function renderSeg(i) {
+      for (let k = 0; k < segEls.length; k++) { const el = segEls[k]; if (!el) continue; el.classList.toggle('cur', k === i); el.classList.toggle('past', k < i); }
+      if (Date.now() > userScrollUntil && segEls[i]) {
+        const el = segEls[i];
+        tapeScroll.scrollTop = Math.max(0, el.offsetTop - tapeScroll.clientHeight / 2 + el.clientHeight / 2);
+      }
+    }
+    function renderFromPos() {
+      playhead.style.left = pct(playPos) + '%';
+      document.getElementById('curTime').textContent = fmt(playPos);
+      const ei = eventIdxAt(playPos); if (ei !== curEvent) { curEvent = ei; renderMoment(ei); }
+      const si = segIdxAt(playPos); if (si !== curSeg) { curSeg = si; renderSeg(si); }
+    }
+
+    // ---- audio: CONTINUOUS enforcement of position + rate ----
+    // A streamed mp3 silently clobbers both currentTime (so it plays from 0) and
+    // playbackRate (resets to 1) while it buffers/decodes. Setting them once never
+    // sticks. Instead we hold an INTENDED position + rate and re-assert them on every
+    // tick until they actually land — bounded by a short budget so the user stays free.
+    let intendedPos = playPos;     // where playback should be
+    let armed = false;             // still trying to land intendedPos
+    let armUntil = 0;              // stop re-seeking after this timestamp
+    let speed = 1; const speeds = [1, 1.25, 1.5, 2];
+    // The mp3 ships without a duration header, so audio.duration is NaN and
+    // audio.seekable reports [0, NaN]. Fall back to the known SR.audioDur (DUR)
+    // so seeks aren't suppressed; the element still accepts currentTime writes.
+    function canSeek() { return audio.readyState >= 1 && DUR > 0; }
+    function seekableAt(t) {
+      try {
+        const r = audio.seekable;
+        if (!r || r.length === 0) return true;                 // unknown: assume seekable within DUR
+        for (let i = 0; i < r.length; i++) {
+          const lo = isFinite(r.start(i)) ? r.start(i) : 0;
+          const hi = isFinite(r.end(i)) ? r.end(i) : DUR;
+          if (t >= lo - 0.25 && t <= hi + 0.25) return true;
+        }
+      } catch (e) { return true; }
+      return false;
+    }
+    function applyRate() { try { audio.defaultPlaybackRate = speed; } catch (e) {} if (Math.abs(audio.playbackRate - speed) > 0.001) { try { audio.playbackRate = speed; } catch (e) {} } }
+    function hardSeek(t) { if (canSeek()) { try { audio.currentTime = Math.max(0, Math.min(DUR, t)); } catch (e) {} } }
+    function arm(t) { intendedPos = Math.max(0, Math.min(DUR, t)); armed = true; armUntil = Date.now() + 10000; hardSeek(intendedPos); }
+    function enforce() {
+      applyRate();                                                  // rate: re-assert every tick
+      if (!armed) return;
+      if (Math.abs(audio.currentTime - intendedPos) <= 0.6) { armed = false; return; }   // landed
+      if (Date.now() > armUntil) { armed = false; return; }                              // give up
+      if (canSeek() && seekableAt(intendedPos)) { try { audio.currentTime = intendedPos; } catch (e) {} }
+    }
+    // setPos updates the playhead + UI + saved position only. Audio seeking is a
+    // separate concern (seekTo / requestPlay) so a paused selection never plays from 0.
+    function setPos(sec) {
+      playPos = Math.max(0, Math.min(DUR, sec));
+      intendedPos = playPos;
+      renderFromPos();
+      localStorage.setItem(POSKEY, String(playPos));
+    }
+    // Move to a position. If already playing, seek live; if paused, just stage it so
+    // the next play() starts THERE, not at zero.
+    function seekTo(sec) {
+      setPos(sec);
+      if (!audio.paused) { armed = true; armUntil = Date.now() + 12000; hardSeek(intendedPos); }
+    }
+    // Explicit moment pick (marker / chapter / arc jump): unlike scrubbing, this is a
+    // navigation intent, so force-reveal the moment. Clear the transcript's manual-scroll
+    // lock (so renderSeg re-centres the tape) and scroll the description panel into view
+    // when it's sitting off-screen.
+    function revealMoment() {
+      const el = document.getElementById('momentCol');
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const topGap = 84;
+      if (r.top < topGap - 1 || r.top > window.innerHeight - 140) {
+        window.scrollTo({ top: Math.max(0, window.scrollY + r.top - topGap), behavior: 'smooth' });
+      }
+    }
+    function selectMoment(sec) { userScrollUntil = 0; seekTo(sec); revealMoment(); }
+    // Begin playback at playPos, guaranteeing we land there before audible sound.
+    let pendingPlay = false, pendingTimer = null;
+    function startAudio() { pendingPlay = false; if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; } const pr = audio.play(); if (pr && pr.catch) pr.catch(() => {}); }
+    function requestPlay() {
+      intendedPos = playPos; armed = true; armUntil = Date.now() + 12000;
+      if (canSeek() && Math.abs(audio.currentTime - intendedPos) <= 0.4) { startAudio(); return; }
+      pendingPlay = true;
+      hardSeek(intendedPos);                 // lands now if seekable; else metadata/canplay/seeked will
+      if (pendingTimer) clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(() => { if (pendingPlay) startAudio(); }, 1100);   // fallback so we never hang
+    }
+
+    audio.src = SR.src;
+    const playIcon = document.getElementById('playIcon');
+    const playLabel = document.getElementById('playLabel');
+    const ICON_PLAY = '<path d="M8 5v14l11-7z"/>', ICON_PAUSE = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+
+    audio.addEventListener('loadedmetadata', () => {
+      if (isFinite(audio.duration) && audio.duration > 0 && Math.abs(audio.duration - DUR) > 3) {
+        DUR = audio.duration; document.getElementById('durTime').textContent = fmt(DUR); layout();
+      }
+      if (intendedPos > 0) { armed = true; armUntil = Date.now() + 10000; hardSeek(intendedPos); }
+      applyRate(); renderFromPos();
+    });
+    audio.addEventListener('loadeddata', enforce);
+    audio.addEventListener('canplay', () => { enforce(); if (pendingPlay && canSeek()) hardSeek(intendedPos); });
+    audio.addEventListener('ratechange', () => { if (Math.abs(audio.playbackRate - speed) > 0.001) applyRate(); });
+    audio.addEventListener('seeked', () => {
+      if (Math.abs(audio.currentTime - intendedPos) <= 0.6) {
+        armed = false; playPos = audio.currentTime; renderFromPos();
+        if (pendingPlay) startAudio();
+      }
+    });
+    audio.addEventListener('playing', () => { armUntil = Math.max(armUntil, Date.now() + 6000); enforce(); });
+    audio.addEventListener('play', () => { playIcon.innerHTML = ICON_PAUSE; playLabel.textContent = 'Pause'; playhead.classList.add('playing'); applyRate(); });
+    audio.addEventListener('pause', () => { playIcon.innerHTML = ICON_PLAY; playLabel.textContent = playPos > 1 ? 'Resume' : 'Play the hour'; playhead.classList.remove('playing'); });
+    audio.addEventListener('timeupdate', () => {
+      if (audio.seeking) return;
+      enforce();
+      if (armed && Math.abs(audio.currentTime - intendedPos) > 1.2) return;   // don't paint a stale position mid-seek
+      playPos = audio.currentTime; renderFromPos();
+      if (Math.floor(audio.currentTime) % 3 === 0) localStorage.setItem(POSKEY, String(playPos));
+    });
+    audio.addEventListener('ended', () => { playhead.classList.remove('playing'); });
+    window.addEventListener('beforeunload', () => localStorage.setItem(POSKEY, String(playPos)));
+
+    function togglePlay() {
+      if (audio.paused) requestPlay();
+      else audio.pause();
+    }
+    document.getElementById('arcJump').addEventListener('click', () => { selectMoment(SR.eventAt[KEYSTONE_ID]); requestPlay(); });
+    document.getElementById('play').addEventListener('click', togglePlay);
+    document.getElementById('back15').addEventListener('click', () => seekTo(playPos - 15));
+    document.getElementById('fwd15').addEventListener('click', () => seekTo(playPos + 15));
+    const speedBtn = document.getElementById('speed');
+    speedBtn.addEventListener('click', () => { speed = speeds[(speeds.indexOf(speed) + 1) % speeds.length]; applyRate(); speedBtn.textContent = speed + '×'; });
+    function stepMoment(d) { const ni = Math.max(0, Math.min(EV.length - 1, eventIdxAt(playPos) + d)); seekTo(atOf(EV[ni])); }
+
+    // ---- scrub ----
+    const scrub = document.getElementById('scrubzone');
+    function jumpFromX(clientX) { const r = scrub.getBoundingClientRect(); const p = Math.max(0, Math.min(1, (clientX - r.left) / r.width)); seekTo(p * DUR); }
+    let dragging = false;
+    scrub.addEventListener('pointerdown', (ev) => { dragging = true; scrub.setPointerCapture(ev.pointerId); jumpFromX(ev.clientX); });
+    scrub.addEventListener('pointermove', (ev) => { if (dragging) jumpFromX(ev.clientX); });
+    scrub.addEventListener('pointerup', () => dragging = false);
+
+    tapeScroll.addEventListener('wheel', () => { userScrollUntil = Date.now() + 4000; }, { passive: true });
+    tapeScroll.addEventListener('pointerdown', () => { userScrollUntil = Date.now() + 6000; });
+
+    // ---- search ----
+    const searchInput = document.getElementById('tapeSearch');
+    const searchCount = document.getElementById('searchCount');
+    let matches = [], matchPtr = -1;
+    function hl(text, q) { const lo = text.toLowerCase(); let out = '', i = 0, p; while ((p = lo.indexOf(q, i)) >= 0) { out += esc(text.slice(i, p)) + '<mark>' + esc(text.slice(p, p + q.length)) + '</mark>'; i = p + q.length; } return out + esc(text.slice(i)); }
+    function runSearch() {
+      const q = searchInput.value.trim().toLowerCase();
+      matches = [];
+      for (let i = 0; i < SEG.length; i++) {
+        const el = segEls[i]; if (!el) continue; const tt = el.querySelector('.tt'); const text = SEG[i].text;
+        if (!q) { tt.innerHTML = esc(text); el.classList.remove('nomatch'); continue; }
+        if (text.toLowerCase().indexOf(q) >= 0) { tt.innerHTML = hl(text, q); el.classList.remove('nomatch'); matches.push(i); }
+        else { tt.innerHTML = esc(text); el.classList.add('nomatch'); }
+      }
+      searchCount.textContent = q ? (matches.length ? (matches.length + (matches.length === 1 ? ' hit' : ' hits')) : 'none') : '';
+      matchPtr = matches.length ? 0 : -1;
+      if (matchPtr === 0) gotoMatch(0);
+    }
+    function gotoMatch(k) {
+      if (!matches.length) return;
+      matchPtr = (k + matches.length) % matches.length;
+      const i = matches[matchPtr];
+      segEls.forEach(el => el && el.classList.remove('hitcur'));
+      const el = segEls[i]; el.classList.add('hitcur');
+      userScrollUntil = Date.now() + 6000;
+      tapeScroll.scrollTop = Math.max(0, el.offsetTop - tapeScroll.clientHeight / 2 + el.clientHeight / 2);
+      searchCount.textContent = (matchPtr + 1) + ' / ' + matches.length;
+    }
+    let searchTimer = null;
+    searchInput.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(runSearch, 140); });
+    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); gotoMatch(matchPtr + (e.shiftKey ? -1 : 1)); } });
+    document.getElementById('searchNext').addEventListener('click', () => gotoMatch(matchPtr + 1));
+    document.getElementById('searchPrev').addEventListener('click', () => gotoMatch(matchPtr - 1));
+
+    // ---- rail (contents + notes) ----
+    const rail = document.getElementById('rail'), scrim = document.getElementById('scrim');
+    function openRail(tab) { rail.classList.add('open'); scrim.classList.add('open'); rail.setAttribute('aria-hidden', 'false'); if (tab) setTab(tab); }
+    function closeRail() { rail.classList.remove('open'); scrim.classList.remove('open'); rail.setAttribute('aria-hidden', 'true'); }
+    document.getElementById('railClose').addEventListener('click', closeRail);
+    scrim.addEventListener('click', closeRail);
+    document.getElementById('contentsBtn').addEventListener('click', () => openRail('contents'));
+    document.getElementById('notesBtn').addEventListener('click', () => openRail('notes'));
+    const tabContents = document.getElementById('tabContents'), tabNotes = document.getElementById('tabNotes');
+    const paneContents = document.getElementById('paneContents'), paneNotes = document.getElementById('paneNotes');
+    function setTab(t) {
+      const c = t === 'contents';
+      tabContents.classList.toggle('on', c); tabNotes.classList.toggle('on', !c);
+      paneContents.hidden = !c; paneNotes.hidden = c;
+    }
+    tabContents.addEventListener('click', () => setTab('contents'));
+    tabNotes.addEventListener('click', () => setTab('notes'));
+
+    // contents lists
+    function jumpAndClose(t) { seekTo(t); userScrollUntil = 0; renderSeg(segIdxAt(t)); closeRail(); }
+    const peakListEl = document.getElementById('peakList');
+    R.peaks.forEach(p => {
+      const ats = p.events.map(id => SR.eventAt[id]).filter(x => x != null);
+      const at = ats.length ? Math.min(...ats) : 0;
+      const b = document.createElement('button'); b.className = 'ix pk';
+      b.innerHTML = `<span class="ix-time">${fmt(at)}</span><span class="ix-main"><span class="ix-id">${p.id}</span><span class="ix-t">${esc(p.title)}</span></span>`;
+      b.addEventListener('click', () => jumpAndClose(at));
+      peakListEl.appendChild(b);
+    });
+    const momentListEl = document.getElementById('momentList');
+    EV.forEach(e => {
+      const isPeak = peakIds.has(e.id);
+      const b = document.createElement('button'); b.className = 'ix' + (isPeak ? ' pk' : '');
+      b.innerHTML = `<span class="ix-time">${fmt(atOf(e))}</span><span class="ix-main"><span class="ix-id">${e.id}${isPeak ? ' · peak' : ''}</span><span class="ix-t">${esc(e.title)}</span></span>`;
+      b.addEventListener('click', () => jumpAndClose(atOf(e)));
+      momentListEl.appendChild(b);
+    });
+
+    // ---- notes (select to save) ----
+    const NKEY = 'session_tape_notes_v1', FKEY = 'session_tape_freenote_v1';
+    let notes = []; try { notes = JSON.parse(localStorage.getItem(NKEY) || '[]'); } catch (e) {}
+    const noteListEl = document.getElementById('noteList'), noteCount = document.getElementById('noteCount');
+    function saveNotes() { localStorage.setItem(NKEY, JSON.stringify(notes)); }
+    function renderNotes() {
+      noteCount.textContent = notes.length;
+      if (!notes.length) { noteListEl.innerHTML = '<div class="empty">Select any line in the tape to save it here.</div>'; return; }
+      noteListEl.innerHTML = '';
+      notes.forEach((n, i) => {
+        const d = document.createElement('div'); d.className = 'note';
+        const q = document.createElement('div');
+        q.innerHTML = `<div class="nq">“${esc(n.q)}”</div>` + (n.t != null ? `<span class="ns" data-t="${n.t}">${n.sp === 'M' ? 'Catherine' : 'Daniel'} · ${fmt(n.t)} · jump ↗</span>` : '');
+        const x = document.createElement('button'); x.className = 'nx'; x.textContent = '✕'; x.setAttribute('aria-label', 'Remove');
+        x.addEventListener('click', () => { notes.splice(i, 1); saveNotes(); renderNotes(); });
+        const jump = q.querySelector('.ns'); if (jump) jump.addEventListener('click', () => jumpAndClose(parseFloat(jump.dataset.t)));
+        d.appendChild(q); d.appendChild(x); noteListEl.appendChild(d);
+      });
+    }
+    const freeNote = document.getElementById('freeNote');
+    freeNote.value = localStorage.getItem(FKEY) || '';
+    freeNote.addEventListener('input', () => localStorage.setItem(FKEY, freeNote.value));
+    document.getElementById('copyNotes').addEventListener('click', () => {
+      const txt = notes.map(n => '“' + n.q + '”' + (n.t != null ? '  — ' + (n.sp === 'M' ? 'Catherine' : 'Daniel') + ' ' + fmt(n.t) : '')).join('\n\n') + (freeNote.value ? '\n\n— — —\n' + freeNote.value : '');
+      navigator.clipboard && navigator.clipboard.writeText(txt.trim());
+      const b = document.getElementById('copyNotes'), o = b.textContent; b.textContent = 'Copied'; setTimeout(() => b.textContent = o, 1200);
+    });
+    document.getElementById('clearNotes').addEventListener('click', () => { if (!notes.length) return; notes = []; saveNotes(); renderNotes(); });
+
+    // selection -> popup -> save
+    const pop = document.getElementById('savePop');
+    let pending = '', pendingT = null, pendingSp = null;
+    function segFromNode(node) {
+      let el = node && node.nodeType === 3 ? node.parentElement : node;
+      while (el && el !== tapeScroll) { if (el.classList && el.classList.contains('seg')) { const idx = segEls.indexOf(el); return idx >= 0 ? idx : null; } el = el.parentElement; }
+      return null;
+    }
+    tapeScroll.addEventListener('mouseup', (e) => {
+      if (document.documentElement.getAttribute('data-mode') !== 'analyst') { pop.style.display = 'none'; return; }
+      const sel = window.getSelection(); const txt = (sel ? sel.toString() : '').replace(/\s+/g, ' ').trim();
+      if (txt.length > 4) {
+        pending = txt;
+        const si = sel.anchorNode ? segFromNode(sel.anchorNode) : null;
+        pendingT = si != null ? SEG[si].t : null; pendingSp = si != null ? SEG[si].sp : null;
+        pop.style.left = e.clientX + 'px'; pop.style.top = e.clientY + 'px'; pop.style.display = 'block';
+      } else pop.style.display = 'none';
+    });
+    pop.addEventListener('click', () => {
+      if (!pending) return;
+      notes.push({ q: pending, t: pendingT, sp: pendingSp, at: Date.now() }); saveNotes(); renderNotes();
+      pop.style.display = 'none'; const s = window.getSelection(); s && s.removeAllRanges(); pending = '';
+      openRail('notes');
+    });
+    document.addEventListener('mousedown', (e) => { if (e.target !== pop) pop.style.display = 'none'; });
+    tapeScroll.addEventListener('scroll', () => pop.style.display = 'none', { passive: true });
+
+    // ---- keyboard ----
+    window.addEventListener('keydown', (ev) => {
+      if (ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA') { if (ev.key === 'Escape') ev.target.blur(); return; }
+      if (ev.key === 'ArrowRight') { ev.preventDefault(); stepMoment(1); }
+      else if (ev.key === 'ArrowLeft') { ev.preventDefault(); stepMoment(-1); }
+      else if (ev.key === ' ') { ev.preventDefault(); togglePlay(); }
+      else if (ev.key === 'Escape') closeRail();
+      else if (ev.key === '/') { if (document.documentElement.getAttribute('data-mode') !== 'analyst') return; ev.preventDefault(); searchInput.focus(); }
+    });
+
+    // ---- reader / analyst mode ----
+    const MODEKEY = 'session_mode_v1';
+    function applyMode(m) {
+      document.documentElement.setAttribute('data-mode', m);
+      document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+      try { localStorage.setItem(MODEKEY, m); } catch (e) {}
+      if (m === 'reader') closeRail();
+    }
+    (function initMode() { let m = 'reader'; try { m = localStorage.getItem(MODEKEY) || 'reader'; } catch (e) {} applyMode(m); })();
+    document.getElementById('modeSeg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) applyMode(b.dataset.mode); });
+
+    // ---- init ----
+    layout();
+    buildTape();
+    renderNotes();
+    curEvent = -1; curSeg = -1;
+    renderFromPos();
+  </script>
+</body>
+</html>

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Shift · Graded · IDI01 Catherine</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+
+  .masthead {
+    border-top: var(--masthead-rule) solid var(--ink);
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 18px var(--gutter) 0; gap: 16px;
+  }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--fg2); text-transform: uppercase; }
+  .nav-back { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); }
+  .nav-back:hover { color: var(--ink); }
+
+  .shell { flex: 1; display: flex; flex-direction: column; padding: 0 var(--gutter) 64px; }
+  .head { padding: 26px 0 22px; max-width: 78ch; }
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; }
+  .head h1 { font-size: clamp(30px, 4vw, 52px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.96; margin-top: 12px; }
+  .head .sub { font-family: var(--font-serif); font-style: italic; font-size: 19px; color: var(--fg2); margin-top: 10px; max-width: 62ch; }
+
+  .legend { display: flex; gap: 28px; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--fog); flex-wrap: wrap; }
+  .lg { display: flex; gap: 9px; align-items: center; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg2); }
+  .lg .gl { width: 13px; height: 13px; transform: rotate(45deg); flex: 0 0 auto; }
+  .lg .gl.now { background: var(--paper); border: 1.5px solid var(--ash); }
+  .lg .gl.ideal { background: var(--signal); border: 1.5px solid var(--signal); }
+  .lg .gl.bar { width: 22px; height: 4px; transform: none; background: var(--ink); }
+
+  .body-grid { display: grid; grid-template-columns: 248px 1fr; gap: 56px; align-items: start; }
+
+  /* ---------- rail: at-a-glance map ---------- */
+  .rail { position: sticky; top: 16px; }
+  .rail h2 { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); margin-bottom: 4px; }
+  .rail .rsub { font-size: 12px; color: var(--fg3); line-height: 1.5; margin-bottom: 16px; }
+  .map-row { display: block; width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--fog); padding: 13px 0 12px; cursor: pointer; color: inherit; font-family: var(--font-sans); transition: opacity var(--dur-fast) var(--ease); }
+  .map-row:last-of-type { border-bottom: 1px solid var(--fog); }
+  .map-row .mr-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 9px; }
+  .map-row .mr-name { font-size: 12.5px; font-weight: var(--fw-medium); line-height: 1.25; color: var(--ash); transition: color var(--dur-fast) var(--ease); }
+  .map-row .mr-gap { font-family: var(--font-mono); font-size: 11px; color: var(--fg3); flex: 0 0 auto; }
+  .map-row:hover .mr-name, .map-row.active .mr-name { color: var(--ink); }
+  .map-row.active .mr-gap { color: var(--signal); }
+  /* mini track */
+  .mini { position: relative; height: 12px; display: grid; grid-template-columns: repeat(7, 1fr); align-items: center; }
+  .mini::before { content: ""; position: absolute; left: 5%; right: 5%; top: 50%; height: 1px; background: var(--fog); }
+  .mini .mspan { position: absolute; top: 50%; height: 3px; background: var(--ink); transform: translateY(-50%); }
+  .mini .md { justify-self: center; width: 6px; height: 6px; border-radius: 50%; background: var(--fog); position: relative; z-index: 2; }
+  .mini .md.now { width: 8px; height: 8px; background: var(--paper); border: 1.5px solid var(--ash); transform: rotate(45deg); }
+  .mini .md.ideal { width: 9px; height: 9px; background: var(--signal); transform: rotate(45deg); }
+  .rail .foot { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.7; color: var(--fg3); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 18px; }
+  .rail .foot .sig { color: var(--signal); }
+
+  /* ---------- scale cards ---------- */
+  .scales { display: flex; flex-direction: column; gap: 0; }
+  .scale { border-top: 1px solid var(--ink); padding: 30px 0 34px; scroll-margin-top: 14px; }
+  .scale:last-child { border-bottom: 1px solid var(--ink); }
+
+  .sc-head { display: flex; align-items: baseline; gap: 14px; }
+  .sc-idx { font-family: var(--font-mono); font-size: 12px; color: var(--fg3); letter-spacing: 0.06em; }
+  .sc-name { font-size: 22px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.1; }
+  .sc-wand { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); border: 1px solid var(--signal); padding: 2px 7px; white-space: nowrap; }
+  .sc-gap { margin-left: auto; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); border: 1px solid var(--ink); padding: 4px 9px; white-space: nowrap; }
+  .sc-axis { font-family: var(--font-serif); font-style: italic; font-size: 17px; color: var(--fg2); margin-top: 10px; max-width: 64ch; }
+
+  /* ruler */
+  .ruler-wrap { margin-top: 30px; }
+  .poles { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 14px; }
+  .poles .lo { color: var(--ash); }
+  .poles .hi { color: var(--ink); }
+
+  .ruler { position: relative; height: 56px; }
+  .ruler .baseline { position: absolute; left: calc(100%/14); right: calc(100%/14); top: 18px; height: 1px; background: var(--fog); }
+  .ruler .span { position: absolute; top: 18px; height: 3px; background: var(--ink); transform: translateY(-1px); z-index: 1; }
+  .ticks { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, 1fr); }
+  .tick { position: relative; background: none; border: 0; cursor: pointer; font-family: var(--font-mono); color: inherit; padding: 0; }
+  .tick .dot { position: absolute; top: 18px; left: 50%; transform: translate(-50%, -50%); width: 9px; height: 9px; border-radius: 50%; background: var(--fog); transition: all var(--dur) var(--ease); z-index: 2; }
+  .tick .num { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--fg3); transition: color var(--dur-fast) var(--ease); }
+  .tick:hover .dot { background: var(--ash); }
+  .tick:hover .num { color: var(--ink); }
+  .tick.sel .dot { box-shadow: 0 0 0 4px var(--paper), 0 0 0 5px var(--ink); }
+  .tick.sel .num { color: var(--ink); font-weight: 700; }
+  /* now / ideal markers */
+  .tick.now .dot { width: 14px; height: 14px; border-radius: 0; background: var(--paper); border: 1.5px solid var(--ash); transform: translate(-50%, -50%) rotate(45deg); }
+  .tick.ideal .dot { width: 15px; height: 15px; border-radius: 0; background: var(--signal); border: 1.5px solid var(--signal); transform: translate(-50%, -50%) rotate(45deg); }
+  .tick .flag { position: absolute; bottom: 38px; left: 50%; transform: translateX(-50%); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+  .tick.now .flag { color: var(--ash); }
+  .tick.ideal .flag { color: var(--signal); }
+
+  /* now / ideal reading columns */
+  .states { display: grid; grid-template-columns: 1fr 64px 1fr; gap: 0; margin-top: 30px; align-items: stretch; }
+  .state { padding-top: 2px; }
+  .state .stl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 9px; display: flex; gap: 8px; align-items: baseline; }
+  .state.now .stl { color: var(--ash); }
+  .state.ideal .stl { color: var(--signal); }
+  .state .stl .rk { color: var(--fg3); white-space: nowrap; }
+  .state .anchor-name { font-size: 15.5px; font-weight: var(--fw-bold); letter-spacing: -0.01em; margin-bottom: 6px; }
+  .state.now .anchor-name { color: var(--ash); }
+  .state.ideal .anchor-name { color: var(--ink); }
+  .state .anchor-desc { font-size: 14.5px; line-height: 1.55; color: var(--ink); }
+  .state.now .anchor-desc { color: var(--ash); }
+  .states .arrow { display: flex; align-items: center; justify-content: center; color: var(--fg3); font-family: var(--font-mono); font-size: 18px; }
+  .quote { font-family: var(--font-serif); font-style: italic; font-size: 15px; line-height: 1.45; color: var(--ink); border-left: 2px solid var(--ink); padding-left: 14px; margin-top: 14px; }
+  .quote .cite { display: block; font-family: var(--font-mono); font-style: normal; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); margin-top: 8px; }
+
+  /* ladder */
+  .ladder-toggle { margin-top: 26px; background: none; border: 0; cursor: pointer; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); display: flex; align-items: center; gap: 8px; padding: 0; }
+  .ladder-toggle:hover { color: var(--ink); }
+  .ladder-toggle .chev { transition: transform var(--dur) var(--ease); display: inline-block; }
+  .scale.open .ladder-toggle .chev { transform: rotate(180deg); }
+  .ladder { max-height: 0; overflow: hidden; }
+  .scale.open .ladder { max-height: 4000px; }
+  .ladder-in { margin-top: 20px; border-top: 1px solid var(--fog); }
+  .rung { display: grid; grid-template-columns: 28px 150px 1fr; gap: 16px; align-items: start; padding: 14px 0; border-bottom: 1px solid var(--fog); transition: background var(--dur-fast) var(--ease); }
+  .rung:last-child { border-bottom: 0; }
+  .rung .rn { font-family: var(--font-mono); font-size: 12px; color: var(--fg3); padding-top: 1px; }
+  .rung .rname { font-size: 14px; font-weight: var(--fw-medium); letter-spacing: -0.005em; line-height: 1.3; }
+  .rung .rdesc { font-size: 13.5px; line-height: 1.5; color: var(--ash); }
+  .rung .rq { font-family: var(--font-serif); font-style: italic; font-size: 13.5px; color: var(--ink); margin-top: 7px; line-height: 1.4; }
+  .rung .rq .cite { font-family: var(--font-mono); font-style: normal; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); margin-left: 8px; }
+  .rung.is-now { background: var(--bone); }
+  .rung.is-now .rn, .rung.is-now .rdesc { color: var(--ink); }
+  .rung.is-ideal .rn { color: var(--signal); }
+  .rung.is-ideal .rname { color: var(--ink); }
+  .rung .rtag { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
+  .rung.is-now .rtag { color: var(--ash); border: 1px solid var(--ash); }
+  .rung.is-ideal .rtag { color: var(--signal); border: 1px solid var(--signal); }
+  .rung.flash { background: var(--bone); }
+
+  /* ---------- constituent shifts inside a frame (A + B) ---------- */
+  .kids { margin-top: 28px; border-top: 1px solid var(--ink); padding-top: 18px; --kidcols: minmax(140px, 1.25fr) minmax(150px, 1.7fr) 132px 38px 16px; }
+  .kids-head { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); margin-bottom: 6px; }
+  .kids-sub { font-size: 12.5px; color: var(--fg3); line-height: 1.5; margin-bottom: 12px; max-width: 72ch; }
+  .kids-axis { display: grid; grid-template-columns: var(--kidcols); gap: 18px; align-items: center; padding-bottom: 7px; border-bottom: 1px solid var(--fog); }
+  .kids-axis .ka-scale { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 calc(100%/14); }
+  .kids-axis .ka-scale i { text-align: center; font-style: normal; font-family: var(--font-mono); font-size: 9.5px; color: var(--fg3); }
+  .kids-axis .ka-lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); }
+  .kids-axis .ka-r { text-align: right; }
+  .kid { border-bottom: 1px solid var(--fog); }
+  .kid-row { display: grid; grid-template-columns: var(--kidcols); gap: 18px; align-items: center; width: 100%; text-align: left; background: none; border: 0; padding: 12px 0; cursor: pointer; color: inherit; font-family: var(--font-sans); transition: background var(--dur-fast) var(--ease); }
+  .kid-row:hover { background: var(--bone); }
+  .kid-name { font-size: 13.5px; font-weight: var(--fw-medium); letter-spacing: -0.005em; line-height: 1.25; display: flex; align-items: center; gap: 7px; }
+  .kid-wand { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal); border: 1px solid var(--signal); padding: 1px 4px; white-space: nowrap; }
+  /* mini now→ideal track, aligned to the 7-column scale */
+  .kid-track { position: relative; height: 16px; }
+  .kid-track .kt-base { position: absolute; left: calc(100%/14); right: calc(100%/14); top: 50%; height: 1px; background: var(--fog); }
+  .kid-track .kt-span { position: absolute; top: 50%; height: 2.5px; transform: translateY(-50%); background: var(--ink); }
+  .kid-track .kt-now, .kid-track .kt-ideal { position: absolute; top: 50%; width: 9px; height: 9px; transform: translate(-50%, -50%) rotate(45deg); z-index: 2; }
+  .kid-track .kt-now { background: var(--paper); border: 1.5px solid var(--ash); }
+  .kid-track .kt-ideal { background: var(--signal); border: 1.5px solid var(--signal); }
+  /* desire / ability micro-readout — the two scatter axes */
+  .kid-da { display: flex; flex-direction: column; gap: 4px; }
+  .da { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg3); }
+  .da .lab { width: 44px; flex: 0 0 auto; }
+  .da .bars { display: inline-flex; gap: 2px; }
+  .da .bars i { width: 4px; height: 8px; background: var(--fog); display: inline-block; }
+  .da.desire .bars i.on { background: var(--signal); }
+  .da.ability .bars i.on { background: var(--ink); }
+  .kid-gap { font-family: var(--font-mono); font-size: 12px; color: var(--ink); text-align: right; }
+  .kid-caret { font-family: var(--font-mono); color: var(--fg3); transition: transform var(--dur) var(--ease); justify-self: center; }
+  .kid.open .kid-caret { transform: rotate(180deg); }
+  .kid.open .kid-name { color: var(--ink); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  .kid-detail { max-height: 0; overflow: hidden; }
+  .kid.open .kid-detail { max-height: 3200px; }
+  .kid-detail-in { padding: 6px 0 24px; }
+  .kid-axis { font-family: var(--font-serif); font-style: italic; font-size: 14.5px; color: var(--fg2); margin: 2px 0 6px; max-width: 62ch; }
+  .kid-detail .ruler-wrap { margin-top: 22px; }
+  .kid-detail .states { margin-top: 26px; }
+  .kid-detail .ruler .tick { cursor: default; }
+  .kid-detail .ladderlbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); margin-top: 26px; }
+
+  /* cross-view toggle (Map / Graded) */
+  .viewtoggle { display: inline-flex; border: 1px solid var(--ink); margin-top: 18px; }
+  .viewtoggle a { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; padding: 7px 14px; color: var(--ash); border-right: 1px solid var(--ink); transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .viewtoggle a:last-child { border-right: 0; }
+  .viewtoggle a:hover { background: var(--bone); }
+  .viewtoggle a.on { background: var(--ink); color: var(--paper); }
+  .viewtoggle a.on:hover { background: var(--ink); }
+
+  /* ---------- accordion: one frame visible at a time ---------- */
+  .scale { display: none; }
+  .scale.shown { display: block; border-bottom: 1px solid var(--ink); }
+
+  /* frame-level desire / ability roll-up */
+  .sc-da { display: flex; gap: 26px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+  .sc-da .da .lab { width: 84px; }
+  .sc-da .danote { font-family: var(--font-mono); font-size: 9.5px; color: var(--fg3); letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* 'Inside this frame' collapsible */
+  .kids-toggle { width: 100%; display: flex; align-items: center; gap: 9px; background: none; border: 0; cursor: pointer; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); padding: 0; }
+  .kids-toggle:hover { color: var(--ink); }
+  .kids-toggle .chev { transition: transform var(--dur) var(--ease); display: inline-block; }
+  .kids-toggle .kt-count { color: var(--fg3); margin-left: auto; }
+  .kids.open .kids-toggle .chev { transform: rotate(180deg); }
+  .kids-body { max-height: 0; overflow: hidden; }
+  .kids.open .kids-body { max-height: 18000px; }
+  .kids-body-in { padding-top: 14px; }
+
+  /* ---------- desire × ability scatter ---------- */
+  .scatter { border: 1px solid var(--ink); background: var(--paper); padding: 30px 34px 30px; margin-bottom: 42px; }
+  .scatter .eyebrow-row { margin-bottom: 4px; }
+  .scatter .eyebrow-row .eyebrow { white-space: nowrap; }
+  .scatter-title { font-size: clamp(21px, 2.4vw, 28px); font-weight: var(--fw-black); letter-spacing: -0.028em; line-height: 1.05; margin-top: 8px; max-width: 24ch; }
+  .scatter-sub { font-family: var(--font-serif); font-style: italic; font-size: 16px; line-height: 1.45; color: var(--fg2); max-width: 66ch; margin: 12px 0 26px; }
+  .plot-grid { display: grid; grid-template-columns: 22px minmax(0, 1fr); grid-template-rows: auto 26px; gap: 8px; max-width: 760px; }
+  .plot-ylab { writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; align-self: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); }
+  .plot-xlab { grid-column: 2; text-align: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); }
+  .plot { position: relative; aspect-ratio: 1.5 / 1; border-left: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .plot .qline { position: absolute; background: var(--fog); }
+  .plot .qline.v { left: 50%; top: 0; bottom: 0; width: 1px; }
+  .plot .qline.h { top: 50%; left: 0; right: 0; height: 1px; }
+  .plot .qlab { position: absolute; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); max-width: 14ch; line-height: 1.4; }
+  .plot .qlab.tr { top: 10px; right: 12px; text-align: right; }
+  .plot .qlab.tl { top: 10px; left: 12px; }
+  .plot .qlab.br { bottom: 10px; right: 12px; text-align: right; }
+  .plot .qlab.bl { bottom: 10px; left: 12px; }
+  .plot .qlab b { color: var(--ash); font-weight: var(--fw-bold); display: block; }
+  .pt { position: absolute; transform: translate(-50%, 50%); z-index: 2; }
+  .pt .hit { position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%); width: 26px; height: 26px; background: none; border: 0; cursor: pointer; padding: 0; }
+  .pt .dia { width: 12px; height: 12px; transform: rotate(45deg); background: var(--c, var(--ink)); display: block; transition: box-shadow var(--dur-fast) var(--ease); pointer-events: none; }
+  .pt.wand .dia { outline: 1.5px solid var(--signal); outline-offset: 2.5px; }
+  .pt.hidden { display: none; }
+  .pt .lbl { position: absolute; left: 13px; top: 0; transform: translateY(-50%); white-space: nowrap; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.01em; color: var(--ash); pointer-events: none; }
+  .pt.lleft .lbl { left: auto; right: 13px; text-align: right; }
+  .pt:hover .dia, .pt.on .dia { box-shadow: 0 0 0 4px var(--paper), 0 0 0 5px var(--ink); }
+  .pt:hover .lbl, .pt.on .lbl { color: var(--ink); }
+  .scatter-foot { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.7; color: var(--fg3); letter-spacing: 0.02em; margin-top: 22px; max-width: 92ch; }
+  .scatter-foot .sig { color: var(--signal); }
+  .scatter-foot b { color: var(--ink); font-weight: var(--fw-bold); }
+  @media (max-width: 720px) {
+    .scatter { padding: 24px 18px 22px; }
+    .pt .lbl { font-size: 8.5px; }
+  }
+
+  /* ---------- synthesis card: 'the overall shift' ---------- */
+  .summary { background: var(--bone); border: 1px solid var(--ink); padding: 32px 34px 30px; margin-bottom: 42px; }
+  .sum-head { display: flex; justify-content: space-between; align-items: baseline; gap: 18px; flex-wrap: wrap; }
+  .sum-head-l { min-width: 0; }
+  .sum-idxrow { display: flex; align-items: center; gap: 13px; }
+  .sum-idx { font-family: var(--font-mono); font-size: 12px; color: var(--signal); letter-spacing: 0.1em; }
+  .sum-title { font-size: clamp(23px, 2.7vw, 31px); font-weight: var(--fw-black); letter-spacing: -0.028em; line-height: 1.04; margin-top: 9px; max-width: 22ch; }
+  .sum-gapbadge { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--paper); background: var(--ink); padding: 5px 11px; white-space: nowrap; align-self: center; }
+  .sum-axis { font-family: var(--font-serif); font-style: italic; font-size: 17px; line-height: 1.45; color: var(--fg2); margin-top: 14px; max-width: 64ch; }
+
+  /* dot-plot ruler — shows every frame's now/ideal, plus the aggregate */
+  .sum-poles { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; margin: 32px 0 0; }
+  .sum-poles .lo { color: var(--ash); }
+  .sum-poles .hi { color: var(--ink); }
+  .dotplot { position: relative; height: 156px; margin-top: 10px; }
+  .dp-mid { position: absolute; left: calc(100%/14); right: calc(100%/14); top: 50%; height: 1px; background: var(--ash); opacity: 0.45; }
+  .dp-span { position: absolute; top: 50%; height: 5px; transform: translateY(-50%); background: var(--ink); z-index: 2; }
+  .dp-cols { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(7, 1fr); }
+  .dp-num { align-self: center; justify-self: center; font-family: var(--font-mono); font-size: 10px; color: var(--fg3); width: 18px; height: 18px; display: grid; place-items: center; background: var(--bone); border-radius: 50%; position: relative; z-index: 3; }
+  .dp-dot { position: absolute; left: 0; width: 9px; height: 9px; transform: translate(-50%, -50%); border-radius: 50%; z-index: 3; }
+  .dp-dot.now { background: var(--ash); }
+  .dp-dot.ideal { background: var(--signal); }
+  .dp-agg { position: absolute; top: 50%; transform: translate(-50%, -50%); z-index: 5; }
+  .dp-agg .dia { display: block; width: 17px; height: 17px; transform: rotate(45deg); }
+  .dp-agg.now .dia { background: var(--bone); border: 1.5px solid var(--ash); }
+  .dp-agg.ideal .dia { background: var(--signal); border: 1.5px solid var(--signal); }
+  .dp-agg .dp-flag { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .dp-agg.now .dp-flag { bottom: 15px; color: var(--ash); }
+  .dp-agg.ideal .dp-flag { top: 15px; color: var(--signal); }
+  .dp-legend { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.6; color: var(--fg3); margin-top: 8px; letter-spacing: 0.02em; }
+
+  .summary .states { margin-top: 30px; }
+  .summary .ladder-toggle { margin-top: 26px; }
+  .summary.open .ladder-toggle .chev { transform: rotate(180deg); }
+  .summary.open .ladder { max-height: 4000px; }
+
+  /* ---------- sort toolbar over the seven cards ---------- */
+  .scales-bar { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; padding-bottom: 16px; flex-wrap: wrap; }
+  .sb-title { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg3); }
+  .sb-title b { color: var(--ink); font-weight: var(--fw-bold); }
+  .sortctl { display: flex; flex: 0 0 auto; border: 1px solid var(--ink); }
+  .sortctl .sortlbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); align-self: center; padding: 0 11px; border-right: 1px solid var(--fog); }
+  .sortctl button { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; padding: 7px 13px; border: 0; border-left: 1px solid var(--fog); background: var(--paper); color: var(--fg2); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
+  .sortctl button:first-of-type { border-left: 0; }
+  .sortctl button:hover { color: var(--ink); }
+  .sortctl button.on { background: var(--ink); color: var(--paper); }
+
+  .sb-note { font-family: var(--font-mono); font-size: 11px; line-height: 1.7; color: var(--ash); padding-bottom: 24px; max-width: 92ch; }
+  .sb-note b { color: var(--ink); font-weight: var(--fw-bold); }
+  .sb-note .sig { color: var(--signal); font-weight: var(--fw-bold); }
+  .sb-note .muted { color: var(--fg3); }
+
+  .rail #map { display: flex; flex-direction: column; }
+
+  @media (max-width: 720px) {
+    .summary { padding: 24px 18px 20px; }
+    .dotplot { height: 168px; }
+  }
+
+  .fadein.in { animation-name: fi; animation-duration: var(--dur-slow); animation-timing-function: var(--ease); animation-fill-mode: both; }
+  /* ---------- view switch + field (scatter) view ---------- */
+  .viewswitch { display: inline-flex; border: 1px solid var(--ink); margin: 22px 0 6px; }
+  .viewswitch button { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; padding: 9px 22px; border: 0; border-left: 1px solid var(--ink); background: var(--paper); color: var(--ash); cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .viewswitch button:first-child { border-left: 0; }
+  .viewswitch button:hover { background: var(--bone); }
+  .viewswitch button.on { background: var(--ink); color: var(--paper); }
+  .view[hidden] { display: none; }
+
+  .fieldview-head { padding: 8px 0 16px; }
+  .fieldview-head .eyebrow-row { margin-bottom: 4px; }
+  .fieldview-head .eyebrow-row .eyebrow { white-space: nowrap; }
+  .fieldview-head .fv-title { font-size: clamp(24px, 3vw, 38px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.0; margin-top: 10px; }
+  .fieldview-head .fv-sub { font-family: var(--font-serif); font-style: italic; font-size: 18px; color: var(--fg2); max-width: 66ch; margin-top: 10px; }
+  .field-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 16px 0; border-top: 1px solid var(--fog); border-bottom: 1px solid var(--fog); margin-bottom: 28px; }
+  .field-filters .ff-lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg3); margin-right: 4px; }
+  .fchip { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.02em; color: var(--ash); background: none; border: 1px solid var(--fog); padding: 5px 11px; cursor: pointer; transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease); }
+  .fchip .sw { width: 9px; height: 9px; transform: rotate(45deg); background: var(--c); flex: 0 0 auto; }
+  .fchip:hover { border-color: var(--ash); color: var(--ink); }
+  .fchip.off { opacity: 0.38; }
+  .fchip .fc-n { color: var(--fg3); }
+  .field-reset { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); background: none; border: 0; cursor: pointer; margin-left: 4px; text-decoration: underline; text-underline-offset: 3px; }
+  .field-reset:hover { color: var(--ink); }
+
+  .field-grid { display: grid; grid-template-columns: minmax(0, 1fr) 364px; gap: 44px; align-items: start; }
+  .field-plot-col { min-width: 0; }
+  .field-plot-col .plot-grid { max-width: none; }
+  .field-plot-col .plot { aspect-ratio: 1.3 / 1; }
+
+  .field-detail { position: sticky; top: 16px; border: 1px solid var(--ink); background: var(--paper); max-height: calc(100vh - 32px); overflow: auto; }
+  .fd-empty { padding: 54px 24px; color: var(--fg3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.8; text-align: center; }
+  .fd-in { padding: 22px 24px 26px; }
+  .fd-frame { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); }
+  .fd-frame .sw { width: 9px; height: 9px; transform: rotate(45deg); flex: 0 0 auto; }
+  .fd-wand { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal); border: 1px solid var(--signal); padding: 1px 6px; margin-left: auto; }
+  .fd-name { font-size: 20px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.12; margin: 11px 0 0; }
+  .fd-da { display: flex; gap: 20px; margin: 16px 0 16px; padding: 13px 0; border-top: 1px solid var(--fog); border-bottom: 1px solid var(--fog); }
+  .fd-axis { font-family: var(--font-serif); font-style: italic; font-size: 15px; color: var(--fg2); line-height: 1.45; margin-bottom: 8px; }
+  .fd-states { margin-top: 24px; }
+  .fd-states .state.ideal { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--fog); }
+  .fd-link { margin-top: 22px; width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--ink); padding: 14px 0 0; cursor: pointer; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+  .fd-link:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+  @media (max-width: 900px) {
+    .field-grid { grid-template-columns: 1fr; gap: 28px; }
+    .field-detail { position: static; max-height: none; }
+  }
+
+  @keyframes fi { from { transform: translateY(10px); } to { transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .fadein.in { animation: none; } }
+
+  @media (max-width: 960px) {
+    .body-grid { grid-template-columns: 1fr; gap: 28px; }
+    .rail { position: static; }
+    .states { grid-template-columns: 1fr; gap: 22px; }
+    .states .arrow { display: none; }
+    .rung { grid-template-columns: 24px 1fr; }
+    .rung .rdesc { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <a class="nav-back" href="../index.html">← all seven lenses</a>
+    <span class="ref">Concept 02 / The Shift · Graded</span>
+  </div>
+
+  <div class="shell">
+    <div class="head fadein">
+      <div class="eyebrow-row">
+        <span class="eyebrow">The Shift</span>
+        <span class="eyebrow" style="color:var(--signal)">Graded</span>
+      </div>
+      <h1>Not a switch. A distance to travel.</h1>
+      <div class="sub">Each frame becomes a seven-rung scale, every rung anchored in Catherine’s own case, and each frame opens onto the real shifts inside it, every one graded on its own scale. We mark where the site stands today and where it needs to be, so the shift reads as a measured gap, not a binary flip.</div>
+      <div class="legend">
+        <span class="lg"><span class="gl now"></span>Where the site is now</span>
+        <span class="lg"><span class="gl ideal"></span>Where it needs to be</span>
+        <span class="lg"><span class="gl bar"></span>The distance to travel</span>
+      </div>
+      <div class="viewtoggle">
+        <a href="the-shift.html">Map</a>
+        <a class="on" href="the-shift-graded.html">Graded</a>
+      </div>
+    </div>
+
+    <div class="viewswitch fadein" role="group" aria-label="View" style="animation-delay:40ms">
+      <button data-view="scales" class="on">Scales</button>
+      <button data-view="field">Field</button>
+    </div>
+
+    <div class="view view-scales" id="view-scales">
+      <section class="summary fadein" id="summary" style="animation-delay:50ms"></section>
+
+      <div class="body-grid">
+        <aside class="rail fadein" style="animation-delay:80ms">
+          <h2>The three frames</h2>
+          <div class="rsub">Select a frame to open it, one at a time, so the thread never gets lost.</div>
+          <div id="map"></div>
+          <div class="foot">3 frames · 9 shifts · 84 anchors<br><span class="sig">■</span> Signal marks a magic-wand wish</div>
+        </aside>
+
+        <main class="fadein" style="animation-delay:120ms">
+          <div class="scales-bar">
+            <span class="sb-title" id="sbTitle">The three frames</span>
+            <div class="sortctl" role="group" aria-label="Rank frames by">
+              <span class="sortlbl">Rank by</span>
+              <button data-mode="leverage" class="on">Leverage</button>
+              <button data-mode="gap">Gap</button>
+              <button data-mode="breadth">Breadth</button>
+              <button data-mode="sequence">Sequence</button>
+            </div>
+          </div>
+          <div class="sb-note" id="sbNote"></div>
+          <div class="scales" id="scales"></div>
+        </main>
+      </div>
+    </div>
+
+    <div class="view view-field" id="view-field" hidden>
+      <div id="fieldview"></div>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="../shift-scales.js"></script>
+  <script src="../shift-shifts-15.js"></script>
+  <script>
+    const R = window.RESEARCH;
+    // Canonical (data) order — sorting is applied later via CSS `order`, so the DOM stays stable.
+    const SCALES = window.SHIFT_SCALES.slice();
+    const cIdx = new Map(SCALES.map((s, i) => [s.id, i]));
+    const pct = (n) => (((n - 1) + 0.5) / 7 * 100);   // centre of rung n (1..7) as %
+
+    // ---- leverage signals ----
+    const gapOf = (s) => s.ideal - s.now;                 // distance to travel
+    const brOf  = (s) => s.txs.length;                    // how many frictions the frame folds in
+    const levOf = (s) => gapOf(s) * brOf(s) * (s.wand ? 1.25 : 1);   // composite, wand-weighted
+    const CRUX  = SCALES.slice().sort((a, b) => levOf(b) - levOf(a))[0].id;
+
+    function evHTML(evId, big) {
+      if (!evId) return "";
+      const e = R.byId(evId);
+      if (!e) return "";
+      const q = e.quote.replace(/^[""]|[""]$/g, "");
+      if (big) return `<div class="quote">“${q}”<span class="cite">${e.id} · ${e.time}</span></div>`;
+      return `<div class="rq">“${q}”<span class="cite">${e.id}</span></div>`;
+    }
+
+    /* ---------- rail map ---------- */
+    /* ---------- the 15 individual shifts (A + B) ---------- */
+    const SHIFTS = window.SHIFT_15 || [];
+    const shiftsOf = (frameId) => SHIFTS.filter(x => x.frame === frameId);
+
+    function daBars(val, kind) {
+      const cells = [1,2,3,4,5,6,7].map(i => `<i class="${i <= val ? 'on' : ''}"></i>`).join("");
+      return `<span class="da ${kind}"><span class="lab">${kind === 'desire' ? 'Desire' : 'Ability'}</span><span class="bars">${cells}</span></span>`;
+    }
+
+    // frame-level roll-up: average desire / ability across the frame's shifts
+    function daBarsAvg(mean, kind) {
+      const v = Math.round(mean);
+      const cells = [1,2,3,4,5,6,7].map(i => `<i class="${i <= v ? 'on' : ''}"></i>`).join("");
+      return `<span class="da ${kind}"><span class="lab">${kind === 'desire' ? 'Desire avg' : 'Ability avg'}</span><span class="bars">${cells}</span><span class="danote">${mean.toFixed(1)}</span></span>`;
+    }
+    function frameDA(frameId) {
+      const k = shiftsOf(frameId);
+      if (!k.length) return null;
+      const mean = (sel) => k.reduce((t, x) => t + x[sel], 0) / k.length;
+      return { d: mean('desire'), a: mean('ability') };
+    }
+
+    // a compact, non-interactive copy of the frame ruler — same visual language
+    function miniRuler(s) {
+      const lo = Math.min(s.now, s.ideal), hi = Math.max(s.now, s.ideal);
+      const ticks = [1,2,3,4,5,6,7].map(n => {
+        let cls = "tick", flag = "";
+        if (n === s.now) { cls += " now"; flag = `<span class="flag">Now</span>`; }
+        if (n === s.ideal) { cls += " ideal"; flag = `<span class="flag">Ideal</span>`; }
+        return `<span class="${cls}">${flag}<span class="dot"></span><span class="num">${n}</span></span>`;
+      }).join("");
+      return `<div class="ruler-wrap">
+        <div class="poles"><span class="lo">${s.lowPole}</span><span class="hi">${s.highPole}</span></div>
+        <div class="ruler"><div class="baseline"></div><div class="span" style="left:${pct(lo)}%;right:${100 - pct(hi)}%"></div><div class="ticks">${ticks}</div></div>
+      </div>`;
+    }
+
+    function kidLadder(s) {
+      const rungs = s.rungs.map((r, idx) => {
+        const n = idx + 1;
+        let cls = "rung", tag = "";
+        if (n === s.now) { cls += " is-now"; tag = `<span class="rtag">Now</span>`; }
+        if (n === s.ideal) { cls += " is-ideal"; tag = `<span class="rtag">Ideal</span>`; }
+        return `<div class="${cls}"><div class="rn">${n}</div><div class="rname">${r.label}${tag}</div><div class="rdesc">${r.desc}${evHTML(r.ev, false)}</div></div>`;
+      }).reverse().join("");
+      return `<div class="ladder-in">${rungs}</div>`;
+    }
+
+    function kidDetail(s) {
+      const nowR = s.rungs[s.now - 1], idealR = s.rungs[s.ideal - 1];
+      return `<div class="kid-detail-in">
+        <div class="kid-axis">${s.axis}</div>
+        ${miniRuler(s)}
+        <div class="states">
+          <div class="state now"><div class="stl">The world as it is <span class="rk">· rung ${s.now}</span></div><div class="anchor-name">${nowR.label}</div><div class="anchor-desc">${nowR.desc}</div>${evHTML(s.nowEv, true)}</div>
+          <div class="arrow">→</div>
+          <div class="state ideal"><div class="stl">The world as it could be <span class="rk">· rung ${s.ideal}</span></div><div class="anchor-name">${idealR.label}</div><div class="anchor-desc">${idealR.desc}</div>${evHTML(s.idealEv, true)}</div>
+        </div>
+        <div class="ladderlbl">The full ladder · all seven rungs</div>
+        ${kidLadder(s)}
+      </div>`;
+    }
+
+    function kidsBlock(frameId) {
+      const kids = shiftsOf(frameId);
+      if (!kids.length) return "";
+      const rows = kids.map(s => {
+        const gap = s.ideal - s.now;
+        const lo = Math.min(s.now, s.ideal), hi = Math.max(s.now, s.ideal);
+        return `<div class="kid" data-shift="${s.id}">
+          <button class="kid-row">
+            <span class="kid-name">${s.name}${s.wand ? '<span class="kid-wand">Wand</span>' : ''}</span>
+            <span class="kid-track"><span class="kt-base"></span><span class="kt-span" style="left:${pct(lo)}%;right:${100 - pct(hi)}%"></span><span class="kt-now" style="left:${pct(s.now)}%"></span><span class="kt-ideal" style="left:${pct(s.ideal)}%"></span></span>
+            <span class="kid-da">${daBars(s.desire, 'desire')}${daBars(s.ability, 'ability')}</span>
+            <span class="kid-gap">+${gap}</span>
+            <span class="kid-caret">⌄</span>
+          </button>
+          <div class="kid-detail">${kidDetail(s)}</div>
+        </div>`;
+      }).join("");
+      return `<div class="kids">
+        <button class="kids-toggle"><span class="chev">⌄</span>Inside this frame<span class="kt-count">${kids.length} shift${kids.length > 1 ? 's' : ''} · each on its own scale</span></button>
+        <div class="kids-body"><div class="kids-body-in">
+          <div class="kids-sub">The real transformations this frame folds in, plotted on the same seven-point scale. Desire and ability (how much Catherine wants it, how feasible it is) are the two axes of the prioritisation field above. Open any shift for its full ladder.</div>
+          <div class="kids-axis"><span class="ka-lbl">The shift</span><span class="ka-scale"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i></span><span class="ka-lbl">Desire / ability</span><span class="ka-lbl ka-r">Gap</span><span></span></div>
+          ${rows}
+        </div></div>
+      </div>`;
+    }
+
+    const map = document.getElementById("map");
+    function selectFrame(id, userInitiated) {
+      document.querySelectorAll(".scale").forEach(c => c.classList.toggle("shown", c.id === id));
+      map.querySelectorAll(".map-row").forEach(r => r.classList.toggle("active", r.dataset.target === id));
+      if (userInitiated) {
+        const anchor = document.querySelector(".scales-bar");
+        if (anchor) window.scrollTo({ top: anchor.getBoundingClientRect().top + window.scrollY - 14, behavior: "smooth" });
+      }
+    }
+    SCALES.forEach((s, i) => {
+      const gap = s.ideal - s.now;
+      const b = document.createElement("button");
+      b.className = "map-row";
+      b.dataset.target = s.id;
+      const lo = Math.min(s.now, s.ideal), hi = Math.max(s.now, s.ideal);
+      b.innerHTML = `
+        <div class="mr-top">
+          <span class="mr-name">${s.frame}</span>
+          <span class="mr-gap">+${gap}</span>
+        </div>
+        <div class="mini">
+          <span class="mspan" style="left:${pct(lo)}%;right:${100 - pct(hi)}%"></span>
+          ${[1,2,3,4,5,6,7].map(n => {
+            const cls = n === s.now ? "md now" : n === s.ideal ? "md ideal" : "md";
+            return `<span class="${cls}"></span>`;
+          }).join("")}
+        </div>`;
+      b.addEventListener("click", () => selectFrame(s.id, true));
+      map.appendChild(b);
+    });
+
+    /* ---------- scale cards ---------- */
+    const wrap = document.getElementById("scales");
+    SCALES.forEach((s, i) => {
+      const gap = s.ideal - s.now;
+      const nowR = s.rungs[s.now - 1], idealR = s.rungs[s.ideal - 1];
+      const lo = Math.min(s.now, s.ideal), hi = Math.max(s.now, s.ideal);
+      const card = document.createElement("section");
+      card.className = "scale";
+      card.id = s.id;
+
+      const ticks = [1,2,3,4,5,6,7].map(n => {
+        let cls = "tick", flag = "";
+        if (n === s.now) { cls += " now"; flag = `<span class="flag">Now</span>`; }
+        if (n === s.ideal) { cls += " ideal"; flag = `<span class="flag">Ideal</span>`; }
+        return `<button class="${cls}" data-n="${n}">${flag}<span class="dot"></span><span class="num">${n}</span></button>`;
+      }).join("");
+
+      const rungs = s.rungs.map((r, idx) => {
+        const n = idx + 1;
+        let cls = "rung", tag = "";
+        if (n === s.now) { cls += " is-now"; tag = `<span class="rtag">Now</span>`; }
+        if (n === s.ideal) { cls += " is-ideal"; tag = `<span class="rtag">Ideal</span>`; }
+        return `<div class="${cls}" data-rung="${n}">
+          <div class="rn">${n}</div>
+          <div class="rname">${r.label}${tag}</div>
+          <div class="rdesc">${r.desc}${evHTML(r.ev, false)}</div>
+        </div>`;
+      }).reverse().join("");   // ladder climbs upward: rung 7 at top, rung 1 at the foot
+
+      card.innerHTML = `
+        <div class="sc-head">
+          <span class="sc-idx">${String(i + 1).padStart(2, "0")}</span>
+          <span class="sc-name">${s.frame}</span>
+          ${s.wand ? '<span class="sc-wand">Magic wand</span>' : ''}
+          <span class="sc-gap">${gap} rungs to travel</span>
+        </div>
+        <div class="sc-axis">${s.axis}</div>
+        ${(() => { const da = frameDA(s.id); const n = shiftsOf(s.id).length; return da ? `<div class="sc-da"><span class="danote">Across its ${n} shift${n > 1 ? 's' : ''}</span>${daBarsAvg(da.d, 'desire')}${daBarsAvg(da.a, 'ability')}</div>` : ''; })()}
+
+        <div class="ruler-wrap">
+          <div class="poles"><span class="lo">${s.lowPole}</span><span class="hi">${s.highPole}</span></div>
+          <div class="ruler">
+            <div class="baseline"></div>
+            <div class="span" style="left:${pct(lo)}%;right:${100 - pct(hi)}%"></div>
+            <div class="ticks">${ticks}</div>
+          </div>
+        </div>
+
+        <div class="states">
+          <div class="state now">
+            <div class="stl">The world as it is <span class="rk">· rung ${s.now}</span></div>
+            <div class="anchor-name">${nowR.label}</div>
+            <div class="anchor-desc">${nowR.desc}</div>
+            ${evHTML(nowR.ev, true)}
+          </div>
+          <div class="arrow">→</div>
+          <div class="state ideal">
+            <div class="stl">The world as it could be <span class="rk">· rung ${s.ideal}</span></div>
+            <div class="anchor-name">${idealR.label}</div>
+            <div class="anchor-desc">${idealR.desc}</div>
+            ${evHTML(idealR.ev, true)}
+          </div>
+        </div>
+
+        <button class="ladder-toggle"><span class="chev">⌄</span><span class="lt-label">Open the frame ladder · all seven rungs</span></button>
+        <div class="ladder"><div class="ladder-in">${rungs}</div></div>
+
+        ${kidsBlock(s.id)}`;
+
+      // ladder toggle
+      const toggle = card.querySelector(".ladder-toggle");
+      const label = card.querySelector(".lt-label");
+      toggle.addEventListener("click", () => {
+        const open = card.classList.toggle("open");
+        label.textContent = open ? "Close the frame ladder" : "Open the frame ladder · all seven rungs";
+      });
+
+      // 'Inside this frame' collapse
+      const kidsC = card.querySelector(".kids");
+      const kidsToggle = card.querySelector(".kids-toggle");
+      if (kidsToggle) kidsToggle.addEventListener("click", () => kidsC.classList.toggle("open"));
+
+      // per-shift drill-down (A)
+      card.querySelectorAll(".kid").forEach(kid => {
+        kid.querySelector(".kid-row").addEventListener("click", () => kid.classList.toggle("open"));
+      });
+
+      // tick click → open ladder, highlight that rung
+      card.querySelectorAll(".tick").forEach(t => {
+        t.addEventListener("click", () => {
+          const n = +t.dataset.n;
+          card.querySelectorAll(".tick").forEach(x => x.classList.toggle("sel", x === t));
+          card.classList.add("open");
+          label.textContent = "Close the ladder";
+          const rung = card.querySelector(`.rung[data-rung="${n}"]`);
+          card.querySelectorAll(".rung").forEach(r => r.classList.remove("flash"));
+          if (rung) {
+            rung.classList.add("flash");
+            setTimeout(() => rung.classList.remove("flash"), 1100);
+          }
+        });
+      });
+
+      wrap.appendChild(card);
+    });
+
+    /* ---------- synthesis card: 'the overall shift' ---------- */
+    const avg = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+    const aNow = avg(SCALES.map(s => s.now));
+    const aIdeal = avg(SCALES.map(s => s.ideal));
+    const aGap = aIdeal - aNow;
+
+    // One composite frame that subsumes all seven. Prose is a synthesis, not a copy
+    // of any single frame — the through-line under every scale.
+    const SYN = {
+      idx: "00",
+      name: "From a site that absorbs whatever ships to a product designed for the site.",
+      lowPole: "Absorbs whatever ships",
+      highPole: "Designed for the site",
+      axis: "Read the three frames as one. Underneath every one of them sits a single question: how much the therapy is designed to fit the site that must deliver it, and how much the site must absorb because it wasn’t.",
+      nowRung: 2, idealRung: 6,
+      nowProse: "The site is the shock absorber. It thaws eighteen vials against a four-hour clock, races 30-minute expirations by hand, educates sponsors that a barrier is regulation and not obstruction, and bends its validated tools around each sponsor’s protocol. It works because Catherine’s team absorbs what the design left out.",
+      idealProse: "The product arrives ready for the hospital that gives it: one container inside a workable window, stability data and validation in hand, constraints reconciled before the trial, methods that fit the site’s real equipment and staff. The site delivers the therapy instead of compensating for it.",
+      rungs: [
+        { label: "Absorbed by hand", desc: "Every gap in the product’s design is closed by the site’s staff, in the moment, at the bedside." },
+        { label: "Held together", desc: "It works, but only because the site races clocks, splits vials, and educates sponsors again and again." },
+        { label: "Mapped", desc: "The burdens are known and planned against, though the design still sets them." },
+        { label: "Reconciled", desc: "Constraints are understood on both sides and worked out before they reach the patient." },
+        { label: "Fitted", desc: "Product format, timing, and methods are chosen to fit the site that delivers them." },
+        { label: "Designed for the site", desc: "Container, stability, protocol, and device are decided with the site’s reality in view." },
+        { label: "Invisible", desc: "The therapy simply fits; the site delivers it without absorbing anything." }
+      ]
+    };
+
+    // dot-plot: each frame contributes one now-dot (stacked downward) and one ideal-dot (stacked upward)
+    function dotStack(values, kind) {
+      const counter = {};
+      return values.map(v => {
+        const i = (counter[v] = (counter[v] || 0)); counter[v]++;
+        const off = 14 + i * 11;
+        const top = kind === "now" ? `calc(50% + ${off}px)` : `calc(50% - ${off}px)`;
+        return `<span class="dp-dot ${kind}" style="left:${pct(v)}%;top:${top}"></span>`;
+      }).join("");
+    }
+
+    const synRungs = SYN.rungs.map((r, idx) => {
+      const n = idx + 1;
+      let cls = "rung", tag = "";
+      if (n === SYN.nowRung) { cls += " is-now"; tag = `<span class="rtag">Now</span>`; }
+      if (n === SYN.idealRung) { cls += " is-ideal"; tag = `<span class="rtag">Ideal</span>`; }
+      return `<div class="${cls}" data-rung="${n}">
+        <div class="rn">${n}</div>
+        <div class="rname">${r.label}${tag}</div>
+        <div class="rdesc">${r.desc}</div>
+      </div>`;
+    }).reverse().join("");
+
+    const summary = document.getElementById("summary");
+    summary.innerHTML = `
+      <div class="sum-head">
+        <div class="sum-head-l">
+          <div class="sum-idxrow"><span class="sum-idx">${SYN.idx}</span><span class="eyebrow">The overall shift</span></div>
+          <div class="sum-title">${SYN.name}</div>
+        </div>
+        <span class="sum-gapbadge">≈ ${aGap.toFixed(1)} rungs to travel</span>
+      </div>
+      <div class="sum-axis">${SYN.axis}</div>
+
+      <div class="sum-poles"><span class="lo">${SYN.lowPole}</span><span class="hi">${SYN.highPole}</span></div>
+      <div class="dotplot">
+        <div class="dp-mid"></div>
+        <div class="dp-span" style="left:${pct(aNow)}%;right:${100 - pct(aIdeal)}%"></div>
+        <div class="dp-cols">${[1,2,3,4,5,6,7].map(n => `<span class="dp-num">${n}</span>`).join("")}</div>
+        ${dotStack(SCALES.map(s => s.now), "now")}
+        ${dotStack(SCALES.map(s => s.ideal), "ideal")}
+        <div class="dp-agg now" style="left:${pct(aNow)}%"><span class="dp-flag">Now · avg ${aNow.toFixed(1)}</span><span class="dia"></span></div>
+        <div class="dp-agg ideal" style="left:${pct(aIdeal)}%"><span class="dp-flag">Ideal · avg ${aIdeal.toFixed(1)}</span><span class="dia"></span></div>
+      </div>
+      <div class="dp-legend">Each dot is one of the three frames. All three sit at rung 2 today; their ideals sit at rungs 5 and 6: a near-uniform climb.</div>
+
+      <div class="states">
+        <div class="state now">
+          <div class="stl">The world as it is <span class="rk">· avg ${aNow.toFixed(1)}</span></div>
+          <div class="anchor-name">${SYN.rungs[SYN.nowRung - 1].label}</div>
+          <div class="anchor-desc">${SYN.nowProse}</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="state ideal">
+          <div class="stl">The world as it could be <span class="rk">· avg ${aIdeal.toFixed(1)}</span></div>
+          <div class="anchor-name">${SYN.rungs[SYN.idealRung - 1].label}</div>
+          <div class="anchor-desc">${SYN.idealProse}</div>
+        </div>
+      </div>
+
+      <button class="ladder-toggle" id="sumToggle"><span class="chev">⌄</span><span class="st-lab">Open the full ladder · the whole shift in seven rungs</span></button>
+      <div class="ladder"><div class="ladder-in">${synRungs}</div></div>`;
+
+    // summary expand toggle
+    const sumToggle = document.getElementById("sumToggle");
+    const stLab = sumToggle.querySelector(".st-lab");
+    sumToggle.addEventListener("click", () => {
+      const open = summary.classList.toggle("open");
+      stLab.textContent = open ? "Close the ladder" : "Open the full ladder · the whole shift in seven rungs";
+    });
+
+    /* ---------- field (scatter) view: flipped axes · frame colour · filter · detail ---------- */
+    const FRAME_COLORS = {
+      sc_load:        "oklch(0.55 0.06 255)",   // execution load — slate blue
+      sc_constraint:  "oklch(0.52 0.062 162)",  // constraint changeability — pine
+      sc_integration: "oklch(0.60 0.085 80)"    // method integration — ochre
+    };
+    const frameName = (id) => (SCALES.find(s => s.id === id) || {}).frame || id;
+    const POS = (v) => 8 + (v - 1) / 6 * 84;   // rung 1→08%, 7→92%
+
+    const fieldEl = document.getElementById("fieldview");
+    const frameIds = SCALES.map(s => s.id);
+
+    // points: x = desire, y = ability (flipped); diagonal jitter separates ties
+    const seenXY = {};
+    const pts = SHIFTS.map(s => {
+      const key = s.desire + "," + s.ability;
+      const n = (seenXY[key] = (seenXY[key] || 0)); seenXY[key]++;
+      const k = n === 0 ? 0 : (n % 2 ? 1 : -1) * Math.ceil(n / 2) * 3.4;
+      return { s, x: POS(s.desire) + k, y: POS(s.ability) + k };
+    });
+
+    const chips = frameIds.map(fid => `<button class="fchip" data-frame="${fid}" style="--c:${FRAME_COLORS[fid]}"><span class="sw"></span>${frameName(fid)} <span class="fc-n">${shiftsOf(fid).length}</span></button>`).join("");
+
+    fieldEl.innerHTML = `
+      <div class="fieldview-head">
+        <div class="eyebrow-row"><span class="eyebrow">Prioritisation field</span><span class="eyebrow" style="color:var(--signal)">Desire × Ability</span></div>
+        <div class="fv-title">Where each shift earns its place.</div>
+        <div class="fv-sub">All nine shifts on one field: how much the site wants each against how feasible it is to build. Filter by frame; select any point to open it.</div>
+      </div>
+      <div class="field-filters">
+        <span class="ff-lbl">Frames</span>
+        ${chips}
+        <button class="field-reset">reset</button>
+      </div>
+      <div class="field-grid">
+        <div class="field-plot-col">
+          <div class="plot-grid">
+            <div class="plot-ylab">Ability / feasibility →</div>
+            <div class="plot">
+              <div class="qline v"></div><div class="qline h"></div>
+              <div class="qlab tr"><b>Quick wins</b>wanted · feasible</div>
+              <div class="qlab br"><b>Big bets</b>wanted · hard</div>
+              <div class="qlab tl">easy extras</div>
+              <div class="qlab bl">lower priority</div>
+              ${pts.map(p => `<div class="pt ${p.s.wand ? 'wand' : ''} ${p.x > 49 ? 'lleft' : ''}" data-shift="${p.s.id}" style="left:${p.x}%;bottom:${p.y}%;--c:${FRAME_COLORS[p.s.frame]}"><button class="hit" aria-label="${p.s.short}"></button><span class="dia"></span><span class="lbl">${p.s.short}</span></div>`).join("")}
+            </div>
+            <div></div>
+            <div class="plot-xlab">Desire →</div>
+          </div>
+          <div class="scatter-foot">Each diamond is one shift, coloured by frame; <span class="sig">■</span> ringed marks a magic-wand wish. Position is authored from the evidence, not measured: <b>desire</b> from how hard Catherine pushes, <b>ability</b> from how feasible the change is to build.</div>
+        </div>
+        <aside class="field-detail" id="fieldDetail"><div class="fd-empty">Select a point<br>to open its shift</div></aside>
+      </div>`;
+
+    function fieldDetail(s) {
+      const nowR = s.rungs[s.now - 1], idealR = s.rungs[s.ideal - 1];
+      return `<div class="fd-in">
+        <div class="fd-frame"><span class="sw" style="background:${FRAME_COLORS[s.frame]}"></span>${frameName(s.frame)}${s.wand ? '<span class="fd-wand">Magic wand</span>' : ''}</div>
+        <div class="fd-name">${s.name}</div>
+        <div class="fd-da">${daBars(s.desire, 'desire')}${daBars(s.ability, 'ability')}</div>
+        <div class="fd-axis">${s.axis}</div>
+        ${miniRuler(s)}
+        <div class="fd-states">
+          <div class="state now"><div class="stl">The world as it is <span class="rk">· rung ${s.now}</span></div><div class="anchor-name">${nowR.label}</div><div class="anchor-desc">${nowR.desc}</div>${evHTML(s.nowEv, true)}</div>
+          <div class="state ideal"><div class="stl">The world as it could be <span class="rk">· rung ${s.ideal}</span></div><div class="anchor-name">${idealR.label}</div><div class="anchor-desc">${idealR.desc}</div>${evHTML(s.idealEv, true)}</div>
+        </div>
+        <button class="fd-link" data-shift="${s.id}">Open the full ladder in the scale view →</button>
+      </div>`;
+    }
+    function selectPoint(id) {
+      const s = SHIFTS.find(x => x.id === id); if (!s) return;
+      fieldEl.querySelectorAll(".pt").forEach(p => p.classList.toggle("on", p.dataset.shift === id));
+      const detail = document.getElementById("fieldDetail");
+      detail.innerHTML = fieldDetail(s);
+      detail.querySelector(".fd-link").addEventListener("click", () => jumpToScale(id));
+    }
+    function jumpToScale(id) {
+      const s = SHIFTS.find(x => x.id === id); if (!s) return;
+      showView("scales");
+      selectFrame(s.frame, true);
+      const card = document.getElementById(s.frame);
+      const kc = card.querySelector(".kids"); if (kc) kc.classList.add("open");
+      const kid = card.querySelector(`.kid[data-shift="${id}"]`); if (kid) kid.classList.add("open");
+    }
+    fieldEl.querySelectorAll(".pt .hit").forEach(h => h.addEventListener("click", () => selectPoint(h.closest(".pt").dataset.shift)));
+
+    // frame filters
+    const activeFrames = new Set(frameIds);
+    function applyFilters() {
+      fieldEl.querySelectorAll(".pt").forEach(p => {
+        const fr = (SHIFTS.find(x => x.id === p.dataset.shift) || {}).frame;
+        p.classList.toggle("hidden", !activeFrames.has(fr));
+      });
+      fieldEl.querySelectorAll(".fchip").forEach(c => c.classList.toggle("off", !activeFrames.has(c.dataset.frame)));
+      declutterLabels();
+    }
+    fieldEl.querySelectorAll(".fchip").forEach(c => c.addEventListener("click", () => {
+      const fr = c.dataset.frame;
+      if (activeFrames.has(fr)) activeFrames.delete(fr); else activeFrames.add(fr);
+      if (activeFrames.size === 0) frameIds.forEach(f => activeFrames.add(f));   // never empty
+      applyFilters();
+    }));
+    fieldEl.querySelector(".field-reset").addEventListener("click", () => { frameIds.forEach(f => activeFrames.add(f)); applyFilters(); });
+
+    // nudge overlapping (visible) point labels apart vertically — diamonds stay put
+    function declutterLabels() {
+      const labels = [...fieldEl.querySelectorAll(".pt:not(.hidden) .lbl")];
+      labels.forEach(l => l.style.marginTop = "0px");
+      for (let iter = 0; iter < 8; iter++) {
+        let moved = false;
+        for (let i = 0; i < labels.length; i++) {
+          for (let j = i + 1; j < labels.length; j++) {
+            const a = labels[i].getBoundingClientRect(), b = labels[j].getBoundingClientRect();
+            if (a.right < b.left || b.right < a.left || a.bottom < b.top || b.bottom < a.top) continue;
+            const lower = a.top <= b.top ? labels[j] : labels[i];
+            const push = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) + 3;
+            lower.style.marginTop = (parseFloat(lower.style.marginTop) + push) + "px";
+            moved = true;
+          }
+        }
+        if (!moved) break;
+      }
+    }
+
+    /* ---------- view switch: scales ↔ field ---------- */
+    function showView(v) {
+      document.getElementById("view-scales").hidden = (v !== "scales");
+      document.getElementById("view-field").hidden = (v !== "field");
+      document.querySelectorAll(".viewswitch button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
+      if (v === "field") requestAnimationFrame(() => requestAnimationFrame(declutterLabels));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    document.querySelectorAll(".viewswitch button").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!document.getElementById("view-field").hidden) declutterLabels(); });
+
+    // crux read-out lives with the sort control, over the seven detail frames
+    const cx = SCALES.find(s => s.id === CRUX);
+    document.getElementById("sbNote").innerHTML =
+      `<b>Crux · ${cx.frame}.</b> Widest blast radius: it folds in ${brOf(cx)} of the nine frictions at a ${gapOf(cx)}-rung gap, so movement here ripples furthest. ` +
+      `<span class="muted">Leverage = distance × frictions touched, weighted up where Catherine wished for it (<span class="sig">■</span>). Re-rank with the controls above.</span>`;
+
+    /* ---------- sorting (cards, rail map, and breakdown move together) ---------- */
+    const cmps = {
+      leverage: (a, b) => levOf(b) - levOf(a) || gapOf(b) - gapOf(a),
+      gap:      (a, b) => gapOf(b) - gapOf(a) || brOf(b) - brOf(a),
+      breadth:  (a, b) => brOf(b) - brOf(a)   || gapOf(b) - gapOf(a),
+      sequence: (a, b) => cIdx.get(a.id) - cIdx.get(b.id)
+    };
+    const modeLabel = { leverage: "leverage", gap: "gap size", breadth: "breadth", sequence: "workflow order" };
+    function applySort(mode) {
+      [...SCALES].sort(cmps[mode]).forEach((s, i) => {
+        const rank = String(i + 1).padStart(2, "0");
+        const card = document.getElementById(s.id);
+        if (card) { card.style.order = i; card.querySelector(".sc-idx").textContent = rank; }
+        const mr = map.querySelector(`[data-target="${s.id}"]`);
+        if (mr) mr.style.order = i;
+      });
+      document.querySelectorAll(".sortctl button").forEach(b => b.classList.toggle("on", b.dataset.mode === mode));
+      document.getElementById("sbTitle").innerHTML = `The three frames · <b>ranked by ${modeLabel[mode]}</b>`;
+    }
+    document.querySelectorAll(".sortctl button").forEach(b => b.addEventListener("click", () => applySort(b.dataset.mode)));
+    applySort("leverage");
+    selectFrame(CRUX, false);   // open the crux frame first; one card at a time
+
+    // entrance reveal — JS-driven so content is never gated behind a paused animation
+    function reveal() { document.querySelectorAll(".fadein").forEach(e => e.classList.add("in")); }
+    requestAnimationFrame(() => requestAnimationFrame(reveal));
+    setTimeout(reveal, 60);
+  </script>
+</body>
+</html>

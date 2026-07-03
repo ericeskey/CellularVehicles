@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ideate v2 · continuity, not convergence</title>
+<link rel="stylesheet" href="assets/colors_and_type.css" />
+<style>
+  /* ---- shared frame ---- */
+  .cc { height: 100%; display: flex; flex-direction: column; background: var(--paper); color: var(--ink); font-family: var(--font-sans); }
+  .cc-pad { padding: 26px 26px 0; flex: 1; display: flex; flex-direction: column; }
+  .cc-eyebrow { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
+  .cc-title { font-size: 29px; font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1; margin-top: 12px; }
+  .cc-title em { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.005em; }
+  .cc-body { margin-top: 26px; flex: 1; }
+  .cc-cap { border-top: 1px solid var(--ink); font-family: var(--font-mono); font-size: 10px; line-height: 1.55; letter-spacing: 0.03em; color: var(--ash); padding: 13px 26px 16px; text-transform: uppercase; }
+  .cc-cap b { color: var(--ink); font-weight: var(--fw-medium); }
+
+  /* ---- 0 · Diagnosis ---- */
+  .diag .dg-list { list-style: none; counter-reset: d; padding: 0; margin: 26px 0 0; }
+  .diag .dg-list li { counter-increment: d; position: relative; padding: 13px 0 13px 30px; border-top: 1px solid var(--fog); font-size: 13.5px; line-height: 1.45; color: var(--ash); }
+  .diag .dg-list li:first-child { border-top: 1px solid var(--ink); }
+  .diag .dg-list li::before { content: counter(d, decimal-leading-zero); position: absolute; left: 0; top: 15px; font-family: var(--font-mono); font-size: 10px; color: var(--ash); }
+  .diag .dg-list li b { color: var(--ink); font-weight: var(--fw-medium); }
+  .diag .dg-turn { margin-top: 24px; border-top: 2px solid var(--ink); padding-top: 18px; font-size: 20px; font-weight: var(--fw-black); letter-spacing: -0.02em; line-height: 1.15; }
+  .diag .dg-turn .sig { color: var(--signal); font-family: var(--font-serif); font-style: italic; font-weight: 400; }
+  .diag .dg-thread { display: block; font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: 0.02em; text-transform: none; color: var(--ash); margin-top: 12px; line-height: 1.5; }
+
+  /* ---- A · Unbroken Thread ---- */
+  .th-track + .th-track { margin-top: 34px; }
+  .th-cap { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); margin-bottom: 20px; }
+  .th-cap.dhw { color: var(--ink); }
+  .thread { position: relative; height: 16px; margin: 0 8px; }
+  .rail { position: absolute; top: 7px; left: 7px; right: 7px; height: 0; }
+  .usual .rail { border-top: 2px dashed var(--fog); right: 36%; }
+  .usual.five .rail { right: 25%; }
+  .five .brk { left: 77%; }
+  .labels.five > div { width: 19%; }
+  .annot { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.03em; color: var(--ash); margin-top: 5px; line-height: 1.3; text-transform: none; }
+  .dhw .rail { border-top: 2px solid var(--signal); }
+  .brk { position: absolute; top: -7px; left: 61%; font-size: 13px; color: var(--fog); }
+  .nodes { position: absolute; top: 0; left: 7px; right: 7px; display: flex; justify-content: space-between; }
+  .node { width: 14px; height: 14px; background: var(--ash); }
+  .usual .node.dead { background: transparent; box-shadow: inset 0 0 0 2px var(--fog); }
+  .node.ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--fog); }
+  .dhw .node { background: var(--ink); }
+  .dhw .node.goal { background: var(--signal); box-shadow: 0 0 0 4px rgba(214,74,31,0.16); }
+  .dhw .node.handoff { background: var(--paper); box-shadow: inset 0 0 0 2px var(--signal); }
+  .labels { display: flex; justify-content: space-between; margin-top: 16px; }
+  .labels > div { width: 23%; }
+  .lk { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ash); }
+  .ls { font-size: 11.5px; line-height: 1.25; color: var(--ink); margin-top: 5px; }
+  .dead-lab .ls { color: var(--fog); }
+  .ghost-lab .lk, .ghost-lab .ls { color: var(--fog); }
+  .handoff-lab .lk { color: var(--signal); }
+  .handoff-lab .ls { color: var(--ash); }
+  .goal-lab .lk { color: var(--signal); }
+  .goal-lab .ls { color: var(--signal); font-weight: var(--fw-medium); }
+  .agg-note { margin-top: 18px; border-top: 1px solid var(--fog); padding-top: 12px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.04em; color: var(--ash); line-height: 1.45; text-transform: none; }
+
+  /* ---- B · Provenance Chain ---- */
+  .pc { display: flex; flex-direction: column; }
+  .pc-node { border: 1px solid var(--ink); padding: 13px 15px; }
+  .pc-node.decision { border-width: 2px; }
+  .pc-node.quote { background: var(--bone); }
+  .pc-k { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); }
+  .pc-v { font-size: 14.5px; line-height: 1.3; margin-top: 6px; font-weight: var(--fw-medium); }
+  .pc-node.decision .pc-v { color: var(--signal); }
+  .pc-note { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.04em; color: var(--ash); font-weight: 400; }
+  .pc-q { font-family: var(--font-serif); font-style: italic; font-size: 17px; line-height: 1.3; margin-top: 6px; color: var(--ink); }
+  .pc-link { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); text-align: center; padding: 9px 0; }
+
+  /* ---- C · Last Span ---- */
+  .ls2 { display: flex; flex-direction: column; gap: 26px; }
+  .sp-cap { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); margin-bottom: 14px; }
+  .sp-cap.dhw { color: var(--ink); }
+  .beam { display: flex; align-items: center; }
+  .pier { border: 1px solid var(--ink); padding: 9px 6px; text-align: center; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; min-width: 78px; }
+  .pier.hollow { color: var(--fog); border-color: var(--fog); }
+  .pier.goal { color: var(--signal); border-color: var(--signal); border-width: 2px; }
+  .deck { flex: 1; height: 6px; background: var(--ink); }
+  .span-final { flex: 0 0 64px; background: var(--signal); }
+  .gap { flex: 0 0 64px; height: 6px; border-top: 2px dashed var(--fog); }
+  .sp-foot { font-family: var(--font-serif); font-style: italic; font-size: 13px; color: var(--ash); margin-top: 12px; }
+
+  /* ---- D · Two Rooms ---- */
+  .rooms { display: flex; flex-direction: column; gap: 18px; }
+  .room { border: 1px solid var(--ink); padding: 18px 18px 16px; }
+  .rm-cap { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); }
+  .rm-cap.dhw { color: var(--ink); }
+  .rm-evidence { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ash); margin-top: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--fog); }
+  .rm-fan { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .rm-fan span { border: 1px solid var(--fog); color: var(--ash); font-size: 12px; padding: 5px 11px; }
+  .rm-one { margin-top: 14px; display: inline-block; background: var(--signal); color: var(--paper); font-size: 15px; font-weight: var(--fw-bold); letter-spacing: -0.01em; padding: 9px 16px; }
+  .rm-foot { font-size: 12.5px; line-height: 1.4; color: var(--ash); margin-top: 14px; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="continuity-concepts.jsx"></script>
+</body>
+</html>

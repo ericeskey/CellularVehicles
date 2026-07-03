@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Handoff · the Demand Discovery demo</title>
+<link rel="stylesheet" href="assets/colors_and_type.css" />
+<style>
+  body { background: var(--paper); color: var(--ink); margin: 0; font-family: var(--font-sans); }
+  .doc { max-width: 860px; margin: 0 auto; padding: 0 var(--gutter) 110px; }
+  .masthead { border-top: var(--masthead-rule) solid var(--ink); display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 16px 0; }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--ash); text-transform: uppercase; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
+
+  .lede { padding: 40px 0 30px; border-bottom: 1px solid var(--ink); }
+  .lede h1 { font-size: clamp(32px, 5vw, 56px); font-weight: var(--fw-black); letter-spacing: -0.04em; line-height: 0.96; margin: 18px 0 0; max-width: 20ch; }
+  .lede h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
+  .lede p { font-size: 17px; line-height: 1.6; color: var(--ash); max-width: 64ch; margin-top: 18px; }
+  .lede p b { color: var(--ink); font-weight: var(--fw-medium); }
+
+  section { padding: 34px 0; border-bottom: 1px solid var(--fog); }
+  h2 { font-size: 13px; font-family: var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--ash); margin: 0 0 20px; font-weight: 400; }
+  h3 { font-size: 19px; font-weight: var(--fw-bold); letter-spacing: -0.02em; margin: 0 0 4px; }
+
+  .row { display: grid; grid-template-columns: 180px 1fr; gap: 22px; padding: 14px 0; border-top: 1px solid var(--fog); }
+  .row:first-of-type { border-top: 0; }
+  .row .k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ash); padding-top: 3px; }
+  .row .v { font-size: 15px; line-height: 1.55; }
+  .row .v b { font-weight: var(--fw-medium); }
+  .row .v .sig { color: var(--signal); font-weight: var(--fw-medium); }
+
+  .files { display: flex; flex-direction: column; }
+  .file { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--fog); }
+  .file:first-child { border-top: 1px solid var(--ink); }
+  .file .fn { font-size: 15px; font-weight: var(--fw-medium); }
+  .file .fn code { font-family: var(--font-mono); font-size: 12.5px; background: var(--bone); padding: 1px 5px; }
+  .file .fd { font-size: 13px; color: var(--ash); line-height: 1.4; margin-top: 3px; max-width: 60ch; }
+  .tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--fog); color: var(--ash); white-space: nowrap; }
+  .tag.live { border-color: var(--signal); color: var(--signal); }
+  .tag.keep { border-color: var(--ink); color: var(--ink); }
+  .tag.park { color: var(--fg3); }
+
+  ol.beats { counter-reset: b; list-style: none; padding: 0; margin: 0; }
+  ol.beats li { counter-increment: b; display: grid; grid-template-columns: 30px 1fr; gap: 14px; padding: 11px 0; border-top: 1px solid var(--fog); align-items: baseline; }
+  ol.beats li:first-child { border-top: 1px solid var(--ink); }
+  ol.beats li::before { content: counter(b, decimal-leading-zero); font-family: var(--font-mono); font-size: 11px; color: var(--ash); }
+  ol.beats .bt { font-size: 15px; }
+  ol.beats .bt b { font-weight: var(--fw-bold); }
+  ol.beats .bt span { color: var(--ash); }
+
+  ul.list { list-style: none; padding: 0; margin: 0; }
+  ul.list li { font-size: 15px; line-height: 1.5; color: var(--ink); padding: 11px 0 11px 22px; border-top: 1px solid var(--fog); position: relative; }
+  ul.list li:first-child { border-top: 0; }
+  ul.list li:before { content: "—"; position: absolute; left: 0; color: var(--fog); }
+  ul.list li b { font-weight: var(--fw-medium); }
+  ul.list li .sig { color: var(--signal); }
+
+  .startbox { border: 1px solid var(--ink); background: var(--bone); padding: 24px 26px; margin-top: 30px; }
+  .startbox .eyebrow { margin-bottom: 12px; }
+  .startbox p { font-size: 15px; line-height: 1.6; margin: 0 0 10px; }
+  .startbox p:last-child { margin-bottom: 0; }
+  .startbox b { font-weight: var(--fw-medium); }
+</style>
+</head>
+<body>
+  <div class="doc">
+    <div class="masthead">
+      <span class="wm">DARK HORSE WORKS</span>
+      <span class="ref">Handoff · Demand Discovery demo</span>
+    </div>
+
+    <div class="lede">
+      <div class="eyebrow">Read this first · then open The Convergence Engine</div>
+      <h1>Where the demo <em>stands.</em></h1>
+      <p>This captures the state of the Demand Discovery demo so a fresh conversation can pick up and refine. It is the product of a full pass through the Drawbackwards process (context → empathize → define → ideate → prototype). <b>The demo is one file: <code>The Convergence Engine.html</code>.</b> Everything else is either a feeder, a parked alternative, or reference.</p>
+    </div>
+
+    <section>
+      <h2>What the demo is</h2>
+      <div class="row"><div class="k">Job</div><div class="v">A <b>demo</b>, founder-narrated, that also survives being forwarded by a champion to an exec. Its conversion job: prospect says “now I get it,” then pays to run <b>one of their own interviews</b> through the method.</div></div>
+      <div class="row"><div class="k">The subject</div><div class="v">R01 Martin — a real 56-minute interview with an NGS method-builder. One of 16 in the actual engagement; we show one, fully worked.</div></div>
+      <div class="row"><div class="k">Martin’s sentence</div><div class="v">“Give it a library, get back data.” Everything he’ll pay for lives in the <span class="sig">fragile middle</span> between those two — the expertise-hungry gap only he can hold.</div></div>
+      <div class="row"><div class="k">Prospect’s problem</div><div class="v">“Your team has customer evidence, but no reliable way to convert it into <b>shared conviction</b> about what to build, change, or stop.”</div></div>
+      <div class="row"><div class="k">The product, one line</div><div class="v">Dark Horse Works turns customer evidence into shared conviction — so decisions stop depending on who interprets the research loudest.</div></div>
+    </section>
+
+    <section>
+      <h2>The core idea (what makes it land)</h2>
+      <div class="row"><div class="k">Not convergence</div><div class="v"><b>Continuity.</b> Most research reports and dead-ends at the deck; Demand Discovery converts — raw voice → evidence → belief → proposition. The demo doesn’t describe this; it performs it.</div></div>
+      <div class="row"><div class="k">The mechanic</div><div class="v">One persistent field of real interview moments. Seven independent readings <b>vote</b>; voted moments rise and grow; at 4 of 7 they <span class="sig">ignite</span> (Hawkins: independent frames voting; Kahneman: decorrelated assessment). Divergence stays low — which makes the convergence credible.</div></div>
+      <div class="row"><div class="k">The prior→posterior</div><div class="v">Opens on the market’s naive prior (“just make it faster”); evidence moves belief to the non-obvious answer (pre-run readiness). Honest: <b>votes, not fabricated probabilities</b>.</div></div>
+      <div class="row"><div class="k">The closing beat</div><div class="v">The <b>same nodes re-sort</b> by the steps of Martin’s real job — the consensus core lands <span class="sig">before the run executes</span>. One continuous canvas, no page-switching. The bottleneck was never speed.</div></div>
+      <div class="row"><div class="k">The honest close</div><div class="v">Market validation, <b>not attribution</b>: the MiSeq i100 (onboard denaturation, ~4h runs, built for limited expertise) is what the category built. The proposition predicted the direction; it didn’t cause it.</div></div>
+    </section>
+
+    <section>
+      <h2>The demo today · beats inside The Convergence Engine</h2>
+      <ol class="beats">
+        <li><div class="bt"><b>Prior</b> <span>— “just make it faster,” no readings applied</span></div></li>
+        <li><div class="bt"><b>Apply 7 readings</b> <span>— Chronology · Peaks · Narratives · Transformation · Skills · Cruxes · Outcomes; the core ignites</span></div></li>
+        <li><div class="bt"><b>Re-sort by his job</b> <span>— same nodes slide into workflow phases; consensus lands pre-run</span></div></li>
+      </ol>
+      <p style="font-size:14px;color:var(--ash);line-height:1.55;margin-top:16px;">Runs narrated (step with “Apply next reading” / “Re-sort”) and cold (Play self-runs). Hover any node for a glance; click to pin Martin’s words + which readings voted.</p>
+    </section>
+
+    <section>
+      <h2>File inventory</h2>
+      <div class="files">
+        <div class="file"><div><div class="fn"><code>The Convergence Engine.html</code></div><div class="fd">THE DEMO. Single canvas: prior → 7-reading vote → re-sort by job. Loads real data (data.js, crux-data.js, casefile-atoms.js, odi-data.js).</div></div><span class="tag live">the demo</span></div>
+        <div class="file"><div><div class="fn"><code>Demo prototype - the thread.html</code></div><div class="fd">The continuity narrative + honest i100 validation. The Envisioning beat / bookend material.</div></div><span class="tag keep">feeder</span></div>
+        <div class="file"><div><div class="fn"><code>The Lens Field.html</code></div><div class="fd">Earlier exploration of the seven readings (filter view). Superseded by the accumulation mechanic; kept for reference.</div></div><span class="tag park">parked</span></div>
+        <div class="file"><div><div class="fn"><code>The Reorganization*.html</code></div><div class="fd">Standalone reorg studies (abstract lanes; real workflow). Now lives inside the Engine; kept for reference.</div></div><span class="tag park">parked</span></div>
+        <div class="file"><div><div class="fn"><code>Demo Storyboard.html</code></div><div class="fd">The full intended arc, beat by beat, tagged prototyped/new. The north star.</div></div><span class="tag keep">reference</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Refinement backlog (for the new chat)</h2>
+      <ul class="list">
+        <li><b>Fold the deep-listen discipline (beat 03) into the canvas</b> — the storyboard wants said / unspoken-implied / not-said before the vote, on the same surface.</li>
+        <li><b>The belief-progress through-line</b> — the storyboard’s right-hand “raw voice → evidence → belief → proposition” bar that fills as you advance. Not yet built; it’s what ties the beats into one felt motion.</li>
+        <li><b>“Deep listening makes the line come alive” (beat 03 animation)</b> — atoms detecting into frames. Needs the subtext layer honestly tagged.</li>
+        <li><b>The prospect-facing open &amp; Ask</b> — the conversion wrapper (Engaging / Committing about <i>the prospect</i>, distinct from Martin’s arc). Needs a home on the single canvas.</li>
+        <li><b>Verify editorial assignments</b> — the <span class="sig">EVENT_PHASE</span> map (event→job phase) and the vote/threshold (4 of 7) are editorial judgments. Worth a review pass; one-line edits in the file.</li>
+        <li><b>Transitions / pacing</b> — currently functional steps; could be made more filmic without violating the motion rules (single fade-and-rise, restrained ease).</li>
+        <li><b>Two-mode hardening</b> — confirm the cold-forward (autoplay) reads as well as the narrated path; they must ship together.</li>
+      </ul>
+    </section>
+
+    <section style="border-bottom:0;">
+      <h2>How to start the new chat</h2>
+      <div class="startbox">
+        <div class="eyebrow">Paste something like this</div>
+        <p>“We’re refining the Demand Discovery demo. <b>Open <code>Handoff.html</code> and <code>The Convergence Engine.html</code> first</b> — Handoff explains where we are; the Engine is the demo. The design system (Editorial Signal) is attached.”</p>
+        <p>“Today I want to work on <b>[pick one from the backlog]</b>. Don’t re-architect — the single-canvas structure is settled. Keep the principle: <b>continuity, one substrate, honest data, signal used once.</b>”</p>
+      </div>
+      <p style="font-size:13px;color:var(--ash);line-height:1.55;margin-top:18px;">One caution worth carrying forward: this team values <b>diagnose-before-sell</b> and grounding every claim in real data. Two mistakes were caught and corrected in this thread — building marketing surface instead of an operable demo, and fragmenting the continuous canvas into chapters. Hold the line on both.</p>
+    </section>
+  </div>
+</body>
+</html>

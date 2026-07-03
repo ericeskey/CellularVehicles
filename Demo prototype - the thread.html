@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Demo · the unbroken thread</title>
+<link rel="stylesheet" href="assets/colors_and_type.css" />
+<style>
+  body { background: var(--paper); color: var(--ink); margin: 0; font-family: var(--font-sans); }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); }
+
+  .masthead {
+    border-top: var(--masthead-rule) solid var(--ink);
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 24px; padding: 16px var(--gutter) 0;
+  }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--ash); text-transform: uppercase; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ash); }
+
+  /* ============ SECTION 1 · THE THREAD ============ */
+  .s-thread { padding: 52px 0 30px; }
+  .s-thread .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; flex-wrap: wrap; margin-bottom: 12px; }
+  .s-thread h1 { font-size: clamp(30px, 4vw, 50px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 1.0; max-width: 18ch; }
+  .s-thread h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+  .modepill { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); border: 1px solid var(--fog); padding: 6px 12px; white-space: nowrap; }
+
+  .stage { border: 1px solid var(--ink); margin-top: 28px; padding: 40px 44px 30px; background: var(--paper); }
+
+  .track-wrap { padding: 6px 0 4px; }
+  .track-cap { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); margin-bottom: 22px; transition: color var(--dur) var(--ease); }
+  .track-cap.lit { color: var(--ink); }
+  .track-cap.dhw.lit { color: var(--ink); }
+
+  .track { position: relative; height: 18px; margin: 0 9px; }
+  .rail-draw { position: absolute; top: 8px; left: 9px; height: 0; width: 0; }
+  .usual .rail-draw { border-top: 2px dashed var(--fog); transition: width 0.85s var(--ease); }
+  .dhw .rail-draw { border-top: 2px solid var(--signal); transition: width 0.95s var(--ease); }
+  .nodes { position: absolute; top: 1px; left: 9px; right: 9px; display: flex; justify-content: space-between; }
+  .node { width: 16px; height: 16px; background: transparent; box-shadow: inset 0 0 0 1.5px var(--fog); transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
+  .usual .node.on { background: var(--ash); box-shadow: none; }
+  .usual .node.ghost.on { background: transparent; box-shadow: inset 0 0 0 1px var(--fog); }
+  .dhw .node.on { background: var(--ink); box-shadow: none; }
+  .dhw .node.goal.on { background: var(--signal); box-shadow: 0 0 0 0 rgba(214,74,31,0.18); }
+  .dhw .node.goal.pulse { animation: pulse 1.4s var(--ease) 2; }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(214,74,31,0.0); } 50% { box-shadow: 0 0 0 7px rgba(214,74,31,0.16); } }
+  .dhw .node.handoff.on { background: var(--paper); box-shadow: inset 0 0 0 2px var(--signal); }
+
+  .labels { display: flex; justify-content: space-between; margin-top: 16px; }
+  .labels > div { width: 18.5%; opacity: 0.4; transition: opacity var(--dur) var(--ease); }
+  .labels > div.on { opacity: 1; }
+  .lk { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ash); }
+  .ls { font-size: 12px; line-height: 1.25; color: var(--ink); margin-top: 5px; }
+  .ghost-lab .lk, .ghost-lab .ls { color: var(--fog); }
+  .goal-lab .lk { color: var(--signal); }
+  .goal-lab .ls { color: var(--signal); font-weight: var(--fw-medium); }
+  .handoff-lab .lk { color: var(--signal); }
+  .annot { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.03em; color: var(--ash); margin-top: 6px; line-height: 1.35; }
+
+  .track-wrap.dhw { margin-top: 30px; padding-top: 30px; border-top: 1px solid var(--fog); }
+
+  /* validation card */
+  .valid { margin-top: 26px; border: 1px solid var(--ink); background: var(--bone); padding: 0; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.7s var(--ease), opacity 0.5s var(--ease), margin var(--dur) var(--ease); }
+  .valid.show { max-height: 520px; opacity: 1; }
+  .valid-in { padding: 24px 26px 26px; }
+  .valid .vh { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; border-bottom: 1px solid var(--ink); padding-bottom: 14px; }
+  .valid .vh .vt { font-size: 20px; font-weight: var(--fw-black); letter-spacing: -0.02em; }
+  .valid .vh .vt em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--signal); }
+  .valid .vh .vmeta { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); }
+  .valid .vmap { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; margin-top: 4px; }
+  .valid .vcol { padding: 16px 18px 6px; border-right: 1px solid var(--fog); }
+  .valid .vcol:last-child { border-right: 0; }
+  .valid .vpain { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ash); line-height: 1.5; }
+  .valid .varrow { color: var(--signal); margin: 8px 0 6px; font-size: 13px; }
+  .valid .vbuilt { font-size: 14px; line-height: 1.35; font-weight: var(--fw-medium); }
+  .valid .vhedge { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.04em; color: var(--ash); margin-top: 18px; border-top: 1px solid var(--fog); padding-top: 13px; line-height: 1.5; }
+  .valid .vhedge b { color: var(--ink); font-weight: var(--fw-medium); }
+
+  /* caption + controls */
+  .scriptbar { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center; margin-top: 26px; border-top: 1px solid var(--ink); padding-top: 20px; }
+  .caption { font-size: 17px; line-height: 1.5; color: var(--ink); max-width: 64ch; min-height: 52px; }
+  .caption b { font-weight: var(--fw-bold); }
+  .caption .sig { color: var(--signal); }
+  .controls { display: flex; align-items: center; gap: 10px; }
+  .ctrl { font-family: var(--font-sans); font-size: 13px; font-weight: var(--fw-medium); color: var(--ink); background: transparent; border: 1px solid var(--ink); padding: 9px 14px; cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease); white-space: nowrap; }
+  .ctrl:hover { background: var(--ink); color: var(--paper); }
+  .ctrl:active { transform: translateY(1px); }
+  .ctrl.primary { background: var(--ink); color: var(--paper); }
+  .ctrl.primary:hover { background: var(--ink-hover); }
+  .ctrl:disabled { opacity: 0.3; cursor: default; }
+  .ctrl:disabled:hover { background: transparent; color: var(--ink); }
+  .beatdots { display: flex; gap: 6px; align-items: center; margin: 0 6px; }
+  .beatdots span { width: 7px; height: 7px; background: var(--fog); transition: background var(--dur) var(--ease); }
+  .beatdots span.on { background: var(--ink); }
+
+  /* ============ SECTION 2 · PROVENANCE ============ */
+  .s-prov { padding: 40px 0 90px; border-top: 1px solid var(--ink); margin-top: 44px; }
+  .s-prov .head { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; flex-wrap: wrap; margin-bottom: 30px; }
+  .s-prov h2 { font-size: clamp(26px, 3.2vw, 40px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.0; max-width: 20ch; }
+  .s-prov h2 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; }
+  .s-prov .lead { font-size: 16px; line-height: 1.6; color: var(--ash); max-width: 56ch; margin-top: 10px; }
+
+  .pchain { max-width: 720px; }
+  .plink { border: 1px solid var(--fog); padding: 15px 18px; background: var(--paper); opacity: 0.5; transform: translateY(4px); transition: opacity 0.45s var(--ease), transform 0.45s var(--ease), border-color 0.45s var(--ease), background 0.45s var(--ease); }
+  .plink.lit { opacity: 1; transform: none; border-color: var(--ink); }
+  .plink.top.lit { border-width: 2px; background: var(--bone); }
+  .plink.quote.lit { background: var(--bone); }
+  .pk { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); }
+  .pv { font-size: 15px; line-height: 1.35; margin-top: 6px; font-weight: var(--fw-medium); }
+  .plink.top .pv { color: var(--signal); }
+  .pq { font-family: var(--font-serif); font-style: italic; font-size: 19px; line-height: 1.3; margin-top: 6px; }
+  .pconnect { text-align: center; font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fog); padding: 8px 0; transition: color 0.45s var(--ease); }
+  .pconnect.lit { color: var(--ash); }
+  .pseam { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.04em; color: var(--signal); text-transform: uppercase; }
+
+  @media (max-width: 760px) {
+    .valid .vmap { grid-template-columns: 1fr; }
+    .valid .vcol { border-right: 0; border-bottom: 1px solid var(--fog); }
+    .scriptbar { grid-template-columns: 1fr; gap: 18px; }
+    .labels > div { width: 18.5%; }
+    .ls { font-size: 10.5px; }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <span class="ref">Demo · R01 Martin · the thread</span>
+  </div>
+
+  <div class="wrap">
+
+    <!-- ================= SECTION 1 ================= -->
+    <section class="s-thread">
+      <div class="head">
+        <div>
+          <div class="eyebrow" style="margin-bottom:18px;">One interview, two ways to read it</div>
+          <h1>The unbroken <em>thread</em></h1>
+        </div>
+        <span class="modepill" id="modepill">▸ Press play, or step through</span>
+      </div>
+
+      <div class="stage" id="stage" data-beat="0">
+
+        <div class="track-wrap usual-wrap">
+          <div class="track-cap" id="cap-usual">Most research · framed around learning</div>
+          <div class="track usual">
+            <div class="rail-draw" id="rail-usual"></div>
+            <div class="nodes" id="nodes-usual">
+              <span class="node"></span><span class="node"></span>
+              <span class="node"></span><span class="node"></span>
+              <span class="node ghost"></span>
+            </div>
+          </div>
+          <div class="labels" id="labels-usual">
+            <div><div class="lk">Ask</div><div class="ls">questions</div></div>
+            <div><div class="lk">Capture</div><div class="ls">findings</div></div>
+            <div><div class="lk">Synthesize</div><div class="ls">themes</div></div>
+            <div><div class="lk">Deck</div><div class="ls">presented — the end</div></div>
+            <div class="ghost-lab"><div class="lk">—</div><div class="ls">decision · action: unbuilt</div></div>
+          </div>
+        </div>
+
+        <div class="track-wrap dhw">
+          <div class="track-cap dhw" id="cap-dhw">Demand Discovery · framed around converting</div>
+          <div class="track dhw">
+            <div class="rail-draw" id="rail-dhw"></div>
+            <div class="nodes" id="nodes-dhw">
+              <span class="node"></span><span class="node"></span>
+              <span class="node"></span><span class="node goal"></span>
+              <span class="node handoff"></span>
+            </div>
+          </div>
+          <div class="labels" id="labels-dhw">
+            <div><div class="lk">Raw voice</div><div class="ls">one customer</div></div>
+            <div><div class="lk">Evidence</div><div class="ls">independently assessed</div><div class="annot">↳ 7 reads · this case</div></div>
+            <div><div class="lk">Belief</div><div class="ls">shared, trusted</div></div>
+            <div class="goal-lab"><div class="lk">Proposition</div><div class="ls">decision-ready</div></div>
+            <div class="handoff-lab"><div class="lk">→ aggregate</div><div class="ls">16 interviews + survey</div></div>
+          </div>
+        </div>
+
+        <!-- validation -->
+        <div class="valid" id="valid">
+          <div class="valid-in">
+            <div class="vh">
+              <div class="vt">And the category built <em>exactly that</em></div>
+              <div class="vmeta">MiSeq i100 · Illumina · Oct 2024</div>
+            </div>
+            <div class="vmap">
+              <div class="vcol">
+                <div class="vpain">Pain: manual denaturation is fragile, high-risk</div>
+                <div class="varrow">↓ built</div>
+                <div class="vbuilt">Libraries denatured automatically onboard</div>
+              </div>
+              <div class="vcol">
+                <div class="vpain">Pain: setup needs too much tacit expertise</div>
+                <div class="varrow">↓ built</div>
+                <div class="vbuilt">Designed for labs with limited NGS expertise</div>
+              </div>
+              <div class="vcol">
+                <div class="vpain">Pain: long runs break workflow momentum</div>
+                <div class="varrow">↓ built</div>
+                <div class="vbuilt">Run times as fast as ~4 hours; room-temp reagents</div>
+              </div>
+            </div>
+            <div class="vhedge"><b>Directional alignment — not attribution.</b> Public roadmap, not our engagement. The proposition predicted the move toward continuity-protected sequencing; it did not cause it. That distinction is the point: the method surfaces demand the market goes on to confirm.</div>
+          </div>
+        </div>
+
+        <!-- caption + controls -->
+        <div class="scriptbar">
+          <div class="caption" id="caption"></div>
+          <div class="controls">
+            <button class="ctrl" id="prev" aria-label="Previous beat">← Back</button>
+            <div class="beatdots" id="dots"></div>
+            <button class="ctrl" id="next" aria-label="Next beat">Next →</button>
+            <button class="ctrl primary" id="play">▸ Play</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 2 ================= -->
+    <section class="s-prov">
+      <div class="head">
+        <div>
+          <div class="eyebrow" style="margin-bottom:16px;">The same thread, audited</div>
+          <h2>Pull any outcome back to the <em>customer’s words</em></h2>
+          <p class="lead">Nothing here is asserted. Every link holds — from what the market confirmed all the way down to one sentence Martin said at 28:14.</p>
+        </div>
+        <div class="controls">
+          <button class="ctrl primary" id="pull">Pull the thread ↓</button>
+          <button class="ctrl" id="reset">Reset</button>
+        </div>
+      </div>
+
+      <div class="pchain" id="pchain">
+        <div class="plink top" data-i="0">
+          <div class="pk">Validated outcome</div>
+          <div class="pv">Continuity-protected sequencing — what the category built &amp; scaled</div>
+        </div>
+        <div class="pconnect" data-i="0">↑ confirmed by</div>
+        <div class="plink" data-i="1">
+          <div class="pk">Market</div>
+          <div class="pv">MiSeq i100 (2024): onboard denaturation, ~4h runs, built for limited expertise</div>
+        </div>
+        <div class="pconnect" data-i="1">↑ proposed by <span class="pseam">· the aggregate</span></div>
+        <div class="plink" data-i="2">
+          <div class="pk">The team’s decision</div>
+          <div class="pv">16 interviews + a survey → invest in the forgiving, continuity-first workflow</div>
+        </div>
+        <div class="pconnect" data-i="2">↑ one input</div>
+        <div class="plink" data-i="3">
+          <div class="pk">R01 proposition · decision-ready</div>
+          <div class="pv">Pre-run readiness is the segment’s keystone — not raw speed</div>
+        </div>
+        <div class="pconnect" data-i="3">↑ grounded in</div>
+        <div class="plink" data-i="4">
+          <div class="pk">Evidence</div>
+          <div class="pv">Seven independent reads converge on the fragile pre-run middle</div>
+        </div>
+        <div class="pconnect" data-i="4">↑ traced to</div>
+        <div class="plink quote" data-i="5">
+          <div class="pk">Customer · R01 · 28:14</div>
+          <div class="pq">“Give it a library, get back data.”</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+  (function () {
+    var stage = document.getElementById('stage');
+    var railU = document.getElementById('rail-usual');
+    var railD = document.getElementById('rail-dhw');
+    var nodesU = [].slice.call(document.querySelectorAll('#nodes-usual .node'));
+    var nodesD = [].slice.call(document.querySelectorAll('#nodes-dhw .node'));
+    var labsU = [].slice.call(document.querySelectorAll('#labels-usual > div'));
+    var labsD = [].slice.call(document.querySelectorAll('#labels-dhw > div'));
+    var capU = document.getElementById('cap-usual');
+    var capD = document.getElementById('cap-dhw');
+    var valid = document.getElementById('valid');
+    var caption = document.getElementById('caption');
+    var dotsWrap = document.getElementById('dots');
+    var btnPrev = document.getElementById('prev');
+    var btnNext = document.getElementById('next');
+    var btnPlay = document.getElementById('play');
+    var modepill = document.getElementById('modepill');
+
+    var MAX = 4;
+    var TO_PROP = 'calc(75% - 9px)';
+    var TO_AGG = 'calc(100% - 18px)';
+    var captions = [
+      'A single interview. Read it the way most teams do — then the way we do.',
+      'Most research is framed around <b>learning</b>. It ends at the deck. The leap to a decision is left to hope.',
+      'We frame it around <b>converting</b>. Seven independent reads carry one interview, unbroken, to a <span class="sig">decision-ready proposition</span>.',
+      'The decision is never one voice. <b>Sixteen interviews and a survey</b> turn propositions into the team’s strategic choice.',
+      'And the category built <span class="sig">exactly that</span>. Directionally — the proposition predicted the move, it did not cause it.'
+    ];
+
+    var beat = 0;
+    try { var s = parseInt(localStorage.getItem('dhw-thread-beat'), 10); if (!isNaN(s)) beat = Math.max(0, Math.min(MAX, s)); } catch (e) {}
+
+    for (var i = 0; i <= MAX; i++) { var d = document.createElement('span'); dotsWrap.appendChild(d); }
+    var dots = [].slice.call(dotsWrap.children);
+
+    var playing = false, timer = null;
+
+    function render() {
+      stage.dataset.beat = beat;
+      // usual
+      railU.style.width = beat >= 1 ? TO_PROP : '0px';
+      nodesU.forEach(function (n, i) { n.classList.toggle('on', beat >= 1 && i <= 4); });
+      capU.classList.toggle('lit', beat >= 1);
+      labsU.forEach(function (l, i) { l.classList.toggle('on', beat >= 1); });
+      // dhw
+      var wd = '0px';
+      if (beat >= 3) wd = TO_AGG; else if (beat >= 2) wd = TO_PROP;
+      railD.style.width = wd;
+      var lim = beat >= 3 ? 4 : (beat >= 2 ? 3 : -1);
+      nodesD.forEach(function (n, i) { n.classList.toggle('on', i <= lim); });
+      var goal = document.querySelector('#nodes-dhw .goal');
+      goal.classList.toggle('pulse', beat === 2);
+      capD.classList.toggle('lit', beat >= 2);
+      labsD.forEach(function (l, i) { l.classList.toggle('on', i <= (beat >= 3 ? 4 : (beat >= 2 ? 3 : -1))); });
+      // validation
+      valid.classList.toggle('show', beat >= 4);
+      // caption + dots
+      caption.innerHTML = captions[beat];
+      dots.forEach(function (dd, i) { dd.classList.toggle('on', i <= beat); });
+      btnPrev.disabled = beat === 0;
+      btnNext.disabled = beat === MAX;
+      try { localStorage.setItem('dhw-thread-beat', String(beat)); } catch (e) {}
+    }
+
+    function go(n) { beat = Math.max(0, Math.min(MAX, n)); render(); }
+
+    function stopPlay() { playing = false; if (timer) clearTimeout(timer); btnPlay.textContent = '▸ Play'; modepill.textContent = '▸ Press play, or step through'; }
+    function step() {
+      if (!playing) return;
+      if (beat >= MAX) { stopPlay(); return; }
+      go(beat + 1);
+      timer = setTimeout(step, beat === MAX ? 0 : 2400);
+    }
+    function startPlay() {
+      if (beat >= MAX) go(0);
+      playing = true; btnPlay.textContent = '❚❚ Pause'; modepill.textContent = '▸ Playing — self-narrating';
+      timer = setTimeout(step, 700);
+    }
+
+    btnPrev.addEventListener('click', function () { stopPlay(); go(beat - 1); });
+    btnNext.addEventListener('click', function () { stopPlay(); go(beat + 1); });
+    btnPlay.addEventListener('click', function () { if (playing) stopPlay(); else startPlay(); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { stopPlay(); go(beat + 1); }
+      else if (e.key === 'ArrowLeft') { stopPlay(); go(beat - 1); }
+    });
+
+    render();
+
+    /* ---------- provenance ---------- */
+    var links = [].slice.call(document.querySelectorAll('#pchain .plink'));
+    var connects = [].slice.call(document.querySelectorAll('#pchain .pconnect'));
+    var btnPull = document.getElementById('pull');
+    var btnReset = document.getElementById('reset');
+    var ptimers = [];
+
+    function clearP() { ptimers.forEach(clearTimeout); ptimers = []; }
+    function resetP() {
+      clearP();
+      links.forEach(function (l) { l.classList.remove('lit'); });
+      connects.forEach(function (c) { c.classList.remove('lit'); });
+    }
+    function pull() {
+      resetP();
+      links.forEach(function (l, i) {
+        ptimers.push(setTimeout(function () {
+          l.classList.add('lit');
+          if (connects[i]) connects[i].classList.add('lit');
+        }, i * 360));
+      });
+    }
+    btnPull.addEventListener('click', pull);
+    btnReset.addEventListener('click', resetP);
+    links.forEach(function (l) { l.addEventListener('click', pull); });
+  })();
+  </script>
+</body>
+</html>

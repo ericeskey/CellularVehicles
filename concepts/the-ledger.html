@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Ledger · IDI01 Catherine</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { min-height: 100vh; }
+  .masthead {
+    border-top: var(--masthead-rule) solid var(--ink);
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 18px var(--gutter) 0;
+  }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; white-space: nowrap; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--fg2); text-transform: uppercase; white-space: nowrap; }
+  .nav-back { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); }
+  .nav-back:hover { color: var(--ink); }
+  .masthead .mh-right { display: flex; align-items: center; gap: 16px; }
+  .ways { display: flex; border: 1px solid var(--ink); }
+  .ways a { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; padding: 7px 14px; color: var(--ash); border-right: 1px solid var(--ink); white-space: nowrap; }
+  .ways a:last-child { border-right: 0; }
+  .ways a:hover { background: var(--hover-overlay); color: var(--ink); text-decoration: none; }
+  .ways a.on { background: var(--ink); color: var(--paper); }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); }
+
+  /* ---- header ---- */
+  .head { padding: 26px 0 20px; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 32px; }
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; }
+  .head h1 { font-size: clamp(30px, 4vw, 52px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.95; margin-top: 10px; }
+  .head .sub { font-family: var(--font-serif); font-style: italic; font-size: 19px; color: var(--fg2); margin-top: 8px; max-width: 54ch; }
+
+  /* mode toggle */
+  .modes { display: inline-flex; border: 1px solid var(--ink); }
+  .modes button { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; background: var(--paper); color: var(--fg2); border: 0; padding: 11px 18px; cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .modes button + button { border-left: 1px solid var(--ink); }
+  .modes button.active { background: var(--ink); color: var(--paper); }
+
+  .metastrip { display: flex; flex-wrap: wrap; gap: 0 44px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--fog); padding: 14px 0; margin-bottom: 8px; }
+  .metastrip .m { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); line-height: 1.8; }
+  .metastrip .m b { color: var(--ink); font-weight: var(--fw-regular); }
+  .metastrip .m b.sig { color: var(--signal); }
+
+  .modenote { font-size: 14px; color: var(--fg2); line-height: 1.6; max-width: 70ch; padding: 22px 0 30px; }
+  .modenote b { color: var(--ink); font-weight: var(--fw-medium); }
+
+  /* ===================== LEDGER MODE ===================== */
+  .ledger { display: flex; flex-direction: column; gap: 26px; padding-bottom: 80px; max-width: 880px; }
+  .claim { border: 1px solid var(--ink); background: var(--paper); padding: 28px 32px 30px; }
+  .claim-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--fog); padding-bottom: 12px; }
+  .claim-head .c-id { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink); }
+  .claim-head .c-id span { color: var(--fg2); }
+  .claim-head .c-n { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--fg3); }
+  .claim h2 { font-size: 26px; font-weight: var(--fw-bold); letter-spacing: -0.022em; line-height: 1.1; margin: 16px 0 22px; max-width: 22ch; }
+
+  .move { display: grid; grid-template-columns: 116px 1fr; gap: 22px; padding: 18px 0; border-top: 1px solid var(--fog); align-items: start; }
+  .move:first-of-type { border-top: 0; padding-top: 0; }
+  .m-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); padding-top: 3px; }
+  .move.therefore .m-label { color: var(--signal); }
+  .m-line { font-size: 16px; line-height: 1.55; color: var(--ink); max-width: 56ch; }
+  .move.andyet .m-line { color: var(--ash); }
+  .m-quote { font-family: var(--font-serif); font-style: italic; font-size: 21px; line-height: 1.36; color: var(--ink); border-left: var(--rule-thick) solid var(--ink); padding-left: 20px; margin: 14px 0 4px; max-width: 48ch; }
+  .m-quote cite { display: block; font-family: var(--font-mono); font-style: normal; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); margin-top: 10px; }
+  .tx-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+  .tx-chips .tx { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; border: 1px solid var(--fog); color: var(--fg2); padding: 3px 8px; }
+
+  .peak-ref { display: inline-flex; gap: 8px; align-items: baseline; margin-top: 12px; font-size: 13px; color: var(--ink); font-weight: var(--fw-medium); cursor: pointer; background: none; border: 0; padding: 0; font-family: var(--font-sans); text-align: left; }
+  .peak-ref .pk-id { font-family: var(--font-mono); font-size: 11px; color: var(--signal); letter-spacing: 0.06em; }
+  .peak-ref:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+  .c-claim { font-size: 22px; font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: 1.22; color: var(--ink); max-width: 40ch; border-left: var(--rule-thick) solid var(--signal); padding-left: 20px; }
+  .assay { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 18px; padding-left: 21px; }
+  .assay .a { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); display: flex; flex-direction: column; gap: 5px; }
+  .meter { display: inline-flex; gap: 3px; align-items: center; }
+  .meter i { width: 7px; height: 7px; border: 1px solid var(--ink); display: inline-block; }
+  .meter i.on { background: var(--ink); }
+  .meter.sig i.on { background: var(--signal); border-color: var(--signal); }
+  .assay .a b { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0; text-transform: none; color: var(--ink); font-weight: var(--fw-medium); }
+  .evidence-btn { margin-top: 22px; margin-left: 21px; font-family: var(--font-sans); font-size: 13px; font-weight: var(--fw-medium); border: 1px solid var(--ink); background: var(--paper); color: var(--ink); padding: 10px 16px; cursor: pointer; display: inline-flex; gap: 9px; align-items: center; transition: background var(--dur-fast) var(--ease); }
+  .evidence-btn:hover { background: var(--hover-overlay); }
+  .evidence-btn .arr { transition: transform var(--dur) var(--ease); }
+  .evidence-btn:hover .arr { transform: translateX(3px); }
+
+  /* ===================== CONSTRUCTOR MODE ===================== */
+  .constructor { padding-bottom: 80px; }
+  .spine { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; border-top: 1px solid var(--ink); }
+  .stage-col { border-left: 1px solid var(--fog); padding: 0 0 16px; display: flex; flex-direction: column; }
+  .stage-col:first-child { border-left: 0; }
+  .stage-head { padding: 18px 16px 16px; border-bottom: 1px solid var(--ink); position: relative; min-height: 132px; }
+  .stage-head .sx { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg3); display: flex; justify-content: space-between; }
+  .stage-head .sx .arr { color: var(--signal); }
+  .stage-head h3 { font-size: 17px; font-weight: var(--fw-bold); letter-spacing: -0.015em; line-height: 1.12; margin: 12px 0 8px; }
+  .stage-head .gl { font-size: 12.5px; color: var(--fg2); line-height: 1.45; }
+  .stage-skills { display: flex; flex-direction: column; gap: 0; }
+  .sk-card { text-align: left; background: var(--paper); border: 0; border-bottom: 1px solid var(--fog); border-left: 2px solid transparent; padding: 16px 16px 18px; cursor: pointer; color: inherit; font-family: var(--font-sans); transition: background var(--dur-fast) var(--ease), border-left-color var(--dur-fast) var(--ease); }
+  .sk-card:hover { background: var(--bone); border-left-color: var(--signal); }
+  .sk-card .sk-id { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; color: var(--fg2); text-transform: uppercase; }
+  .sk-card .sk-name { font-size: 14.5px; font-weight: var(--fw-medium); line-height: 1.22; letter-spacing: -0.01em; margin: 8px 0 12px; }
+  .sk-card .sk-foot { display: flex; gap: 12px; align-items: center; }
+  .sk-card .pc { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); display: inline-flex; gap: 5px; align-items: center; }
+  .dot3 { display: inline-flex; gap: 2px; }
+  .dot3 i { width: 5px; height: 5px; border-radius: 50%; border: 1px solid var(--ink); }
+  .dot3 i.on { background: var(--ink); }
+  .dot3.sig i.on { background: var(--signal); border-color: var(--signal); }
+
+  .construct-foot { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--ink); border-top: 0; }
+  .construct-foot .cf { padding: 22px 24px; }
+  .construct-foot .cf + .cf { border-left: 1px solid var(--fog); }
+  .construct-foot .cl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); margin-bottom: 10px; }
+  .construct-foot .cf p { font-size: 14px; line-height: 1.55; color: var(--ink); }
+  .construct-foot .cf.sig .cl { color: var(--signal); }
+  .construct-foot .cf .big { font-family: var(--font-serif); font-style: italic; font-size: 19px; line-height: 1.35; }
+
+  /* ===================== EVIDENCE PANEL (shared) ===================== */
+  .scrim { position: fixed; inset: 0; background: rgba(10,10,10,0.32); opacity: 0; pointer-events: none; transition: opacity var(--dur) var(--ease); z-index: 40; }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .panel { position: fixed; top: 0; right: 0; height: 100%; width: clamp(360px, 40vw, 480px); background: var(--paper); border-left: 1px solid var(--ink); transform: translateX(100%); transition: transform var(--dur-slow) var(--ease); z-index: 41; display: flex; flex-direction: column; }
+  .panel.open { transform: none; }
+  .panel-bar { display: flex; justify-content: space-between; align-items: center; padding: 18px 26px; border-bottom: 1px solid var(--ink); flex: 0 0 auto; }
+  .panel-bar .pt { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg2); }
+  .panel-close { width: 30px; height: 30px; border: 1px solid var(--ink); background: var(--paper); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; color: var(--ink); }
+  .panel-close:hover { background: var(--hover-overlay); }
+  .panel-body { overflow-y: auto; padding: 26px 28px 60px; }
+  .panel-body h3 { font-size: 22px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.14; margin-bottom: 6px; }
+  .panel-body .pdef { font-size: 14px; color: var(--fg2); line-height: 1.55; margin-bottom: 20px; }
+  .pblock { border-top: 1px solid var(--fog); padding: 16px 0; }
+  .pblock .bl { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg2); margin-bottom: 10px; }
+  .io { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .io .io-row { display: grid; grid-template-columns: 56px 1fr; gap: 12px; font-size: 13.5px; line-height: 1.5; }
+  .io .io-row .k { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); padding-top: 2px; }
+  .io .io-row.to .k { color: var(--signal); }
+  .plist { display: flex; flex-direction: column; gap: 8px; }
+  .plist .pi { display: grid; grid-template-columns: 16px 1fr; gap: 8px; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+  .plist .pi .mk { color: var(--fg3); font-family: var(--font-mono); }
+  .plist.fail .pi .mk { color: var(--signal); }
+  .chain { display: flex; flex-direction: column; gap: 16px; }
+  .chain .tx { border: 1px solid var(--fog); padding: 14px 16px; }
+  .chain .tx .txn { font-size: 14px; font-weight: var(--fw-medium); line-height: 1.25; margin-bottom: 10px; }
+  .chain .tx .txn .txid { font-family: var(--font-mono); font-size: 10px; color: var(--fg2); letter-spacing: 0.06em; display: block; margin-bottom: 4px; text-transform: uppercase; }
+  .chain .tx .ev { border-top: 1px solid var(--fog); padding-top: 10px; margin-top: 10px; }
+  .chain .tx .ev .eq { font-family: var(--font-serif); font-style: italic; font-size: 15.5px; line-height: 1.4; color: var(--ink); }
+  .chain .tx .ev .em { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); margin-top: 6px; }
+  .panel .assay2 { display: flex; flex-wrap: wrap; gap: 16px 26px; }
+  .panel .assay2 .a { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); display: flex; flex-direction: column; gap: 5px; }
+  .panel .assay2 .a b { font-family: var(--font-sans); font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--ink); font-weight: var(--fw-medium); }
+
+  /* ---- recommendation (the lead therefore) ---- */
+  .recommend { border: 1px solid var(--ink); background: var(--bone); padding: 26px 30px 28px; margin-bottom: 30px; }
+  .rec-k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); margin-bottom: 16px; }
+  .rec-grid { display: grid; grid-template-columns: 1fr 260px; gap: 40px; align-items: start; }
+  .rec-main h2 { font-size: clamp(22px, 2.5vw, 30px); font-weight: var(--fw-black); letter-spacing: -0.025em; line-height: 1.1; max-width: 24ch; }
+  .rec-main p { font-size: 15px; line-height: 1.6; color: var(--ink); margin-top: 14px; max-width: 60ch; }
+  .rec-main p b { font-weight: var(--fw-medium); }
+  .rec-btn { margin-top: 20px; font-family: var(--font-sans); font-size: 13px; font-weight: var(--fw-medium); border: 1px solid var(--ink); background: var(--ink); color: var(--paper); padding: 11px 17px; cursor: pointer; display: inline-flex; gap: 9px; align-items: center; transition: background var(--dur-fast) var(--ease); }
+  .rec-btn:hover { background: var(--ink-hover); }
+  .rec-btn .arr { transition: transform var(--dur) var(--ease); }
+  .rec-btn:hover .arr { transform: translateX(3px); }
+  .rec-side { border-left: 1px solid var(--ink); padding-left: 22px; }
+  .rs-row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding: 10px 0; border-top: 1px solid var(--fog); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); }
+  .rs-row:first-child { border-top: 0; }
+  .rs-row b { font-family: var(--font-sans); font-size: 13px; letter-spacing: 0; text-transform: none; color: var(--ink); font-weight: var(--fw-medium); text-align: right; }
+  .rs-row b.sig { color: var(--signal); }
+
+  /* ranked claim tags + lead emphasis */
+  .claim.lead { border-width: 2px; }
+  .claim-head .c-tags { display: inline-flex; align-items: center; gap: 8px; }
+  .tag-rec { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--paper); background: var(--signal); padding: 2px 7px; }
+  .tag-key { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink); border: 1px solid var(--ink); padding: 2px 7px; }
+
+  /* meaningful exit */
+  .handoff { border-top: var(--masthead-rule) solid var(--ink); margin-top: 16px; }
+  .handoff-in { max-width: 1180px; margin: 0 auto; padding: 30px var(--gutter) 52px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: start; }
+  .handoff .ho-k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); }
+  .handoff .ho-l h2 { font-size: clamp(22px, 2.6vw, 32px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.04; margin: 12px 0 14px; max-width: 22ch; }
+  .handoff .ho-l p { font-size: 14px; line-height: 1.6; color: var(--fg2); max-width: 50ch; }
+  .handoff .ho-l p b { color: var(--ink); font-weight: var(--fw-medium); }
+  .ho-back { display: inline-block; margin-top: 16px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
+  .ho-back:hover { color: var(--signal); border-color: var(--signal); text-decoration: none; }
+  .ho-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  .ho-list a { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--fog); text-decoration: none; }
+  .ho-list a:hover { text-decoration: none; }
+  .ho-list a .hn { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--fg2); }
+  .ho-list a:hover .hn { color: var(--signal); }
+  .ho-list a .ht { font-size: 14px; font-weight: var(--fw-medium); color: var(--ink); line-height: 1.25; }
+  .ho-list a:hover .ht { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  .ho-list a .hx { display: block; font-size: 12px; color: var(--fg2); font-weight: var(--fw-regular); margin-top: 2px; line-height: 1.35; }
+  .ho-list a.is-here { opacity: 0.5; }
+  .ho-list a.is-here .ht { text-decoration: none; }
+  @media (max-width: 920px) {
+    .rec-grid { grid-template-columns: 1fr; gap: 22px; }
+    .rec-side { border-left: 0; padding-left: 0; border-top: 1px solid var(--ink); padding-top: 6px; }
+    .handoff-in { grid-template-columns: 1fr; gap: 24px; }
+    .ho-list { grid-template-columns: 1fr; }
+  }
+
+  .view { display: none; }
+  .view.active { display: block; }
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) { .fadein { animation: fi var(--dur-slow) var(--ease) both; } }
+  @keyframes fi { from { transform: translateY(8px); } to { transform: none; } }
+
+  @media (max-width: 920px) {
+    .spine { grid-template-columns: 1fr 1fr; }
+    .stage-col:nth-child(odd) { border-left: 0; }
+    .construct-foot { grid-template-columns: 1fr; }
+    .construct-foot .cf + .cf { border-left: 0; border-top: 1px solid var(--fog); }
+    .head { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .spine { grid-template-columns: 1fr; }
+    .stage-col { border-left: 0; border-top: 1px solid var(--fog); }
+    .move { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <div class="mh-right">
+      <nav class="ways">
+        <a href="the-ledger.html" class="on">Explore</a>
+        <a href="the-ledger-read.html">Read</a>
+        <a href="the-ledger-listen.html">Listen</a>
+      </nav>
+      <a class="nav-back" href="../index.html">← all seven lenses</a>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="head fadein">
+      <div>
+        <div class="eyebrow-row">
+          <span class="eyebrow">The Ledger</span>
+          <span class="eyebrow" style="color:var(--signal)">Argument · Skillify</span>
+        </div>
+        <h1>Turn the evidence into a “therefore.”</h1>
+        <div class="sub">The first three lenses describe. This one argues: every friction Catherine’s site absorbs, distilled into a reusable skill, with its proof beneath it.</div>
+      </div>
+      <div class="modes" role="tablist">
+        <button id="mLedger" class="active" role="tab">The Ledger</button>
+        <button id="mConstruct" role="tab">The Constructor</button>
+      </div>
+    </div>
+
+    <div class="metastrip fadein" style="animation-delay:60ms">
+      <span class="m">Rung<br><b>Level 7 · Skillify</b></span>
+      <span class="m">Distilled<br><b>6 candidate skills</b></span>
+      <span class="m">High-confidence<br><b class="sig">6 of 6</b></span>
+      <span class="m">Reaching toward<br><b>Level 9 · Recommend</b></span>
+    </div>
+    <div class="modenote" id="modeNote"></div>
+
+    <!-- LEDGER -->
+    <section class="view active" id="ledgerView">
+      <div class="recommend">
+        <div class="rec-k">The recommendation · Level 9 · Recommend</div>
+        <div class="rec-grid">
+          <div class="rec-main">
+            <h2>Build one skill first: test whether a product fits the site before it’s adopted.</h2>
+            <p>Of the six skills distilled from the interview, <b>Evaluating Method-Operation Fit</b> is the one to build first. It is broadly applicable and high-confidence, and it sits exactly on the keystone the other lenses keep converging on: product and protocol decided upstream, then colliding with the site that has to deliver them.</p>
+            <button class="rec-btn" data-skill="sk_006">See its evidence chain <span class="arr">→</span></button>
+          </div>
+          <aside class="rec-side">
+            <div class="rs-row"><span>Productization</span><b>Medium</b></div>
+            <div class="rs-row"><span>Confidence</span><b>High</b></div>
+            <div class="rs-row"><span>Resolves</span><b class="sig">NP-001 · the keystone</b></div>
+            <div class="rs-row"><span>Grounded in</span><b>NE-012 · sponsor devices vs the site</b></div>
+          </aside>
+        </div>
+      </div>
+      <div class="ledger" id="ledger"></div>
+    </section>
+
+    <!-- CONSTRUCTOR -->
+    <section class="view" id="constructView">
+      <div class="constructor">
+        <div class="spine" id="spine"></div>
+        <div class="construct-foot">
+          <div class="cf">
+            <div class="cl">The hidden job</div>
+            <p class="big">The six skills are not a list. In workflow order they reassemble the job the site actually performs, every day, without anyone naming it.</p>
+          </div>
+          <div class="cf sig">
+            <div class="cl">Why this matters</div>
+            <p>Captured as a sequence, the work becomes teachable, testable, and (where confidence is high) productizable. That is the bridge from one interview to a capability anyone could ship.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="handoff">
+    <div class="handoff-in">
+      <div class="ho-l">
+        <div class="ho-k">After the argument</div>
+        <h2>You’ve seen the recommendation. Now read how it was reached.</h2>
+        <p>This lens turns the evidence into one skill worth building. The other six lenses are the reads it rests on. <b>Upstream authorship</b> is where they all converge.</p>
+        <a class="ho-back" href="../index.html">Back to all seven lenses and the verdict →</a>
+      </div>
+      <nav class="ho-list">
+        <a href="the-session.html"><span class="hn">01</span><span><span class="ht">The Session</span><span class="hx">Chronology · the raw tape</span></span></a>
+        <a href="the-constellation.html"><span class="hn">02</span><span><span class="ht">The Constellation</span><span class="hx">Relation · how the narratives pull</span></span></a>
+        <a href="the-shift.html"><span class="hn">03</span><span><span class="ht">The Shift</span><span class="hx">Transformation · which change is worth making</span></span></a>
+        <a class="is-here" href="the-ledger.html"><span class="hn">04</span><span><span class="ht">The Ledger</span><span class="hx">Argument · you are here</span></span></a>
+        <a href="the-keystone.html"><span class="hn">05</span><span><span class="ht">The Keystone</span><span class="hx">Leverage · the one move that matters</span></span></a>
+        <a href="the-opportunity.html"><span class="hn">06</span><span><span class="ht">The Opportunity</span><span class="hx">Demand · what’s most under-served</span></span></a>
+        <a href="the-casefile.html"><span class="hn">07</span><span><span class="ht">The Casefile</span><span class="hx">Diagnosis · the decision brief</span></span></a>
+      </nav>
+    </div>
+  </section>
+
+  <!-- shared evidence panel -->
+  <div class="scrim" id="scrim"></div>
+  <aside class="panel" id="panel" aria-hidden="true">
+    <div class="panel-bar">
+      <span class="pt" id="panelTag">Evidence chain</span>
+      <button class="panel-close" id="panelClose" aria-label="Close">✕</button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </aside>
+
+  <script src="../data.js"></script>
+  <script>
+    const R = window.RESEARCH;
+    const SK = R.skills;
+    const TXby = Object.fromEntries(R.transformations.map(t => [t.id, t]));
+    const PKby = Object.fromEntries(R.peaks.map(p => [p.id, p]));
+    const clean = (s) => s.replace(/^"|"$/g, '');
+    const lvl = (v) => v === 'High' ? 3 : v === 'Medium' ? 2 : 1;
+
+    // representative quote: highest-charge event across the skill's transformations
+    function evidenceFor(sk) {
+      const evs = [];
+      sk.txs.forEach(id => { const tx = TXby[id]; if (tx) tx.events.forEach(eid => { const e = R.byId(eid); if (e && !evs.find(x => x.id === e.id)) evs.push(e); }); });
+      evs.sort((a, b) => (b.charge - a.charge) || (b.sig - a.sig));
+      return evs;
+    }
+    function meter(v, sig) {
+      const n = lvl(v);
+      return `<span class="meter ${sig ? 'sig' : ''}">${[1,2,3].map(k => `<i class="${k <= n ? 'on' : ''}"></i>`).join('')}</span>`;
+    }
+    function dot3(v, sig) {
+      const n = lvl(v);
+      return `<span class="dot3 ${sig ? 'sig' : ''}">${[1,2,3].map(k => `<i class="${k <= n ? 'on' : ''}"></i>`).join('')}</span>`;
+    }
+
+    /* ---------- LEDGER ---------- */
+    const ledgerEl = document.getElementById('ledger');
+    const KEYSTONE_PEAKS = new Set(['NP-001','NP-002','NP-003']);   // pre-run readiness peaks
+    const lvlN = (v) => v === 'High' ? 3 : v === 'Medium' ? 2 : 1;
+    const buildScore = (s) => lvlN(s.prod) * 2 + lvlN(s.conf) + (KEYSTONE_PEAKS.has(s.tension) ? 0.5 : 0);
+    const LEAD_SKILL = 'sk_006';   // the recommendation: evaluate method-operation fit (the keystone)
+    const RANKED = SK.slice().sort((a, b) => (a.id === LEAD_SKILL ? -1 : b.id === LEAD_SKILL ? 1 : 0) || buildScore(b) - buildScore(a) || a.n - b.n);
+    RANKED.forEach((sk, idx) => {
+      const isLead = sk.id === LEAD_SKILL, isKey = KEYSTONE_PEAKS.has(sk.tension), rank = idx + 1;
+      const evs = evidenceFor(sk);
+      const rep = evs[0];
+      const peak = PKby[sk.tension];
+      const card = document.createElement('article');
+      card.className = 'claim' + (isLead ? ' lead' : '');
+      card.innerHTML = `
+        <div class="claim-head">
+          <span class="c-id">${sk.id.toUpperCase().replace('_',' ')} <span>· ${sk.stage} · ${sk.frame}</span></span>
+          <span class="c-tags">
+            ${isLead ? '<span class="tag-rec">Recommended</span>' : ''}
+            ${isKey ? '<span class="tag-key">Keystone</span>' : ''}
+            <span class="c-n">${String(rank).padStart(2,'0')} / 06</span>
+          </span>
+        </div>
+        <h2>${sk.name}</h2>
+
+        <div class="move because">
+          <span class="m-label">Because</span>
+          <div class="m-body">
+            <p class="m-line">${sk.because}</p>
+            ${rep ? `<blockquote class="m-quote">“${clean(rep.quote)}”<cite>Catherine · ${rep.time} · ${rep.id}</cite></blockquote>` : ''}
+            <div class="tx-chips">${sk.txs.map(id => `<span class="tx">${id} · ${TXby[id] ? TXby[id].name : id}</span>`).join('')}</div>
+          </div>
+        </div>
+
+        <div class="move andyet">
+          <span class="m-label">And yet</span>
+          <div class="m-body">
+            <p class="m-line">${peak ? peak.tension : ''}</p>
+            ${peak ? `<button class="peak-ref" data-peak="${peak.id}"><span class="pk-id">↗ ${peak.id}</span><span>${peak.title}</span></button>` : ''}
+          </div>
+        </div>
+
+        <div class="move therefore">
+          <span class="m-label">Therefore</span>
+          <div class="m-body">
+            <p class="c-claim">${sk.claim}</p>
+            <div class="assay">
+              <span class="a">Productization ${meter(sk.prod, sk.prod==='High')}<b>${sk.prod}</b></span>
+              <span class="a">Confidence ${meter(sk.conf)}<b>${sk.conf}</b></span>
+              <span class="a">Reach<b>${sk.scope}</b></span>
+            </div>
+            <button class="evidence-btn" data-skill="${sk.id}">Descend to the evidence <span class="arr">→</span></button>
+          </div>
+        </div>`;
+      ledgerEl.appendChild(card);
+    });
+
+    /* ---------- CONSTRUCTOR ---------- */
+    const spineEl = document.getElementById('spine');
+    R.stages.forEach((stage, i) => {
+      const skills = SK.filter(s => s.stage === stage.key);
+      const col = document.createElement('div');
+      col.className = 'stage-col';
+      col.innerHTML = `
+        <div class="stage-head">
+          <div class="sx"><span>${String(i+1).padStart(2,'0')} · ${stage.key}</span>${i < R.stages.length-1 ? '<span class="arr">→</span>' : '<span>■</span>'}</div>
+          <h3>${stage.label}</h3>
+          <div class="gl">${stage.gloss}</div>
+        </div>
+        <div class="stage-skills">
+          ${skills.map(s => `
+            <button class="sk-card" data-skill="${s.id}">
+              <div class="sk-id">${s.id.toUpperCase().replace('_',' ')}</div>
+              <div class="sk-name">${s.name}</div>
+              <div class="sk-foot">
+                <span class="pc">P ${dot3(s.prod, s.prod==='High')}</span>
+                <span class="pc">C ${dot3(s.conf)}</span>
+              </div>
+            </button>`).join('')}
+        </div>`;
+      spineEl.appendChild(col);
+    });
+
+    // equalize the five stage-head blocks so the Constructor reads as one clean row
+    function equalizeHeads() {
+      const heads = [...document.querySelectorAll('.stage-head')];
+      if (!heads.length) return;
+      heads.forEach(h => h.style.height = 'auto');
+      const maxH = Math.max(...heads.map(h => h.offsetHeight));
+      if (maxH > 0) heads.forEach(h => h.style.height = maxH + 'px');
+    }
+    window.addEventListener('resize', () => { if (document.getElementById('constructView').classList.contains('active')) equalizeHeads(); });
+
+    /* ---------- EVIDENCE PANEL ---------- */
+    const scrim = document.getElementById('scrim');
+    const panel = document.getElementById('panel');
+    const panelBody = document.getElementById('panelBody');
+    const panelTag = document.getElementById('panelTag');
+
+    function openSkill(id) {
+      const sk = SK.find(s => s.id === id); if (!sk) return;
+      const peak = PKby[sk.tension];
+      const evs = evidenceFor(sk);
+      panelTag.textContent = `${sk.id.toUpperCase().replace('_',' ')} · evidence chain`;
+      panelBody.innerHTML = `
+        <h3>${sk.name}</h3>
+        <p class="pdef">${sk.def}</p>
+
+        <div class="pblock">
+          <div class="bl">The claim</div>
+          <div class="io">
+            <div class="io-row"><span class="k">From</span><span>${sk.inputState}</span></div>
+            <div class="io-row to"><span class="k">To</span><span>${sk.outputState}</span></div>
+          </div>
+        </div>
+
+        <div class="pblock">
+          <div class="bl">Assay</div>
+          <div class="assay2">
+            <span class="a">Productization<b>${sk.prod}</b></span>
+            <span class="a">Confidence<b>${sk.conf}</b></span>
+            <span class="a">Repeatability<b>${sk.rep}</b></span>
+            <span class="a">Teachability<b>${sk.teach}</b></span>
+            <span class="a">Testability<b>${sk.test}</b></span>
+            <span class="a">Reach<b>${sk.scope}</b></span>
+          </div>
+        </div>
+
+        <div class="pblock">
+          <div class="bl">Method</div>
+          <p style="font-size:14px;line-height:1.6;color:var(--ink)">${sk.method}</p>
+        </div>
+
+        ${peak ? `<div class="pblock">
+          <div class="bl">Resolves the tension</div>
+          <p style="font-size:14px;line-height:1.55;color:var(--ink)"><span style="font-family:var(--font-mono);font-size:11px;color:var(--signal);letter-spacing:0.06em">${peak.id}</span> &nbsp;${peak.title}</p>
+          <p style="font-size:13.5px;line-height:1.55;color:var(--fg2);margin-top:8px">${peak.tension}</p>
+        </div>` : ''}
+
+        <div class="pblock">
+          <div class="bl">Descending to Catherine’s words</div>
+          <div class="chain">
+            ${sk.txs.map(txid => {
+              const tx = TXby[txid]; if (!tx) return '';
+              const e = tx.events.map(id => R.byId(id)).filter(Boolean)[0];
+              return `<div class="tx">
+                <div class="txn"><span class="txid">${tx.id} · ${tx.frame}</span>${tx.name}</div>
+                ${e ? `<div class="ev"><div class="eq">“${clean(e.quote)}”</div><div class="em">Catherine · ${e.time} · ${e.id}</div></div>` : ''}
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+
+        <div class="pblock">
+          <div class="bl">Done when</div>
+          <div class="plist">${sk.success.map(s => `<div class="pi"><span class="mk">✓</span><span>${s}</span></div>`).join('')}</div>
+        </div>
+
+        <div class="pblock">
+          <div class="bl">Fails when</div>
+          <div class="plist fail">${sk.failures.map(s => `<div class="pi"><span class="mk">×</span><span>${s}</span></div>`).join('')}</div>
+        </div>`;
+      panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false');
+      scrim.classList.add('open');
+      panelBody.scrollTop = 0;
+    }
+    function closePanel() { panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true'); scrim.classList.remove('open'); }
+    scrim.addEventListener('click', closePanel);
+    document.getElementById('panelClose').addEventListener('click', closePanel);
+    window.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+
+    document.body.addEventListener('click', e => {
+      const sb = e.target.closest('[data-skill]');
+      if (sb) { openSkill(sb.dataset.skill); return; }
+      const pb = e.target.closest('[data-peak]');
+      if (pb) { /* peak ref also opens the owning skill's evidence */ const sk = SK.find(s => s.tension === pb.dataset.peak); if (sk) openSkill(sk.id); }
+    });
+
+    /* ---------- MODE TOGGLE ---------- */
+    const notes = {
+      ledger: 'Read top to bottom: the entries are ordered by how ready each skill is to build, so <b>the first is the recommendation</b>. Each is a single argument: <b>because</b> the evidence shows a friction, <b>and yet</b> it never resolves on its own, <b>therefore</b> there is a reusable skill worth building. The proof sits one click beneath every claim.',
+      construct: 'The same six skills, placed in the order the site performs them: <b>receive &amp; inspect, set the boundaries, fit the workflow, protect the timing, administer</b>. Read left to right and the loose capabilities snap back into a single job. Click any skill to descend to its evidence.'
+    };
+    const mLedger = document.getElementById('mLedger'), mConstruct = document.getElementById('mConstruct');
+    const ledgerView = document.getElementById('ledgerView'), constructView = document.getElementById('constructView');
+    const modeNote = document.getElementById('modeNote');
+    function setMode(m) {
+      const isL = m === 'ledger';
+      mLedger.classList.toggle('active', isL); mConstruct.classList.toggle('active', !isL);
+      ledgerView.classList.toggle('active', isL); constructView.classList.toggle('active', !isL);
+      modeNote.innerHTML = isL ? notes.ledger : notes.construct;
+      localStorage.setItem('ledger_mode', m);
+      if (!isL) requestAnimationFrame(equalizeHeads);
+    }
+    mLedger.addEventListener('click', () => setMode('ledger'));
+    mConstruct.addEventListener('click', () => setMode('construct'));
+    setMode(localStorage.getItem('ledger_mode') || 'ledger');
+  </script>
+</body>
+</html>

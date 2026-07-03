@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Opportunity · ODI · IDI01 Catherine</title>
+<link rel="stylesheet" href="../assets/colors_and_type.css" />
+<style>
+  html, body { background: var(--paper); }
+  body { display: flex; flex-direction: column; min-height: 100vh; }
+
+  .masthead {
+    border-top: var(--masthead-rule) solid var(--ink);
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 18px var(--gutter) 0; gap: 16px;
+  }
+  .masthead .wm { font-weight: var(--fw-black); letter-spacing: -0.02em; font-size: 15px; }
+  .masthead .ref { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--fg2); text-transform: uppercase; }
+  .nav-back { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); }
+  .nav-back:hover { color: var(--ink); }
+
+  .shell { flex: 1; display: flex; flex-direction: column; padding: 0 var(--gutter) 72px; max-width: var(--max-content); width: 100%; margin: 0 auto; }
+  .head { padding: 26px 0 18px; }
+  .eyebrow-row { display: flex; gap: 14px; align-items: center; }
+  .head h1 { font-size: clamp(30px, 4.4vw, 56px); font-weight: var(--fw-black); letter-spacing: -0.035em; line-height: 0.95; margin-top: 12px; max-width: 20ch; }
+  .head .sub { font-family: var(--font-serif); font-style: italic; font-size: 19px; color: var(--fg2); margin-top: 12px; max-width: 64ch; }
+
+  /* legend: class glyphs + opportunity marker */
+  .legend { display: flex; gap: 26px; align-items: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--fog); flex-wrap: wrap; }
+  .lg { display: flex; gap: 9px; align-items: center; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg2); }
+
+  /* class glyphs (shape encodes the classification) */
+  .gl { width: 12px; height: 12px; flex: 0 0 auto; background: var(--ink); }
+  .gl.diamond { transform: rotate(45deg); width: 11px; height: 11px; }
+  .gl.square  { width: 11px; height: 11px; }
+  .gl.circle  { border-radius: 50%; }
+  .gl.triangle { width: 0; height: 0; background: none; border-left: 6.5px solid transparent; border-right: 6.5px solid transparent; border-bottom: 11px solid var(--ink); }
+  .gl.wand { background: none; border: 1.5px solid var(--signal); width: 13px; height: 13px; transform: rotate(45deg); }
+
+  .viewswitch { display: inline-flex; border: 1px solid var(--ink); margin: 22px 0 4px; }
+  .viewswitch button { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; padding: 9px 22px; border: 0; border-left: 1px solid var(--ink); background: var(--paper); color: var(--ash); cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .viewswitch button:first-child { border-left: 0; }
+  .viewswitch button:hover { background: var(--bone); }
+  .viewswitch button.on { background: var(--ink); color: var(--paper); }
+  .view[hidden] { display: none; }
+
+  /* ---------- synthesis band ---------- */
+  .summary { background: var(--bone); border: 1px solid var(--ink); padding: 30px 34px 28px; margin: 22px 0 40px; }
+  .sum-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 44px; align-items: start; }
+  .sum-l .sum-eyebrow { color: var(--signal); }
+  .sum-title { font-size: clamp(22px, 2.6vw, 31px); font-weight: var(--fw-black); letter-spacing: -0.028em; line-height: 1.05; margin-top: 9px; max-width: 22ch; }
+  .sum-axis { font-family: var(--font-serif); font-style: italic; font-size: 17px; line-height: 1.45; color: var(--fg2); margin-top: 14px; max-width: 52ch; }
+  .sum-axis b { color: var(--ink); font-weight: var(--fw-bold); font-style: normal; }
+  .sum-stats { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--ink); }
+  .sum-stat { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--fog); }
+  .sum-stat .k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); max-width: 22ch; line-height: 1.5; }
+  .sum-stat .v { font-size: 30px; font-weight: var(--fw-black); letter-spacing: -0.03em; flex: 0 0 auto; }
+  .sum-stat .v.sig { color: var(--signal); }
+  @media (max-width: 860px) { .sum-grid { grid-template-columns: 1fr; gap: 26px; } }
+
+  /* ---------- landscape grid ---------- */
+  .land-grid { display: grid; grid-template-columns: minmax(0,1fr) 372px; gap: 44px; align-items: start; }
+  .land-l { min-width: 0; }
+  @media (max-width: 940px) { .land-grid { grid-template-columns: 1fr; gap: 30px; } }
+
+  .panel-eyebrow { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .panel-eyebrow .pt { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg3); }
+  .panel-h { font-size: 20px; font-weight: var(--fw-bold); letter-spacing: -0.02em; line-height: 1.1; }
+  .panel-sub { font-family: var(--font-serif); font-style: italic; font-size: 15.5px; color: var(--fg2); margin: 8px 0 0; max-width: 60ch; }
+
+  /* class filter chips */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 16px 0; margin: 14px 0 6px; border-top: 1px solid var(--fog); border-bottom: 1px solid var(--fog); }
+  .filters .ff-lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg3); margin-right: 4px; }
+  .fchip { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.02em; color: var(--ash); background: none; border: 1px solid var(--fog); padding: 6px 11px; cursor: pointer; transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease); }
+  .fchip:hover { border-color: var(--ash); color: var(--ink); }
+  .fchip.off { opacity: 0.34; }
+  .fchip .fc-n { color: var(--fg3); }
+
+  /* the matrix: importance (rows, high at top) × satisfaction (cols) */
+  .matrix-wrap { margin-top: 26px; }
+  .mx { display: grid; grid-template-columns: 30px 1fr; grid-template-rows: 1fr 26px; gap: 10px; }
+  .mx-ylab { writing-mode: vertical-rl; transform: rotate(180deg); align-self: center; justify-self: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); }
+  .mx-xlab { grid-column: 2; text-align: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg2); }
+  .mx-plot { position: relative; border-left: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .cells { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); }
+  .cell { position: relative; border-right: 1px solid var(--fog); border-top: 1px solid var(--fog); padding: 22px 12px 12px; min-height: 132px; }
+  .cell:nth-child(3n) { border-right: 0; }
+  .cell:nth-child(-n+3) { border-top: 0; }
+  .cell.under1 { background: rgba(214,74,31,0.045); }
+  .cell.under2 { background: rgba(214,74,31,0.09); }
+  .cell.over { background: var(--bone); }
+  .cell .cell-opp { position: absolute; top: 7px; left: 10px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); }
+  .cell.under2 .cell-opp { color: var(--signal); }
+  .cell .cell-chips { display: flex; flex-direction: column; gap: 6px; }
+  /* served diagonal */
+  .mx-diag { position: absolute; inset: 0; pointer-events: none; }
+  .mx-diag line { stroke: var(--ash); stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.7; }
+  .dlab { position: absolute; font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ash); }
+
+  /* outcome chip */
+  .chip { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; background: var(--paper); border: 1px solid var(--fog); padding: 6px 8px; cursor: pointer; font-family: var(--font-sans); color: inherit; transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
+  .chip:hover { border-color: var(--ink); }
+  .chip.on { border-color: var(--ink); background: var(--bone); }
+  .chip.prio { border-color: var(--signal); }
+  .chip .cg { flex: 0 0 auto; }
+  .chip .crank { font-family: var(--font-mono); font-size: 10px; color: var(--fg2); width: 14px; flex: 0 0 auto; }
+  .chip.prio .crank { color: var(--signal); }
+  .chip .cname { font-size: 11.5px; font-weight: var(--fw-medium); line-height: 1.2; letter-spacing: -0.005em; }
+  .chip.dim { opacity: 0.28; pointer-events: none; }
+
+  /* small glyphs reused in chips/rows */
+  .cg { width: 11px; height: 11px; background: var(--ink); }
+  .cg.diamond { transform: rotate(45deg); width: 10px; height: 10px; }
+  .cg.square { width: 10px; height: 10px; }
+  .cg.circle { border-radius: 50%; }
+  .cg.triangle { width: 0; height: 0; background: none; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 10px solid var(--ink); }
+
+  /* ---------- ranked list ---------- */
+  .ranked { margin-top: 48px; }
+  .rk-bar { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding-bottom: 14px; }
+  .sortctl { display: flex; flex: 0 0 auto; border: 1px solid var(--ink); }
+  .sortctl .sortlbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); align-self: center; padding: 0 11px; border-right: 1px solid var(--fog); }
+  .sortctl button { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; padding: 8px 13px; border: 0; border-left: 1px solid var(--fog); background: var(--paper); color: var(--fg2); cursor: pointer; transition: all var(--dur-fast) var(--ease); }
+  .sortctl button:first-of-type { border-left: 0; }
+  .sortctl button:hover { color: var(--ink); }
+  .sortctl button.on { background: var(--ink); color: var(--paper); }
+
+  .rk-head, .rk-row { display: grid; grid-template-columns: 30px minmax(0,1fr) 132px 84px 64px; gap: 16px; align-items: center; }
+  .rk-head { padding: 10px 0; border-bottom: 1px solid var(--ink); }
+  .rk-head span { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); }
+  .rk-head .rh-r { text-align: right; }
+  .rk-row { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--fog); padding: 13px 0; cursor: pointer; color: inherit; font-family: var(--font-sans); transition: background var(--dur-fast) var(--ease); }
+  .rk-row:hover { background: var(--bone); }
+  .rk-row.on { background: var(--bone); }
+  .rk-rank { font-family: var(--font-mono); font-size: 13px; color: var(--ink); }
+  .rk-row.prio .rk-rank { color: var(--signal); }
+  .rk-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .rk-name .nm { font-size: 13.5px; font-weight: var(--fw-medium); letter-spacing: -0.005em; line-height: 1.25; }
+  .rk-name .cls { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg3); }
+  /* score microbars (3 segments) */
+  .scores { display: flex; gap: 12px; }
+  .scell { display: flex; flex-direction: column; gap: 3px; }
+  .scell .sl { font-family: var(--font-mono); font-size: 8px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg3); }
+  .seg { display: inline-flex; gap: 2px; }
+  .seg i { width: 6px; height: 9px; background: var(--fog); display: inline-block; }
+  .seg.imp i.on { background: var(--ink); }
+  .seg.sat i.on { background: var(--ash); }
+  .seg.abl i.on { background: var(--ash); }
+  .rk-opp { text-align: right; }
+  .opp-badge { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--ink); }
+  .rk-row.prio .opp-badge { color: var(--signal); }
+  .rk-gap { text-align: right; font-family: var(--font-mono); font-size: 12px; color: var(--ash); }
+  .rk-gap.pos { color: var(--ink); }
+  .rk-gap.neg { color: var(--fg3); }
+  @media (max-width: 720px) {
+    .rk-head, .rk-row { grid-template-columns: 26px 1fr 64px; }
+    .rk-head .rh-scores, .rk-head .rh-gap, .rk-row .scores, .rk-row .rk-gap { display: none; }
+  }
+
+  /* ---------- detail panel ---------- */
+  .detail { position: sticky; top: 16px; border: 1px solid var(--ink); background: var(--paper); }
+  .fd-empty { padding: 60px 26px; color: var(--fg3); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.9; text-align: center; }
+  .fd-in { padding: 22px 24px 26px; }
+  .fd-top { display: flex; align-items: center; gap: 9px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ash); }
+  .fd-prio { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--signal); border: 1px solid var(--signal); padding: 1px 6px; margin-left: auto; }
+  .fd-rank { font-family: var(--font-mono); font-size: 10px; color: var(--fg3); margin-left: auto; }
+  .fd-rank.haswand { margin-left: 8px; }
+  .fd-name { font-size: 18px; font-weight: var(--fw-bold); letter-spacing: -0.018em; line-height: 1.2; margin: 12px 0 0; }
+  .fd-class { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; color: var(--fg2); margin-top: 8px; }
+
+  .fd-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--fog); border: 1px solid var(--fog); margin: 18px 0; }
+  .fd-metric { background: var(--paper); padding: 12px 13px; }
+  .fd-metric .ml { font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg2); }
+  .fd-metric .mv { font-size: 26px; font-weight: var(--fw-black); letter-spacing: -0.03em; margin-top: 3px; line-height: 1; }
+  .fd-metric .mf { font-family: var(--font-mono); font-size: 8.5px; color: var(--fg3); margin-top: 5px; line-height: 1.4; }
+  .fd-metric.prio .mv { color: var(--signal); }
+
+  .fd-bars { display: flex; flex-direction: column; gap: 9px; padding: 14px 0; border-top: 1px solid var(--fog); border-bottom: 1px solid var(--fog); }
+  .fd-bar { display: grid; grid-template-columns: 96px 1fr 58px; gap: 10px; align-items: center; }
+  .fd-bar .bl { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ash); }
+  .fd-bar .bt { display: flex; gap: 3px; }
+  .fd-bar .bt i { flex: 1; height: 8px; background: var(--fog); }
+  .fd-bar .bt i.on { background: var(--ink); }
+  .fd-bar.lowgood .bt i.on { background: var(--ash); }
+  .fd-bar .bv { font-family: var(--font-mono); font-size: 9px; color: var(--fg3); text-transform: uppercase; text-align: right; letter-spacing: 0.02em; }
+
+  .fd-axis { font-size: 13.5px; line-height: 1.55; color: var(--ink); margin: 16px 0 0; }
+  .fd-ev { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .fd-q { font-family: var(--font-serif); font-style: italic; font-size: 14.5px; line-height: 1.42; color: var(--ink); border-left: 2px solid var(--ink); padding-left: 13px; }
+  .fd-q .cite { display: block; font-family: var(--font-mono); font-style: normal; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg2); margin-top: 6px; }
+  .fd-job { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--ink); }
+  .fd-job .jl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg3); }
+  .fd-job .jv { font-size: 13.5px; font-weight: var(--fw-medium); margin-top: 5px; }
+  .fd-job .jstep { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--signal); margin-top: 6px; }
+  @media (max-width: 940px) { .detail { position: static; } }
+
+  /* ---------- job maps view ---------- */
+  .jobs-head { padding: 8px 0 8px; }
+  .jobs-intro { font-family: var(--font-serif); font-style: italic; font-size: 17px; color: var(--fg2); max-width: 64ch; margin-top: 10px; }
+  .job { border-top: 1px solid var(--ink); padding: 28px 0 32px; }
+  .job:last-child { border-bottom: 1px solid var(--ink); }
+  .job-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .job-id { font-family: var(--font-mono); font-size: 12px; color: var(--fg3); letter-spacing: 0.06em; }
+  .job-name { font-size: 22px; font-weight: var(--fw-bold); letter-spacing: -0.022em; line-height: 1.1; }
+  .job-meta { margin-left: auto; display: flex; gap: 18px; align-items: baseline; }
+  .job-meta span { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--fg2); }
+  .job-meta span b { color: var(--ink); font-weight: var(--fw-regular); }
+  .job-meta span.sig b { color: var(--signal); }
+  .job-actor { font-size: 13px; color: var(--ash); margin-top: 8px; font-style: italic; font-family: var(--font-serif); }
+
+  .track { display: grid; grid-template-columns: repeat(8, 1fr); gap: 0; margin-top: 22px; border-top: 1px solid var(--fog); }
+  .step { border-left: 1px solid var(--fog); border-bottom: 1px solid var(--fog); padding: 12px 11px 14px; min-height: 150px; position: relative; }
+  .step:first-child { border-left: 0; }
+  .step.hot { background: rgba(214,74,31,0.06); }
+  .step .step-n { font-family: var(--font-mono); font-size: 9px; color: var(--fg3); }
+  .step .step-name { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); margin-top: 3px; }
+  .step.hot .step-name { color: var(--signal); }
+  .step .step-desc { font-size: 10.5px; line-height: 1.4; color: var(--fg2); margin-top: 7px; }
+  .step .step-outs { display: flex; flex-direction: column; gap: 6px; margin-top: 11px; }
+  .step .step-empty { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg3); margin-top: 11px; }
+  @media (max-width: 980px) {
+    .track { grid-template-columns: repeat(4, 1fr); }
+    .step:nth-child(4n+1) { border-left: 0; }
+  }
+  @media (max-width: 560px) {
+    .track { grid-template-columns: repeat(2, 1fr); }
+    .step:nth-child(odd) { border-left: 0; }
+    .step:nth-child(4n+1) { border-left: 0; }
+    .step { border-left: 1px solid var(--fog); }
+    .step:nth-child(2n+1) { border-left: 0; }
+  }
+
+  .foot-note { font-family: var(--font-mono); font-size: 10.5px; line-height: 1.7; color: var(--fg3); letter-spacing: 0.02em; margin-top: 36px; max-width: 96ch; padding-top: 18px; border-top: 1px solid var(--fog); }
+  .foot-note .sig { color: var(--signal); }
+  .foot-note b { color: var(--ink); font-weight: var(--fw-bold); }
+
+  /* zone key for the matrix */
+  .zonekey { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 18px; }
+  .zk { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fg2); }
+  .zk.sig { color: var(--signal); }
+  .zsw { width: 13px; height: 13px; flex: 0 0 auto; border: 1px solid var(--fog); }
+  .zsw.under2 { background: rgba(214,74,31,0.10); border-color: rgba(214,74,31,0.4); }
+  .zsw.over { background: var(--bone); }
+  .zsw.line { background: none; border: 0; border-top: 1.5px dashed var(--ash); height: 0; width: 16px; }
+
+  /* the five (crowned set) */
+  .thefive { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: -16px 0 40px; padding: 16px 18px; border: 1px solid var(--signal); background: var(--paper); }
+  .thefive .tf-lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); margin-right: 6px; }
+  .tf-chip { display: inline-flex; align-items: center; gap: 8px; background: var(--paper); border: 1px solid var(--fog); padding: 7px 11px; cursor: pointer; font-family: var(--font-sans); color: inherit; transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
+  .tf-chip:hover, .tf-chip.on { border-color: var(--signal); background: var(--bone); }
+  .tf-chip .tf-r { font-family: var(--font-mono); font-size: 10px; color: var(--signal); }
+  .tf-chip .tf-n { font-size: 12.5px; font-weight: var(--fw-medium); letter-spacing: -0.005em; }
+
+  /* meaningful exit */
+  .handoff { border-top: var(--masthead-rule) solid var(--ink); }
+  .handoff-in { max-width: var(--max-content); margin: 0 auto; padding: 30px var(--gutter) 52px; display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: start; }
+  .handoff .ho-k { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--signal); }
+  .handoff .ho-l h2 { font-size: clamp(22px, 2.6vw, 32px); font-weight: var(--fw-black); letter-spacing: -0.03em; line-height: 1.04; margin: 12px 0 14px; max-width: 22ch; }
+  .handoff .ho-l p { font-size: 14px; line-height: 1.6; color: var(--fg2); max-width: 50ch; }
+  .handoff .ho-l p b { color: var(--ink); font-weight: var(--fw-medium); }
+  .ho-back { display: inline-block; margin-top: 16px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
+  .ho-back:hover { color: var(--signal); border-color: var(--signal); text-decoration: none; }
+  .ho-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+  .ho-list a { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--fog); text-decoration: none; }
+  .ho-list a:hover { text-decoration: none; }
+  .ho-list a .hn { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; color: var(--fg2); }
+  .ho-list a:hover .hn { color: var(--signal); }
+  .ho-list a .ht { font-size: 14px; font-weight: var(--fw-medium); color: var(--ink); line-height: 1.25; }
+  .ho-list a:hover .ht { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  .ho-list a .hx { display: block; font-size: 12px; color: var(--fg2); font-weight: var(--fw-regular); margin-top: 2px; line-height: 1.35; }
+  .ho-list a.is-here { opacity: 0.5; }
+  .ho-list a.is-here .ht { text-decoration: none; }
+  @media (max-width: 720px) { .handoff-in { grid-template-columns: 1fr; gap: 24px; } .ho-list { grid-template-columns: 1fr; } }
+
+  .fadein { opacity: 1; }
+  @media (prefers-reduced-motion: no-preference) {
+    .fadein { animation: fi var(--dur-slow) var(--ease) both; }
+    @keyframes fi { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  }
+</style>
+</head>
+<body>
+  <div class="masthead">
+    <span class="wm">DARK HORSE WORKS</span>
+    <a class="nav-back" href="../index.html">← all seven lenses</a>
+    <span class="ref">Concept 06 / The Opportunity · ODI</span>
+  </div>
+
+  <div class="shell">
+    <div class="head fadein">
+      <div class="eyebrow-row">
+        <span class="eyebrow">The Opportunity</span>
+        <span class="eyebrow" style="color:var(--signal)">Outcome-Driven Innovation</span>
+      </div>
+      <h1>Where the unmet demand actually is.</h1>
+      <div class="sub">The same interview, run through the ODI prioritization. Twenty-four desired outcomes, each scored on importance and satisfaction, plotted as a landscape, so the under-served separate cleanly from the well-served. Then mapped back onto the jobs they belong to.</div>
+      <div class="legend" id="legend"></div>
+      <div class="viewswitch" role="group" aria-label="View">
+        <button data-view="land" class="on">Landscape</button>
+        <button data-view="jobs">Job maps</button>
+      </div>
+    </div>
+
+    <!-- ================= LANDSCAPE ================= -->
+    <div class="view view-land" id="view-land">
+      <section class="summary fadein" id="summary"></section>
+      <div class="thefive" id="thefive"></div>
+
+      <div class="land-grid">
+        <div class="land-l">
+          <div class="panel-eyebrow"><span class="pt">The landscape</span></div>
+          <div class="panel-h">Importance against satisfaction</div>
+          <div class="panel-sub">Each outcome sits where its importance meets how well today's workflow satisfies it. Below the served line, important but unsatisfied, is open opportunity. Above it, the workflow already does enough.</div>
+
+          <div class="filters" id="filters"></div>
+
+          <div class="zonekey">
+            <span class="zk sig"><span class="zsw under2"></span>Open opportunity · important, unsatisfied (below the line)</span>
+            <span class="zk"><span class="zsw line"></span>Served · satisfaction meets importance</span>
+            <span class="zk"><span class="zsw over"></span>Over-served · the workflow already does enough</span>
+          </div>
+
+          <div class="matrix-wrap">
+            <div class="mx">
+              <div class="mx-ylab">Satisfaction with current workflow →</div>
+              <div class="mx-plot">
+                <div class="cells" id="cells"></div>
+                <svg class="mx-diag" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                  <line x1="0" y1="100" x2="100" y2="0"></line>
+                </svg>
+                <span class="dlab" style="right:10px; top:8px;">Served line · satisfaction = importance</span>
+              </div>
+              <div class="mx-xlab">Importance →</div>
+            </div>
+          </div>
+
+          <!-- ranked list -->
+          <div class="ranked">
+            <div class="rk-bar">
+              <div>
+                <div class="panel-eyebrow"><span class="pt">The ranking</span></div>
+                <div class="panel-h" id="rkTitle">Twenty-four outcomes, by opportunity</div>
+              </div>
+              <div class="sortctl" role="group" aria-label="Rank by">
+                <span class="sortlbl">Rank by</span>
+                <button data-mode="opp" class="on">Opportunity</button>
+                <button data-mode="gap">Ability gap</button>
+                <button data-mode="jcw">Job contribution</button>
+              </div>
+            </div>
+            <div class="rk-head">
+              <span>Rank</span>
+              <span>Outcome</span>
+              <span class="rh-scores">Imp · Sat · Able</span>
+              <span class="rh-r">Opp.</span>
+              <span class="rh-r rh-gap">Gap</span>
+            </div>
+            <div id="rkRows"></div>
+          </div>
+        </div>
+
+        <!-- detail panel -->
+        <aside class="detail fadein" id="detail">
+          <div class="fd-empty">Select an outcome<br>from the landscape or the ranking<br>to read its score and evidence.</div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- ================= JOB MAPS ================= -->
+    <div class="view view-jobs" id="view-jobs" hidden>
+      <div class="jobs-head">
+        <div class="panel-eyebrow"><span class="pt">The job maps</span></div>
+        <div class="panel-h">Six jobs, eight universal steps</div>
+        <div class="jobs-intro">Every outcome belongs to a step of a job. Laid out this way, the opportunity stops being a list and becomes a place: administering the product, where prepare and execute carry the heaviest unmet demand.</div>
+      </div>
+      <div id="jobs"></div>
+      <div class="foot-note" id="jobsFoot"></div>
+    </div>
+
+    <div class="foot-note" id="landFoot"></div>
+  </div>
+
+  <section class="handoff">
+    <div class="handoff-in">
+      <div class="ho-l">
+        <div class="ho-k">After the demand read</div>
+        <h2>You’ve seen where the demand is. Now place it in the verdict.</h2>
+        <p>This lens scores twenty-four outcomes and finds the top-opportunity set. They cluster in administering the product: the same <b>upstream authorship</b> every other lens names.</p>
+        <a class="ho-back" href="../index.html">Back to all seven lenses and the verdict →</a>
+      </div>
+      <nav class="ho-list">
+        <a href="the-session.html"><span class="hn">01</span><span><span class="ht">The Session</span><span class="hx">Chronology · the raw tape</span></span></a>
+        <a href="the-constellation.html"><span class="hn">02</span><span><span class="ht">The Constellation</span><span class="hx">Relation · how the narratives pull</span></span></a>
+        <a href="the-shift.html"><span class="hn">03</span><span><span class="ht">The Shift</span><span class="hx">Transformation · which change is worth making</span></span></a>
+        <a href="the-ledger.html"><span class="hn">04</span><span><span class="ht">The Ledger</span><span class="hx">Argument · the skill to build</span></span></a>
+        <a href="the-keystone.html"><span class="hn">05</span><span><span class="ht">The Keystone</span><span class="hx">Leverage · the one move that matters</span></span></a>
+        <a class="is-here" href="the-opportunity.html"><span class="hn">06</span><span><span class="ht">The Opportunity</span><span class="hx">Demand · you are here</span></span></a>
+        <a href="the-casefile.html"><span class="hn">07</span><span><span class="ht">The Casefile</span><span class="hx">Diagnosis · the decision brief</span></span></a>
+      </nav>
+    </div>
+  </section>
+
+  <script src="../crux-data.js"></script>
+  <script src="../odi-data.js"></script>
+  <script>
+  (function () {
+    const D = window.ODI;
+    const ATOMS = (window.RESEARCH && window.RESEARCH.atoms) || {};
+    const SHORT = {
+      OUT001: "Keep up with demand", OUT002: "Thaw & transfer vials", OUT003: "Thaw multiple bags",
+      OUT004: "Administer multi-bag dose", OUT005: "Post-thaw expiry", OUT006: "Stability data coverage",
+      OUT007: "Thaw many vials", OUT008: "Per-vial Gram stains", OUT009: "Vial-thaw reliability",
+      OUT010: "Sponsor variability", OUT011: "Sample pickup deadline", OUT012: "Sponsor understands rules",
+      OUT013: "AABB / CDPH compliance", OUT014: "Workable compromise", OUT015: "Avoid sponsor withdrawal",
+      OUT016: "Correct product received", OUT017: "Arrival inspection effort", OUT018: "Dewar storage limit",
+      OUT019: "Campus distance delay", OUT020: "Instrument validation", OUT021: "Equipment overload",
+      OUT022: "Pump-requirement variability", OUT023: "Non-pump administration", OUT024: "Older-technology effort"
+    };
+    const short = (o) => SHORT[o.id] || o.id;
+    const glyphCls = (o) => D.classes[o.cls].glyph;
+    const isPrio = (o) => o.opp >= 5;
+    const jobName = (id) => (D.jobs.find(j => j.id === id) || {}).name || id;
+
+    /* ---------- legend ---------- */
+    (function () {
+      const order = ["Functional", "Risk", "Consumption", "Organizational"];
+      const counts = {};
+      D.outcomes.forEach(o => counts[o.cls] = (counts[o.cls] || 0) + 1);
+      const items = order.map(c =>
+        `<span class="lg"><span class="gl ${D.classes[c].glyph}"></span>${c}</span>`).join("");
+      document.getElementById("legend").innerHTML =
+        items + `<span class="lg"><span class="gl wand"></span>Top opportunity</span>`;
+    })();
+
+    /* ---------- synthesis band ---------- */
+    (function () {
+      const under = D.outcomes.filter(o => o.served === "under").length;
+      const top = D.topOpportunity.map(short);
+      document.getElementById("summary").innerHTML = `
+        <div class="sum-grid">
+          <div class="sum-l">
+            <div class="eyebrow sum-eyebrow">The finding</div>
+            <div class="sum-title">${D.topOpportunity.length} outcomes carry the demand, and they gather in one place: administering what the sponsor designed.</div>
+            <div class="sum-axis">The opportunity is not spread evenly. It concentrates in one job, getting a multi-container product into the patient: <b>${top.slice(0,4).join(", ")}</b>, and the pull to <b>keep up</b> as volume climbs. Almost all of it is decided upstream, in how the product arrives.</div>
+          </div>
+          <div class="sum-stats">
+            <div class="sum-stat"><span class="k">Desired outcomes scored</span><span class="v">24</span></div>
+            <div class="sum-stat"><span class="k">Under-served · importance &gt; satisfaction</span><span class="v sig">${under}</span></div>
+            <div class="sum-stat"><span class="k">Top-opportunity tier · score 5 of 5</span><span class="v sig">${D.topOpportunity.length}</span></div>
+            <div class="sum-stat"><span class="k">Jobs the outcomes span</span><span class="v">${D.jobs.length}</span></div>
+          </div>
+        </div>`;
+    })();
+
+    /* ---------- filters ---------- */
+    const activeClasses = new Set(Object.keys(D.classes));
+    (function () {
+      const counts = {};
+      D.outcomes.forEach(o => counts[o.cls] = (counts[o.cls] || 0) + 1);
+      const el = document.getElementById("filters");
+      el.innerHTML = `<span class="ff-lbl">Classification</span>` +
+        Object.keys(D.classes).map(c =>
+          `<button class="fchip" data-cls="${c}"><span class="cg ${D.classes[c].glyph}"></span>${c} <span class="fc-n">${counts[c]}</span></button>`
+        ).join("");
+      el.querySelectorAll(".fchip").forEach(b => {
+        b.addEventListener("click", () => {
+          const c = b.dataset.cls;
+          if (activeClasses.has(c)) { activeClasses.delete(c); b.classList.add("off"); }
+          else { activeClasses.add(c); b.classList.remove("off"); }
+          applyFilter();
+        });
+      });
+    })();
+    function applyFilter() {
+      document.querySelectorAll("[data-oid]").forEach(node => {
+        const o = D.byId(node.dataset.oid);
+        node.classList.toggle("dim", o && !activeClasses.has(o.cls));
+      });
+    }
+
+    /* ---------- detail panel ---------- */
+    let selected = null;
+    const seg = (val, cls) => `<span class="seg ${cls}">` +
+      [1,2,3].map(i => `<i class="${i <= val ? 'on' : ''}"></i>`).join("") + `</span>`;
+    function renderDetail(o) {
+      const det = document.getElementById("detail");
+      if (!o) { det.innerHTML = `<div class="fd-empty">Select an outcome<br>from the landscape or the ranking<br>to read its score and evidence.</div>`; return; }
+      const prio = isPrio(o);
+      const bar = (label, val, lowgood) => `
+        <div class="fd-bar ${lowgood ? 'lowgood' : ''}">
+          <span class="bl">${label}</span>
+          <span class="bt">${[1,2,3].map(i => `<i class="${i <= val ? 'on' : ''}"></i>`).join("")}</span>
+          <span class="bv">${D.scale[val]}</span>
+        </div>`;
+      const ev = o.ev.map(q => `<div class="fd-q">“${q.t}”<span class="cite">${q.src}</span></div>`).join("");
+      det.innerHTML = `<div class="fd-in">
+        <div class="fd-top">
+          <span class="cg ${glyphCls(o)}"></span>${o.cls}
+          ${prio ? `<span class="fd-prio">Top opportunity</span>` : `<span class="fd-rank">Rank ${o.rank} of 24</span>`}
+        </div>
+        <div class="fd-name">${o.n}</div>
+        <div class="fd-class">${o.id} · ${D.classes[o.cls].blurb}</div>
+
+        <div class="fd-metrics">
+          <div class="fd-metric ${prio ? 'prio' : ''}">
+            <div class="ml">Opportunity</div>
+            <div class="mv">${o.opp.toFixed(1)}</div>
+            <div class="mf">Imp + max(Imp − Sat, 0)</div>
+          </div>
+          <div class="fd-metric">
+            <div class="ml">Ability gap</div>
+            <div class="mv">${o.gap > 0 ? '+' : ''}${o.gap}</div>
+            <div class="mf">Importance − Ability</div>
+          </div>
+        </div>
+
+        <div class="fd-bars">
+          ${bar('Desire', o.d)}
+          ${bar('Importance', o.i)}
+          ${bar('Satisfaction', o.s, true)}
+          ${bar('Ability', o.a, true)}
+          ${bar('Job contribution', o.j)}
+        </div>
+
+        <div class="fd-axis">${o.why}</div>
+        <div class="fd-ev">${ev}</div>
+
+        <div class="fd-job">
+          <div class="jl">Belongs to</div>
+          <div class="jv">${jobName(o.job)}</div>
+          <div class="jstep">${o.step} step</div>
+        </div>
+      </div>`;
+    }
+    function select(id) {
+      selected = id;
+      renderDetail(D.byId(id));
+      document.querySelectorAll("[data-oid]").forEach(n => n.classList.toggle("on", n.dataset.oid === id));
+    }
+
+    /* ---------- matrix ---------- */
+    (function () {
+      const cells = document.getElementById("cells");
+      // rows: satisfaction 3,2,1 (top→bottom); cols: importance 1,2,3 (left→right)
+      let html = "";
+      for (let sat = 3; sat >= 1; sat--) {
+        for (let imp = 1; imp <= 3; imp++) {
+          const opp = imp + Math.max(imp - sat, 0);
+          const here = D.outcomes.filter(o => o.i === imp && o.s === sat).sort((a,b)=>a.rank-b.rank);
+          let cls = "cell";
+          if (imp > sat) cls += (imp - sat >= 2) ? " under2" : " under1";
+          else if (imp < sat) cls += " over";
+          const chips = here.map(o => `
+            <button class="chip ${isPrio(o) ? 'prio' : ''}" data-oid="${o.id}">
+              <span class="cg ${glyphCls(o)}"></span>
+              <span class="crank">${o.rank}</span>
+              <span class="cname">${short(o)}</span>
+            </button>`).join("");
+          html += `<div class="${cls}"><span class="cell-opp">Opp ${opp}</span><div class="cell-chips">${chips}</div></div>`;
+        }
+      }
+      cells.innerHTML = html;
+      cells.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => select(c.dataset.oid)));
+    })();
+
+    /* ---------- ranked list ---------- */
+    let sortMode = "opp";
+    const sorters = {
+      opp: (a, b) => b.opp - a.opp || b.gap - a.gap || b.j - a.j || b.d - a.d,
+      gap: (a, b) => b.gap - a.gap || b.opp - a.opp || b.j - a.j,
+      jcw: (a, b) => b.j - a.j || b.opp - a.opp || b.gap - a.gap
+    };
+    const RK_TITLES = {
+      opp: "Twenty-four outcomes, by opportunity",
+      gap: "Twenty-four outcomes, by ability gap",
+      jcw: "Twenty-four outcomes, by job contribution"
+    };
+    function renderRows() {
+      const rows = D.outcomes.slice().sort(sorters[sortMode]);
+      const wrap = document.getElementById("rkRows");
+      wrap.innerHTML = rows.map(o => {
+        const gapCls = o.gap > 0 ? "pos" : o.gap < 0 ? "neg" : "";
+        return `<button class="rk-row ${isPrio(o) ? 'prio' : ''}" data-oid="${o.id}">
+          <span class="rk-rank">${String(o.rank).padStart(2,'0')}</span>
+          <span class="rk-name">
+            <span class="cg ${glyphCls(o)}"></span>
+            <span><span class="nm">${short(o)}</span> · <span class="cls">${o.cls}</span></span>
+          </span>
+          <span class="scores">
+            <span class="scell"><span class="sl">Imp</span>${seg(o.i,'imp')}</span>
+            <span class="scell"><span class="sl">Sat</span>${seg(o.s,'sat')}</span>
+            <span class="scell"><span class="sl">Able</span>${seg(o.a,'abl')}</span>
+          </span>
+          <span class="rk-opp"><span class="opp-badge">${o.opp.toFixed(1)}</span></span>
+          <span class="rk-gap ${gapCls}">${o.gap > 0 ? '+' : ''}${o.gap}</span>
+        </button>`;
+      }).join("");
+      wrap.querySelectorAll(".rk-row").forEach(r => r.addEventListener("click", () => select(r.dataset.oid)));
+      if (selected) document.querySelectorAll("[data-oid]").forEach(n => n.classList.toggle("on", n.dataset.oid === selected));
+      document.getElementById("rkTitle").textContent = RK_TITLES[sortMode];
+      applyFilter();
+    }
+    document.querySelectorAll(".sortctl button").forEach(b => {
+      b.addEventListener("click", () => {
+        document.querySelectorAll(".sortctl button").forEach(x => x.classList.toggle("on", x === b));
+        sortMode = b.dataset.mode;
+        renderRows();
+      });
+    });
+    /* ---------- the five (crown the top-opportunity set) ---------- */
+    (function () {
+      const five = D.topOpportunity;
+      const el = document.getElementById("thefive");
+      if (!el) return;
+      el.innerHTML = `<span class="tf-lbl">Top opportunity</span>` + five.map(o =>
+        `<button class="tf-chip" data-oid="${o.id}"><span class="cg ${glyphCls(o)}"></span><span class="tf-r">${String(o.rank).padStart(2,'0')}</span><span class="tf-n">${short(o)}</span></button>`).join("");
+      el.querySelectorAll(".tf-chip").forEach(c => c.addEventListener("click", () => select(c.dataset.oid)));
+    })();
+
+    renderRows();
+
+    /* ---------- job maps ---------- */
+    (function () {
+      const wrap = document.getElementById("jobs");
+      wrap.innerHTML = D.jobs.map((j, ji) => {
+        const total = j.outcomes.length;
+        const prioCount = j.outcomes.filter(isPrio).length;
+        const steps = j.map.map((m, si) => {
+          const hot = m.outcomes.some(isPrio);
+          const outs = m.outcomes.length
+            ? `<div class="step-outs">` + m.outcomes.map(o => `
+                <button class="chip ${isPrio(o) ? 'prio' : ''}" data-oid="${o.id}">
+                  <span class="cg ${glyphCls(o)}"></span>
+                  <span class="crank">${o.rank}</span>
+                  <span class="cname">${short(o)}</span>
+                </button>`).join("") + `</div>`
+            : `<div class="step-empty">·</div>`;
+          return `<div class="step ${hot ? 'hot' : ''}">
+            <div class="step-n">${String(si + 1).padStart(2,'0')}</div>
+            <div class="step-name">${m.step}</div>
+            <div class="step-desc">${m.desc}</div>
+            ${outs}
+          </div>`;
+        }).join("");
+        return `<section class="job">
+          <div class="job-head">
+            <span class="job-id">${String(ji + 1).padStart(2,'0')}</span>
+            <span class="job-name">${j.name}</span>
+            <span class="job-meta">
+              <span>${total} outcome${total!==1?'s':''}</span>
+              ${prioCount ? `<span class="sig"><b>${prioCount}</b> top-opportunity</span>` : ''}
+              <span>conf <b>${j.conf}</b></span>
+            </span>
+          </div>
+          <div class="job-actor">${j.actor}</div>
+          <div class="track">${steps}</div>
+        </section>`;
+      }).join("");
+      wrap.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+        select(c.dataset.oid);
+        document.querySelector('.viewswitch button[data-view="land"]').click();
+        const det = document.getElementById("detail");
+        window.scrollTo({ top: det.getBoundingClientRect().top + window.scrollY - 20, behavior: "smooth" });
+      }));
+    })();
+
+    /* ---------- footnotes ---------- */
+    document.getElementById("landFoot").innerHTML =
+      `<b>How to read it.</b> Opportunity = importance + max(importance − satisfaction, 0), on a 1–3 scale, so 5.0 is the ceiling. ` +
+      `Shape encodes the outcome's classification; a <span class="sig">signal</span> mark flags the top-opportunity tier. ` +
+      `Scores are estimated from a single interview and the supporting atoms: <b>evidence-based hypotheses, not a quantified ODI survey.</b>`;
+    document.getElementById("jobsFoot").innerHTML =
+      `<b>On coverage.</b> Empty steps are honest: this interview did not surface outcomes for every step of every job. ` +
+      `The concentration in <b>prepare</b> and <b>execute</b> on “Prepare and administer cell therapy products” is the same upstream authorship the leverage read names as rank 1.`;
+
+    /* ---------- view switch ---------- */
+    document.querySelectorAll(".viewswitch button").forEach(b => {
+      b.addEventListener("click", () => {
+        const v = b.dataset.view;
+        document.querySelectorAll(".viewswitch button").forEach(x => x.classList.toggle("on", x === b));
+        document.getElementById("view-land").hidden = v !== "land";
+        document.getElementById("view-jobs").hidden = v !== "jobs";
+        document.getElementById("landFoot").style.display = v === "land" ? "" : "none";
+      });
+    });
+    document.getElementById("landFoot").style.display = "";
+  })();
+  </script>
+</body>
+</html>
